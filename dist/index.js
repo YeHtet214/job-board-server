@@ -16,6 +16,7 @@ import errorHandler from './middleware/error.middleware.js';
 // Import Passport config
 import './config/passport.config.js';
 const app = express();
+const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
@@ -30,7 +31,7 @@ const limiter = rateLimit({
 app.use(limiter);
 // Initialize session
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'your-session-secret',
+    secret: process.env.SESSION_SECRET || 'secretJobBoardKey',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -54,7 +55,7 @@ app.use(errorHandler);
 export default app;
 // Only run the server if not in production mode
 if (process.env.NODE_ENV !== 'production') {
-    app.listen(3000, () => {
-        console.log('Server is running on http://localhost:3000');
+    app.listen(port, () => {
+        console.log('Server is running on http://localhost:' + port);
     });
 }

@@ -23,6 +23,7 @@
     "types/**/*"                          // Include all files inside the 'types' folder
   ],
   "exclude": [
-    "node_modules"                       // Exclude the 'node_modules' folder from the compilation
+    "node_modules",
+    "dist"                       // Exclude the 'node_modules' folder from the compilation
   ]
 }
