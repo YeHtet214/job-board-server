@@ -1,0 +1,188 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  passwordHash    String?
+  firstName       String
+  lastName        String?
+  role            UserRole
+  phone           String?
+  profile         Profile?
+  googleId        String?
+  isEmailVerified Boolean          @default(false)
+  emailVerificationToken String?
+  resetPasswordToken String?
+  resetPasswordExpiry DateTime?
+  refreshTokens   RefreshToken[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  companies       Company[]
+  postedJobs      Job[]            @relation("PostedJobs")
+  applications    JobApplication[]
+  savedJobs       SavedJob[]
+  jobViews        JobView[]
+
+  @@index([email])
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String   @unique  // @unique ensures one-to-one relationship
+  bio         String
+  skills      String[]
+  education   Json     // Stores Education[] as JSON
+  experience  Json     // Stores Experience[] as JSON
+  resumeUrl   String?  // URL to the user's uploaded resume
+  profileImageURL String?
+  linkedInUrl String?
+  githubUrl   String?
+  portfolioUrl String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum UserRole {
+  EMPLOYER
+  JOBSEEKER
+}
+
+model Company {
+  id          String   @id @default(uuid())
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId     String   @unique
+  name        String
+  description String
+  logo        String?
+  website     String?
+  location    String
+  industry    String
+  foundedYear String
+  size        String?
+  jobs        Job[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+model Job {
+  id              String           @id @default(uuid())
+  postedBy        User             @relation("PostedJobs", fields: [postedById], references: [id], onDelete: Cascade)
+  postedById      String
+  company         Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String
+  title           String
+  description     String
+  location        String?
+  type            JobType
+  salaryMin       Int?
+  salaryMax       Int?
+  requiredSkills  String[]
+  experienceLevel String?
+  isActive        Boolean          @default(true)
+  expiresAt       DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  applications    JobApplication[]
+  savedBy         SavedJob[]
+  viewedBy        JobView[]
+
+  @@index([postedById])
+  @@index([companyId])
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+  REMOTE
+}
+
+model JobApplication {
+  id           String            @id @default(uuid())
+  job          Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId        String
+  applicant    User              @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  applicantId  String
+  resumeUrl    String?
+  acceptTerms  Boolean
+  additionalInfo String?
+  coverLetter  String?
+  status       ApplicationStatus @default(PENDING)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@unique([jobId, applicantId])
+  @@index([jobId])
+  @@index([applicantId])
+}
+
+enum ApplicationStatus {
+  PENDING
+  INTERVIEW
+  ACCEPTED
+  REJECTED
+}
+
+model SavedJob {
+  id        String   @id @default(uuid())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, userId])
+  @@index([userId])
+}
+
+model JobView {
+  id        String   @id @default(uuid())
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId     String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([jobId])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  
+  @@index([userId])
+  @@index([token])
+}
+
+model BlacklistedToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  @@index([token])
+}

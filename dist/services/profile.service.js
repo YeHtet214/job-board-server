@@ -1,0 +1,173 @@
+import { PrismaClient } from '@prisma/client';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
+const prisma = new PrismaClient();
+export const fetchProfile = async (userId) => {
+    const profile = await prisma.profile.findUnique({ where: { userId } });
+    console.log("PROFILE FETCHING: ", profile);
+    if (profile) {
+        // Convert JSON back to typed arrays when returning
+        return {
+            ...profile,
+            education: profile.education,
+            experience: profile.experience
+        };
+    }
+    return profile;
+};
+export const createNewProfile = async (profileData) => {
+    try {
+        const existingProfile = await fetchProfile(profileData.userId);
+        if (existingProfile) {
+            return updateExistingProfile(profileData.userId, profileData);
+        }
+        // Create a new profile with properly serialized JSON fields
+        const profile = await prisma.profile.create({
+            data: {
+                userId: profileData.userId,
+                bio: profileData.bio,
+                skills: profileData.skills,
+                education: profileData.education,
+                experience: profileData.experience,
+                resumeUrl: profileData.resumeUrl,
+                profileImageURL: profileData.profileImageURL,
+                linkedInUrl: profileData.linkedInUrl,
+                githubUrl: profileData.githubUrl,
+                portfolioUrl: profileData.portfolioUrl
+            }
+        });
+        // Convert JSON back to typed arrays when returning
+        return {
+            ...profile,
+            education: profile.education,
+            experience: profile.experience
+        };
+    }
+    catch (error) {
+        const customError = new Error(error instanceof Error ? error.message : 'Failed to create profile');
+        customError.status = 400;
+        throw customError;
+    }
+};
+export const updateExistingProfile = async (userId, data) => {
+    try {
+        const existingProfile = await fetchProfile(userId);
+        if (!existingProfile) {
+            const error = new Error("Profile not found");
+            error.status = 404;
+            throw error;
+        }
+        console.log("IMAGE URL : ", data['profileImageURL']);
+        console.log("IMAGE URL IN AS OBJECT: ", data);
+        // Prepare update data with proper handling of JSON fields
+        const updateData = {};
+        // Only include fields that are present in the update data
+        if (data.bio !== undefined)
+            updateData.bio = data.bio;
+        if (data.skills !== undefined)
+            updateData.skills = data.skills;
+        if (data.education !== undefined)
+            updateData.education = data.education;
+        if (data.experience !== undefined)
+            updateData.experience = data.experience;
+        if (data.resumeUrl !== undefined)
+            updateData.resumeUrl = data.resumeUrl;
+        if (data.profileImageURL !== undefined)
+            updateData.profileImageURL = data.profileImageURL;
+        if (data.linkedInUrl !== undefined)
+            updateData.linkedInUrl = data.linkedInUrl;
+        if (data.githubUrl !== undefined)
+            updateData.githubUrl = data.githubUrl;
+        if (data.portfolioUrl !== undefined)
+            updateData.portfolioUrl = data.portfolioUrl;
+        console.log("The PROFILE data to be updated: ", updateData);
+        const profile = await prisma.profile.update({
+            where: { userId },
+            data: updateData
+        });
+        // Convert JSON back to typed arrays when returning
+        return {
+            ...profile,
+            education: profile.education,
+            experience: profile.experience
+        };
+    }
+    catch (error) {
+        const customError = new Error(error instanceof Error ? error.message : 'Failed to update profile');
+        customError.status = 400;
+        throw customError;
+    }
+};
+export const deleteExistingProfile = async (userId) => {
+    const existingProfile = await fetchProfile(userId);
+    if (!existingProfile) {
+        const error = new Error("Profile not found");
+        error.status = 404;
+        throw error;
+    }
+    const profile = await prisma.profile.delete({ where: { userId } });
+    return profile;
+};
+export const uploadResume = async (userId, file) => {
+    try {
+        // Check if profile exists
+        const existingProfile = await fetchProfile(userId);
+        if (!existingProfile) {
+            const error = new Error("Profile not found");
+            error.status = 404;
+            throw error;
+        }
+        // Validate file
+        if (!file) {
+            const error = new Error("No file provided");
+            error.status = 400;
+            throw error;
+        }
+        // Validate file type
+        const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+            const error = new Error("Only PDF and Word documents are allowed");
+            error.status = 400;
+            throw error;
+        }
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+        if (file.size > maxSize) {
+            const error = new Error("File size exceeds 5MB limit");
+            error.status = 400;
+            throw error;
+        }
+        // Create uploads directory if it doesn't exist
+        const uploadsDir = path.join(__dirname, '../../uploads');
+        const userUploadsDir = path.join(uploadsDir, 'resumes', userId);
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        if (!fs.existsSync(path.join(uploadsDir, 'resumes'))) {
+            fs.mkdirSync(path.join(uploadsDir, 'resumes'), { recursive: true });
+        }
+        if (!fs.existsSync(userUploadsDir)) {
+            fs.mkdirSync(userUploadsDir, { recursive: true });
+        }
+        // Generate unique filename using crypto instead of uuid
+        const fileExtension = path.extname(file.originalname);
+        const fileName = `${crypto.randomUUID()}${fileExtension}`;
+        const filePath = path.join(userUploadsDir, fileName);
+        // Write file to disk
+        fs.writeFileSync(filePath, file.buffer);
+        // Generate URL for the file
+        const resumeUrl = `/uploads/resumes/${userId}/${fileName}`;
+        // Update user profile with resume URL
+        await prisma.profile.update({
+            where: { userId },
+            data: { resumeUrl }
+        });
+        return resumeUrl;
+    }
+    catch (error) {
+        const customError = new Error(error instanceof Error ? error.message : 'Failed to upload resume');
+        customError.status = 400;
+        throw customError;
+    }
+};
