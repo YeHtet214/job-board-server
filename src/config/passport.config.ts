@@ -13,7 +13,12 @@ passport.deserializeUser(async (id: string, done) => {
     const user = await prisma.user.findUnique({
       where: { id }
     });
-    done(null, user);
+    if (user) {
+      const authenticatedUser = { userId: user.id, ...user };
+      done(null, authenticatedUser);
+    } else {
+      done(null, null);
+    }
   } catch (error) {
     done(error, null);
   }
@@ -48,7 +53,7 @@ passport.use(
           });
         }
 
-        return done(null, user);
+        return done(null, { userId: user.id, ...user });
       } catch (error) {
         return done(error as Error, undefined);
       }

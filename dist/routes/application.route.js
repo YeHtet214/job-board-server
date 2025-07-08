@@ -4,9 +4,10 @@ import { createNewApplication, deleteApplication, getAllApplicationsByUserId, ge
 import { applicationValidation } from "../middleware/validation/application.validation.js";
 import { uploadResume } from "../utils/multer.js";
 const applicationRouter = Router();
-applicationRouter.get('/users/:userId', authorize, getAllApplicationsByUserId);
-applicationRouter.get('/:id', authorize, applicationValidation.getById, getApplicationById);
-applicationRouter.post('/jobs/:jobId', authorize, uploadResume.single('resume'), applicationValidation.create, createNewApplication);
-applicationRouter.put('/:id', authorize, uploadResume.single('resume'), applicationValidation.update, updateApplication);
-applicationRouter.delete('/:id', authorize, applicationValidation.delete, deleteApplication);
+applicationRouter.use(authorize);
+applicationRouter.get('/users/:userId', getAllApplicationsByUserId);
+applicationRouter.get('/:id', applicationValidation.getById, getApplicationById);
+applicationRouter.post('/jobs/:jobId', uploadResume.single('resume'), applicationValidation.create, createNewApplication);
+applicationRouter.put('/:id', uploadResume.single('resume'), applicationValidation.update, updateApplication);
+applicationRouter.delete('/:id', applicationValidation.delete, deleteApplication);
 export default applicationRouter;

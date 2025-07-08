@@ -1,4 +1,3 @@
-import { UserRole } from '@prisma/client';
 import prisma from '../prisma/client.js';
 /**
  * Middleware to check if a user has the required role
@@ -40,8 +39,8 @@ export const checkRole = (roles) => {
 /**
  * Middleware specifically for employer-only routes
  */
-export const employerOnly = checkRole([UserRole.EMPLOYER]);
+export const employerOnly = checkRole(['EMPLOYER']);
 /**
  * Middleware specifically for jobseeker-only routes
  */
-export const jobseekerOnly = checkRole([UserRole.JOBSEEKER]);
+export const jobseekerOnly = checkRole(['JOBSEEKER']);

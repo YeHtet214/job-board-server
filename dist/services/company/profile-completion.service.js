@@ -1,5 +1,4 @@
 import prisma from '../../prisma/client.js';
-import { UserRole } from '@prisma/client';
 import { UnauthorizedError } from '../../middleware/errorHandler.js';
 /**
  * Calculates job seeker profile completion percentage
@@ -84,7 +83,7 @@ export const getCompanyProfileCompletion = async (userId) => {
         where: { id: userId },
         select: { role: true }
     });
-    if (!user || user.role !== UserRole.EMPLOYER) {
+    if (!user || user.role !== "EMPLOYER") {
         throw new UnauthorizedError('User is not an employer');
     }
     // Get the company for this employer

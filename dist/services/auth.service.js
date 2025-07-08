@@ -111,7 +111,7 @@ export const userSignIn = async (email, password) => {
         throw new BadRequestError('Email and password are required');
     }
     const user = await checkUserExists(email);
-    if (!user) {
+    if (!user || !user.passwordHash) {
         throw new UnauthorizedError('Invalid credentials');
     }
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);

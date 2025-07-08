@@ -93,10 +93,9 @@ export const updateApplicationById = async (applicationData) => {
         data: {
             resumeUrl: applicationData.resumeUrl,
             coverLetter: applicationData.coverLetter,
-            status: applicationData.status
+            status: applicationData.status || application.status,
         }
     });
-    console.log("Updated data; ", updatedApplication);
     return updatedApplication;
 };
 export const deleteExistingApplication = async (id) => {

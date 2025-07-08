@@ -63,7 +63,7 @@ export const getJobSeekerActivity = async (userId) => {
     });
     // Combine and sort all activities
     const allActivities = [
-        ...views.map(view => ({
+        ...views.map((view) => ({
             id: view.id,
             type: 'VIEW',
             timestamp: view.createdAt,
@@ -71,7 +71,7 @@ export const getJobSeekerActivity = async (userId) => {
             relatedEntity: view.job.company.name,
             entityId: view.job.id
         })),
-        ...applications.map(app => ({
+        ...applications.map((app) => ({
             id: app.id,
             type: 'APPLY',
             timestamp: app.createdAt,
@@ -79,7 +79,7 @@ export const getJobSeekerActivity = async (userId) => {
             relatedEntity: app.job.company.name,
             entityId: app.job.id
         })),
-        ...saves.map(save => ({
+        ...saves.map((save) => ({
             id: save.id,
             type: 'SAVE',
             timestamp: save.createdAt,

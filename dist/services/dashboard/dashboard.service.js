@@ -1,5 +1,4 @@
 import prisma from '../../prisma/client.js';
-import { UserRole } from '@prisma/client';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
 import { getJobSeekerActivity, getEmployerActivity } from './activity.service.js';
 import { calculateJobSeekerProfileCompletion } from '../company/profile-completion.service.js';
@@ -19,7 +18,7 @@ export const fetchJobSeekerDashboardData = async (userId) => {
     if (!user) {
         throw new NotFoundError('User not found');
     }
-    if (user.role !== UserRole.JOBSEEKER) {
+    if (user.role !== 'JOBSEEKER') {
         throw new UnauthorizedError('User is not a job seeker');
     }
     // Get applications
@@ -106,7 +105,7 @@ export const fetchEmployerDashboardData = async (userId) => {
     if (!user) {
         throw new NotFoundError('User not found');
     }
-    if (user.role !== UserRole.EMPLOYER) {
+    if (user.role !== 'EMPLOYER') {
         throw new UnauthorizedError('User is not an employer');
     }
     // Get company for this employer

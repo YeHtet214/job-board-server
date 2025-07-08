@@ -10,7 +10,13 @@ passport.deserializeUser(async (id, done) => {
         const user = await prisma.user.findUnique({
             where: { id }
         });
-        done(null, user);
+        if (user) {
+            const authenticatedUser = { userId: user.id, ...user };
+            done(null, authenticatedUser);
+        }
+        else {
+            done(null, null);
+        }
     }
     catch (error) {
         done(error, null);
@@ -40,7 +46,7 @@ passport.use(new GoogleStrategy({
                 }
             });
         }
-        return done(null, user);
+        return done(null, { userId: user.id, ...user });
     }
     catch (error) {
         return done(error, undefined);

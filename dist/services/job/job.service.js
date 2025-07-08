@@ -202,7 +202,7 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
             distinct: ['title'],
             take: limit
         });
-        keywordSuggestions = titleMatches.map(job => job.title);
+        keywordSuggestions = titleMatches.map((jobTitle) => jobTitle.title);
         // If we need more suggestions, search in required skills
         if (keywordSuggestions.length < limit) {
             const skillsMatches = await prisma.job.findMany({
@@ -218,7 +218,7 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
                 take: limit - keywordSuggestions.length
             });
             // Extract skills that match the term
-            const skillSuggestions = skillsMatches.flatMap(job => job.requiredSkills.filter(skill => skill.toLowerCase().includes(term.toLowerCase())));
+            const skillSuggestions = skillsMatches.flatMap((matches) => matches.requiredSkills.filter(skill => skill.toLowerCase().includes(term.toLowerCase())));
             // Add unique skills to suggestions
             keywordSuggestions = [...new Set([...keywordSuggestions, ...skillSuggestions])];
         }
@@ -240,7 +240,7 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
             take: limit
         });
         locationSuggestions = locationMatches
-            .map(job => job.location)
+            .map((location) => location.location)
             .filter(location => location !== null && location !== '');
     }
     // Combine and limit results

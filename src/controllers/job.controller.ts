@@ -12,6 +12,7 @@ import {
 import { RequestWithUser } from '../types/users.type.js';
 import prisma from '../prisma/client.js';
 import { BadRequestError } from '../middleware/errorHandler.js';
+import { JobType } from '@prisma/client';
 
 // Public controllers - no authentication required
 export const getAllJobs = async (req: Request, res: Response, next: NextFunction) => {
@@ -31,11 +32,7 @@ export const getAllJobs = async (req: Request, res: Response, next: NextFunction
         const searchParams: JobSearchParams = {
             keyword: keyword as string,
             location: location as string,
-            jobTypes: Array.isArray(jobTypes) 
-                ? jobTypes as string[] 
-                : jobTypes 
-                    ? [jobTypes as string] 
-                    : [],
+            jobTypes: jobTypes as JobType[],
             experienceLevel: experienceLevel as string,
             page: page ? parseInt(page as string, 10) : 1,
             limit: limit ? parseInt(limit as string, 10) : 10,

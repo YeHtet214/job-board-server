@@ -10,11 +10,7 @@ export const getAllJobs = async (req, res, next) => {
         const searchParams = {
             keyword: keyword,
             location: location,
-            jobTypes: Array.isArray(jobTypes)
-                ? jobTypes
-                : jobTypes
-                    ? [jobTypes]
-                    : [],
+            jobTypes: jobTypes,
             experienceLevel: experienceLevel,
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 10,

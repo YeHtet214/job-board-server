@@ -148,7 +148,7 @@ export const userSignIn = async (email: string, password: string) => {
 
   const user = await checkUserExists(email);
 
-  if (!user) {
+  if (!user || !user.passwordHash) {
     throw new UnauthorizedError('Invalid credentials');
   }
 
