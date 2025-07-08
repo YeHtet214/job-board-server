@@ -20,6 +20,6 @@ dashboardRouter.delete('/jobseeker/applications/:id', jobseekerOnly as RequestHa
 // Employer routes
 dashboardRouter.get('/employer', employerOnly as RequestHandler, getEmployerDashboard as RequestHandler);
 dashboardRouter.put('/employer/applications/:id', employerOnly as RequestHandler, updateApplicationStatusHandler as RequestHandler);
-dashboardRouter.get('/employer/profile-completion', employerOnly as RequestHandler, getCompanyProfile as);
+dashboardRouter.get('/employer/profile-completion', employerOnly as RequestHandler, getCompanyProfile as RequestHandler);
 
 export default dashboardRouter;
