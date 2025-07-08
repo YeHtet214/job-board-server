@@ -1,12 +1,19 @@
 import prisma from '../../prisma/client.js';
 
+export interface ActivityReturnType {
+  id: string;
+  job: { id: string ; title: string; company: { name: string } };
+  userId?: string;
+  createdAt: Date;
+}
+
 /**
  * Gets recent activity for a job seeker
  * @param userId The job seeker user ID
  */
 export const getJobSeekerActivity = async (userId: string) => {
   // Get recent job views
-  const views = await prisma.jobView.findMany({
+  const views: ActivityReturnType[] = await prisma.jobView.findMany({
     where: { userId },
     select: {
       id: true,
@@ -26,7 +33,7 @@ export const getJobSeekerActivity = async (userId: string) => {
   });
 
   // Get recent applications
-  const applications = await prisma.jobApplication.findMany({
+  const applications: ActivityReturnType[] = await prisma.jobApplication.findMany({
     where: { applicantId: userId },
     select: {
       id: true,
@@ -46,7 +53,7 @@ export const getJobSeekerActivity = async (userId: string) => {
   });
 
   // Get recent saved jobs
-  const saves = await prisma.savedJob.findMany({
+  const saves: ActivityReturnType[] = await prisma.savedJob.findMany({
     where: { userId },
     select: {
       id: true,
@@ -67,7 +74,7 @@ export const getJobSeekerActivity = async (userId: string) => {
 
   // Combine and sort all activities
   const allActivities = [
-    ...views.map(view => ({
+    ...views.map((view: ActivityReturnType) => ({
       id: view.id,
       type: 'VIEW' as const,
       timestamp: view.createdAt,
@@ -75,7 +82,7 @@ export const getJobSeekerActivity = async (userId: string) => {
       relatedEntity: view.job.company.name,
       entityId: view.job.id
     })),
-    ...applications.map(app => ({
+    ...applications.map((app: ActivityReturnType) => ({
       id: app.id,
       type: 'APPLY' as const,
       timestamp: app.createdAt,
@@ -83,7 +90,7 @@ export const getJobSeekerActivity = async (userId: string) => {
       relatedEntity: app.job.company.name,
       entityId: app.job.id
     })),
-    ...saves.map(save => ({
+    ...saves.map((save: ActivityReturnType) => ({
       id: save.id,
       type: 'SAVE' as const,
       timestamp: save.createdAt,

@@ -1,7 +1,7 @@
 import prisma from "../../prisma/client.js";
 import { BadRequestError, NotFoundError, ForbiddenError } from "../../middleware/errorHandler.js";
 import { CreateJobDto } from "../../types/job.type.js";
-import { JobType } from "@prisma/client";
+import { JobType } from "../../types/job.type.js";
 import { fetchUserById } from "../user.service.js";
 import { Prisma } from "@prisma/client";
 
@@ -242,7 +242,7 @@ export const getSearchSuggestions = async (
     // Get job title/description suggestions
     if (type === 'keyword' || type === 'all') {
         // First, search for matches in job titles
-        const titleMatches = await prisma.job.findMany({
+        const titleMatches: { title: string }[] = await prisma.job.findMany({
             where: {
                 title: {
                     contains: term,
@@ -257,11 +257,11 @@ export const getSearchSuggestions = async (
             take: limit
         });
 
-        keywordSuggestions = titleMatches.map(job => job.title);
+        keywordSuggestions = titleMatches.map((jobTitle: { title: string }) => jobTitle.title);
 
         // If we need more suggestions, search in required skills
         if (keywordSuggestions.length < limit) {
-            const skillsMatches = await prisma.job.findMany({
+            const skillsMatches: { requiredSkills: string[] }[] = await prisma.job.findMany({
                 where: {
                     requiredSkills: {
                         has: term // This assumes requiredSkills is an array
@@ -275,8 +275,8 @@ export const getSearchSuggestions = async (
             });
 
             // Extract skills that match the term
-            const skillSuggestions = skillsMatches.flatMap(job =>
-                job.requiredSkills.filter(skill =>
+            const skillSuggestions = skillsMatches.flatMap((matches: { requiredSkills: string[] }) =>
+                matches.requiredSkills.filter(skill =>
                     skill.toLowerCase().includes(term.toLowerCase())
                 )
             );
@@ -288,7 +288,7 @@ export const getSearchSuggestions = async (
 
     // Get location suggestions
     if (type === 'location' || type === 'all') {
-        const locationMatches = await prisma.job.findMany({
+        const locationMatches: { location: string | null }[] = await prisma.job.findMany({
             where: {
                 location: {
                     contains: term,
@@ -304,7 +304,7 @@ export const getSearchSuggestions = async (
         });
 
         locationSuggestions = locationMatches
-            .map(job => job.location)
+            .map((location: { location: string | null }) => location.location)
             .filter(location => location !== null && location !== '') as string[];
     }
 
