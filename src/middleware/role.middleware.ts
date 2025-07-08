@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { RequestWithUser } from '../types/users.type.js';
 import { CustomError } from '../types/error.type.js';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../types/users.type.js';
 import prisma from '../prisma/client.js';
 
 /**
@@ -49,9 +49,9 @@ export const checkRole = (roles: UserRole[]) => {
 /**
  * Middleware specifically for employer-only routes
  */
-export const employerOnly = checkRole([UserRole.EMPLOYER]);
+export const employerOnly = checkRole(['EMPLOYER']);
 
 /**
  * Middleware specifically for jobseeker-only routes
  */
-export const jobseekerOnly = checkRole([UserRole.JOBSEEKER]);
+export const jobseekerOnly = checkRole(['JOBSEEKER']);

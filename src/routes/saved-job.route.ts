@@ -12,8 +12,8 @@ import authorize from "../middleware/auth.middleware.js";
 const savedJobRouter = Router();
 
 // All routes require authentication and job seeker role
-savedJobRouter.use(authorize);
-savedJobRouter.use(jobseekerOnly);
+savedJobRouter.use(authorize as RequestHandler);
+savedJobRouter.use(jobseekerOnly as RequestHandler);
 
 // Get all saved jobs for the current user
 savedJobRouter.get('/', getSavedJobsHandler as RequestHandler);

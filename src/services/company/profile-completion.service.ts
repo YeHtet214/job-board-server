@@ -1,5 +1,4 @@
 import prisma from '../../prisma/client.js';
-import { UserRole } from '@prisma/client';
 import { UnauthorizedError } from '../../middleware/errorHandler.js';
 
 /**
@@ -102,7 +101,7 @@ export const getCompanyProfileCompletion = async (userId: string) => {
     select: { role: true }
   });
 
-  if (!user || user.role !== UserRole.EMPLOYER) {
+  if (!user || user.role !== "EMPLOYER") {
     throw new UnauthorizedError('User is not an employer');
   }
 

@@ -1,14 +1,14 @@
 import { getAllUsers, getUserById } from '../controllers/user.controller.js';
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import authorize from '../middleware/auth.middleware.js';
 import { getCurrentUser } from '../controllers/user.controller.js';
 
 const userRouter = Router();
 
-userRouter.get('/me', authorize, getCurrentUser);
+userRouter.get('/me', authorize as RequestHandler, getCurrentUser as RequestHandler);
 
-userRouter.get('/', getAllUsers);
+userRouter.get('/', getAllUsers as RequestHandler);
 
-userRouter.get('/:id', authorize, getUserById);
+userRouter.get('/:id', authorize as RequestHandler, getUserById as RequestHandler);
 
 export default userRouter;

@@ -1,5 +1,12 @@
-import { ApplicationStatus, UserRole } from "@prisma/client";
 import { JobResponse } from "./job.type.js";
+import { UserRole } from "./users.type.js";
+
+enum ApplicationStatus {
+  PENDING,
+  INTERVIEW,
+  ACCEPTED,
+  REJECTED
+}
 
 export interface createApplicationDto {
     jobId: string;
