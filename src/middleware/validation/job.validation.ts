@@ -131,7 +131,7 @@ export const jobValidation = {
       .optional()
       .isArray().withMessage('Job requirements must be an array')
       .custom(requirements => {
-        if (!requirements.every(req => typeof req === 'string')) {
+        if (!requirements.every((requirement: string) => typeof requirement === 'string')) {
           throw new Error('Each requirement must be a string');
         }
         return true;

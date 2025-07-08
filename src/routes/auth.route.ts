@@ -1,10 +1,9 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import passport from 'passport';
 import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, forgotPassword, resetPasswordHandler } from "../controllers/auth.controller.js";
 import authorize from "../middleware/auth.middleware.js";
 import { generateTokens, storeRefreshToken } from "../services/auth.service.js";
 import { FRONTEND_URL } from "../config/env.config.js";
-import { User } from '@prisma/client';
 
 const authRouter = Router();
 
@@ -12,7 +11,7 @@ authRouter.post('/signup', signUp);
 authRouter.post('/signin', signIn);
 authRouter.post('/refresh-token', refresh);
 authRouter.get('/verify-email/:token', verifyEmailToken);
-authRouter.post('/logout', authorize, logout);
+authRouter.post('/logout', authorize as RequestHandler, logout as RequestHandler);
 authRouter.post('/resend-verification', resendVerification);
 authRouter.post('/forgot-password', forgotPassword);
 authRouter.post('/reset-password', resetPasswordHandler);
@@ -26,7 +25,7 @@ authRouter.get('/google/callback', passport.authenticate('google', {
     async (req, res) => {
         try {
             // User will be available from passport
-            const user = req.user as User;
+            const user = req.user;
 
             if (!user || !user.id) {
                 return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);

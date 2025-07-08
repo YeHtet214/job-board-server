@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import {
     getCompanyById,
     createCompany,
@@ -13,18 +13,18 @@ import { employerOnly } from "../middleware/role.middleware.js";
 const companyRouter = Router();
 
 // Public route - anyone can view company details
-companyRouter.get('/', getAllCompanies);
+companyRouter.get('/', getAllCompanies as RequestHandler);
 // Important: Route order matters - specific routes before parameterized routes
 // @ts-ignore - The authorize middleware adds the user property to the request
 companyRouter.get('/my-company', authorize, getCurrentCompany);
 
-companyRouter.get('/:id', getCompanyById);
+companyRouter.get('/:id', getCompanyById as RequestHandler);
 
 // Protected routes - only authenticated employers can perform these actions
-companyRouter.post('/', authorize, employerOnly, createCompany);
+companyRouter.post('/', authorize as RequestHandler, employerOnly as RequestHandler, createCompany as RequestHandler);
 
-companyRouter.put('/:id', authorize, employerOnly, updateCompany);
+companyRouter.put('/:id', authorize as RequestHandler, employerOnly as RequestHandler, updateCompany as RequestHandler);
 
-companyRouter.delete('/:id', authorize, employerOnly, deleteCompany);
+companyRouter.delete('/:id', authorize as RequestHandler, employerOnly as RequestHandler, deleteCompany as RequestHandler);
 
 export default companyRouter;
