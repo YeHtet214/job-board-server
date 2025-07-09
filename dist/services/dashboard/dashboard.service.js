@@ -47,8 +47,8 @@ export const fetchJobSeekerDashboardData = async (userId) => {
     // Get recent activity
     const recentActivity = await getJobSeekerActivity(userId);
     // Calculate stats
-    const interviewCount = applications.filter(app => app.status === 'INTERVIEW').length;
-    const offersCount = applications.filter(app => app.status === 'ACCEPTED').length;
+    const interviewCount = applications.filter((app) => app.status === 'INTERVIEW').length;
+    const offersCount = applications.filter((app) => app.status === 'ACCEPTED').length;
     // Calculate profile completion percentage
     const profileCompletion = await calculateJobSeekerProfileCompletion(userId);
     // Format the data according to frontend expectations
@@ -59,7 +59,7 @@ export const fetchJobSeekerDashboardData = async (userId) => {
             offers: offersCount,
             profileCompletion
         },
-        applications: applications.map(app => ({
+        applications: applications.map((app) => ({
             id: app.id,
             jobTitle: app.job.title,
             companyName: app.job.company.name,
@@ -140,7 +140,7 @@ export const fetchEmployerDashboardData = async (userId) => {
         orderBy: { createdAt: 'desc' }
     });
     // Get applications for the company's jobs
-    const jobIds = jobs.map(job => job.id);
+    const jobIds = jobs.map(job => job.id).filter(Boolean);
     const applications = await prisma.jobApplication.findMany({
         where: {
             jobId: { in: jobIds }
@@ -172,8 +172,8 @@ export const fetchEmployerDashboardData = async (userId) => {
     const profileCompletion = await getCompanyProfileCompletion(userId);
     // Calculate stats
     const activeJobs = jobs.filter(job => job.isActive && (!job.expiresAt || job.expiresAt > new Date())).length;
-    const pendingApplications = applications.filter(app => app.status === 'PENDING').length;
-    const interviewCount = applications.filter(app => app.status === 'INTERVIEW').length;
+    const pendingApplications = applications.filter((app) => app.status === 'PENDING').length;
+    const interviewCount = applications.filter((app) => app.status === 'INTERVIEW').length;
     console.log("Company: ", company);
     // Format the data according to frontend expectations
     return {
@@ -195,18 +195,18 @@ export const fetchEmployerDashboardData = async (userId) => {
             title: job.title,
             location: job.location,
             type: job.type,
-            postedDate: job.createdAt.toISOString(),
+            postedDate: job.createdAt?.toISOString(),
             isActive: job.isActive && (!job.expiresAt || job.expiresAt > new Date()),
-            applicationCount: job._count.applications
+            applicationCount: job._count?.applications
         })),
-        applications: applications.map(app => ({
+        applications: applications.map((app) => ({
             id: app.id,
-            jobTitle: app.job.title,
-            jobId: app.job.id,
-            applicantName: `${app.applicant.firstName} ${app.applicant.lastName}`,
-            applicantId: app.applicant.id,
-            applicantEmail: app.applicant.email,
-            applied: app.createdAt.toISOString(),
+            jobTitle: app.job?.title,
+            jobId: app.job?.id,
+            applicantName: `${app.applicant?.firstName} ${app.applicant?.lastName}`,
+            applicantId: app.applicant?.id,
+            applicantEmail: app.applicant?.email,
+            applied: app.createdAt?.toISOString(),
             status: app.status
         })),
         recentActivity

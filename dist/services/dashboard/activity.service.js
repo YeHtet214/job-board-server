@@ -192,7 +192,7 @@ export const getEmployerActivity = async (companyId) => {
     });
     // Combine and sort all activities
     const allActivities = [
-        ...jobPostings.map(job => ({
+        ...jobPostings.map((job) => ({
             id: job.id,
             type: 'JOB_POSTED',
             timestamp: job.createdAt,
@@ -200,7 +200,7 @@ export const getEmployerActivity = async (companyId) => {
             relatedEntity: 'Your company',
             entityId: job.id
         })),
-        ...expiredJobs.map(job => ({
+        ...expiredJobs.map((job) => ({
             id: job.id,
             type: 'JOB_EXPIRED',
             timestamp: job.updatedAt,
@@ -208,26 +208,26 @@ export const getEmployerActivity = async (companyId) => {
             relatedEntity: 'Your company',
             entityId: job.id
         })),
-        ...newApplications.map(app => ({
+        ...newApplications.map((app) => ({
             id: app.id,
             type: 'NEW_APPLICATION',
             timestamp: app.createdAt,
-            title: `New application from ${app.applicant.firstName} ${app.applicant.lastName}`,
-            relatedEntity: app.job.title,
-            entityId: app.job.id
+            title: `New application from ${app.applicant?.firstName ?? ''} ${app.applicant?.lastName ?? ''}`,
+            relatedEntity: app.job?.title ?? '',
+            entityId: app.job?.id ?? ''
         })),
-        ...interviews.map(app => ({
+        ...interviews.map((app) => ({
             id: app.id,
             type: 'INTERVIEW_SCHEDULED',
             timestamp: app.updatedAt,
-            title: `Interview scheduled with ${app.applicant.firstName} ${app.applicant.lastName}`,
-            relatedEntity: app.job.title,
-            entityId: app.job.id
+            title: `Interview scheduled with ${app.applicant?.firstName} ${app.applicant?.lastName}`,
+            relatedEntity: app.job?.title,
+            entityId: app.job?.id
         }))
-    ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+    ].sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
     // Return only the latest 10 activities
     return allActivities.slice(0, 10).map(activity => ({
         ...activity,
-        timestamp: activity.timestamp.toISOString()
+        timestamp: activity.timestamp?.toISOString()
     }));
 };
