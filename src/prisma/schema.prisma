@@ -18,7 +18,7 @@ model User {
   email           String           @unique
   passwordHash    String?
   firstName       String
-  lastName        String?
+  lastName        String
   role            UserRole
   phone           String?
   profile         Profile?

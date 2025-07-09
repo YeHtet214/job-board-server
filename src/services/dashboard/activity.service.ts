@@ -107,13 +107,32 @@ export const getJobSeekerActivity = async (userId: string) => {
   }));
 };
 
+interface EmployerActivityReturnType {
+  id: string;
+  title?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  timestamp?: Date;
+  applicant?: {
+    firstName: string;
+    lastName: string;
+  };
+  job?: {
+    id?: string;
+    title?: string;
+  };
+  type?: 'JOB_POSTED' | 'JOB_EXPIRED' | 'NEW_APPLICATION' | 'INTERVIEW_SCHEDULED';
+  relatedEntity?: string;
+  entityId?: string;
+  [key: string]: any; // Allow additional properties
+}
 /**
  * Gets recent activity for an employer
  * @param companyId The company ID
  */
 export const getEmployerActivity = async (companyId: string) => {
   // Get recent job postings
-  const jobPostings = await prisma.job.findMany({
+  const jobPostings: EmployerActivityReturnType[] = await prisma.job.findMany({
     where: {
       companyId,
       createdAt: {
@@ -130,7 +149,7 @@ export const getEmployerActivity = async (companyId: string) => {
   });
 
   // Get expired/inactive jobs
-  const expiredJobs = await prisma.job.findMany({
+  const expiredJobs: EmployerActivityReturnType[] = await prisma.job.findMany({
     where: {
       companyId,
       OR: [
@@ -179,7 +198,7 @@ export const getEmployerActivity = async (companyId: string) => {
   });
 
   // Get interview scheduled
-  const interviews = await prisma.jobApplication.findMany({
+  const interviews: EmployerActivityReturnType[] = await prisma.jobApplication.findMany({
     where: {
       job: { companyId },
       status: 'INTERVIEW',
@@ -209,7 +228,7 @@ export const getEmployerActivity = async (companyId: string) => {
 
   // Combine and sort all activities
   const allActivities = [
-    ...jobPostings.map(job => ({
+    ...jobPostings.map((job: EmployerActivityReturnType) => ({
       id: job.id,
       type: 'JOB_POSTED' as const,
       timestamp: job.createdAt,
@@ -217,7 +236,7 @@ export const getEmployerActivity = async (companyId: string) => {
       relatedEntity: 'Your company',
       entityId: job.id
     })),
-    ...expiredJobs.map(job => ({
+    ...expiredJobs.map((job: EmployerActivityReturnType) => ({
       id: job.id,
       type: 'JOB_EXPIRED' as const,
       timestamp: job.updatedAt,
@@ -225,27 +244,27 @@ export const getEmployerActivity = async (companyId: string) => {
       relatedEntity: 'Your company',
       entityId: job.id
     })),
-    ...newApplications.map(app => ({
+    ...newApplications.map((app: EmployerActivityReturnType) => ({
       id: app.id,
       type: 'NEW_APPLICATION' as const,
       timestamp: app.createdAt,
-      title: `New application from ${app.applicant.firstName} ${app.applicant.lastName}`,
-      relatedEntity: app.job.title,
-      entityId: app.job.id
+      title: `New application from ${app.applicant?.firstName ?? ''} ${app.applicant?.lastName ?? ''}`,
+      relatedEntity: app.job?.title ?? '',
+      entityId: app.job?.id ?? ''
     })),
-    ...interviews.map(app => ({
+    ...interviews.map((app: EmployerActivityReturnType) => ({
       id: app.id,
       type: 'INTERVIEW_SCHEDULED' as const,
       timestamp: app.updatedAt,
-      title: `Interview scheduled with ${app.applicant.firstName} ${app.applicant.lastName}`,
-      relatedEntity: app.job.title,
-      entityId: app.job.id
+      title: `Interview scheduled with ${app.applicant?.firstName} ${app.applicant?.lastName}`,
+      relatedEntity: app.job?.title,
+      entityId: app.job?.id
     }))
-  ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  ].sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
 
   // Return only the latest 10 activities
   return allActivities.slice(0, 10).map(activity => ({
     ...activity,
-    timestamp: activity.timestamp.toISOString()
+    timestamp: activity.timestamp?.toISOString()
   }));
 };

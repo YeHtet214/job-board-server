@@ -12,7 +12,7 @@ import {
 import { RequestWithUser } from '../types/users.type.js';
 import prisma from '../prisma/client.js';
 import { BadRequestError } from '../middleware/errorHandler.js';
-import { JobType } from '@prisma/client';
+import { JobType } from '../types/job.type.js';
 
 // Public controllers - no authentication required
 export const getAllJobs = async (req: Request, res: Response, next: NextFunction) => {
