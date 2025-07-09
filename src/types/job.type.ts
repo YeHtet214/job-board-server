@@ -20,7 +20,7 @@ export interface JobResponse {
   description: string;
   companyId: string;
   postedById: string;
-  location?: string;
+  location?: string | null;
   type: JobType;
   salaryMin?: number;
   salaryMax?: number;
@@ -31,3 +31,4 @@ export interface JobResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+

@@ -4,6 +4,8 @@ import { getJobSeekerActivity, getEmployerActivity } from './activity.service.js
 import { calculateJobSeekerProfileCompletion } from '../company/profile-completion.service.js';
 import { getCompanyProfileCompletion } from '../company/profile-completion.service.js';
 import { recordJobView } from '../job/job-view.service.js';
+import { Job } from '@prisma/client';
+import { JobResponse } from '../../types/job.type.js';
 
 /**
  * Fetches job seeker dashboard data for a specific user
@@ -25,8 +27,23 @@ export const fetchJobSeekerDashboardData = async (userId: string) => {
     throw new UnauthorizedError('User is not a job seeker');
   }
 
+  interface DashboardApplicationReturnType {
+    id: string;
+    createdAt: Date;
+    status: string;
+    job: {
+      id: string;
+      title: string;
+      company: {
+        id: string;
+        name: string;
+        logo: string | null;
+      }
+    }
+  }
+
   // Get applications
-  const applications = await prisma.jobApplication.findMany({
+  const applications: DashboardApplicationReturnType[] = await prisma.jobApplication.findMany({
     where: { applicantId: userId },
     select: {
       id: true,
@@ -53,11 +70,11 @@ export const fetchJobSeekerDashboardData = async (userId: string) => {
   const recentActivity = await getJobSeekerActivity(userId);
 
   // Calculate stats
-  const interviewCount = applications.filter(app =>
+  const interviewCount = applications.filter((app: DashboardApplicationReturnType) =>
     app.status === 'INTERVIEW'
   ).length;
 
-  const offersCount = applications.filter(app =>
+  const offersCount = applications.filter((app: DashboardApplicationReturnType) =>
     app.status === 'ACCEPTED'
   ).length;
 
@@ -72,7 +89,7 @@ export const fetchJobSeekerDashboardData = async (userId: string) => {
       offers: offersCount,
       profileCompletion
     },
-    applications: applications.map(app => ({
+    applications: applications.map((app: DashboardApplicationReturnType) => ({
       id: app.id,
       jobTitle: app.job.title,
       companyName: app.job.company.name,
@@ -143,6 +160,12 @@ export const fetchEmployerDashboardData = async (userId: string) => {
     throw new NotFoundError('Company not found for this employer');
   }
 
+interface JobReponseWithCount extends JobResponse {
+  _count: {
+    applications: number;
+  };
+}
+
   // Get company's jobs
   const jobs = await prisma.job.findMany({
     where: { companyId: company.id },
@@ -161,10 +184,10 @@ export const fetchEmployerDashboardData = async (userId: string) => {
       }
     },
     orderBy: { createdAt: 'desc' }
-  });
+  }) as Partial<JobReponseWithCount>[];
 
   // Get applications for the company's jobs
-  const jobIds = jobs.map(job => job.id);
+  const jobIds = jobs.map(job => job.id).filter(Boolean) as string[];
   const applications = await prisma.jobApplication.findMany({
     where: {
       jobId: { in: jobIds }
@@ -232,9 +255,9 @@ export const fetchEmployerDashboardData = async (userId: string) => {
       title: job.title,
       location: job.location,
       type: job.type,
-      postedDate: job.createdAt.toISOString(),
+      postedDate: job.createdAt?.toISOString(),
       isActive: job.isActive && (!job.expiresAt || job.expiresAt > new Date()),
-      applicationCount: job._count.applications
+      applicationCount: job._count?.applications
     })),
     applications: applications.map(app => ({
       id: app.id,
