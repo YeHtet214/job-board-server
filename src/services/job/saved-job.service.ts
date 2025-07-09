@@ -1,6 +1,5 @@
 import prisma from '../../prisma/client.js';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
-import { RequestWithUser } from '../../types/users.type.js';
 
 /**
  * Gets saved jobs for a user
@@ -171,7 +170,7 @@ export const areJobsSaved = async (jobIds: string[], userId: string) => {
   });
 
   // Create a map for quick lookup
-  const savedJobsMap = savedJobs.reduce((map, savedJob) => {
+  const savedJobsMap = savedJobs.reduce((map: Record<string, string>, savedJob: { jobId: string; id: string }) => {
     map[savedJob.jobId] = savedJob.id;
     return map;
   }, {} as Record<string, string>);

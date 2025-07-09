@@ -4,8 +4,8 @@ import { getJobSeekerActivity, getEmployerActivity } from './activity.service.js
 import { calculateJobSeekerProfileCompletion } from '../company/profile-completion.service.js';
 import { getCompanyProfileCompletion } from '../company/profile-completion.service.js';
 import { recordJobView } from '../job/job-view.service.js';
-import { Job } from '@prisma/client';
 import { JobResponse } from '../../types/job.type.js';
+import { applicationResponse } from '../../types/application.type.js';
 
 /**
  * Fetches job seeker dashboard data for a specific user
@@ -212,7 +212,7 @@ interface JobReponseWithCount extends JobResponse {
       }
     },
     orderBy: { createdAt: 'desc' }
-  });
+  }) as Partial<applicationResponse>[];
 
   // Get recent activity
   const recentActivity = await getEmployerActivity(company.id);
@@ -225,11 +225,11 @@ interface JobReponseWithCount extends JobResponse {
     job.isActive && (!job.expiresAt || job.expiresAt > new Date())
   ).length;
 
-  const pendingApplications = applications.filter(app =>
+  const pendingApplications = applications.filter((app: Partial<applicationResponse>) =>
     app.status === 'PENDING'
   ).length;
 
-  const interviewCount = applications.filter(app =>
+  const interviewCount = applications.filter((app: Partial<applicationResponse>) =>
     app.status === 'INTERVIEW'
   ).length;
 
@@ -259,14 +259,14 @@ interface JobReponseWithCount extends JobResponse {
       isActive: job.isActive && (!job.expiresAt || job.expiresAt > new Date()),
       applicationCount: job._count?.applications
     })),
-    applications: applications.map(app => ({
+    applications: applications.map((app: Partial<applicationResponse>) => ({
       id: app.id,
-      jobTitle: app.job.title,
-      jobId: app.job.id,
-      applicantName: `${app.applicant.firstName} ${app.applicant.lastName}`,
-      applicantId: app.applicant.id,
-      applicantEmail: app.applicant.email,
-      applied: app.createdAt.toISOString(),
+      jobTitle: app.job?.title,
+      jobId: app.job?.id,
+      applicantName: `${app.applicant?.firstName} ${app.applicant?.lastName}`,
+      applicantId: app.applicant?.id,
+      applicantEmail: app.applicant?.email,
+      applied: app.createdAt?.toISOString(),
       status: app.status
     })),
     recentActivity
