@@ -3,7 +3,7 @@ import { BadRequestError, NotFoundError, ForbiddenError } from "../../middleware
 import { CreateJobDto } from "../../types/job.type.js";
 import { JobType } from "../../types/job.type.js";
 import { fetchUserById } from "../user.service.js";
-import { Prisma } from "@prisma/client";
+import { Prisma } from '@prisma/client';
 
 // Define search params interface to match frontend
 export interface JobSearchParams {

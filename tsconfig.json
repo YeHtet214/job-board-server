@@ -12,15 +12,18 @@
     "forceConsistentCasingInFileNames": true, // Ensures consistent file casing
     "allowJs": true,                    // Allows JavaScript files to be compiled
     "allowSyntheticDefaultImports": true,
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "prisma"]
   },                // Allows default imports from modules with no default export
   "ts-node": {
-    "esm": true
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
   },
   "include": [
     "src/**/*",                          // Include all files inside the 'src' folder
     "src/index.ts",                           // Also include the main 'index.ts' file
-    "types/**/*"                          // Include all files inside the 'types' folder
+    "types/**/*",                    // Include all files inside the 'types' folder
+    "prisma/**/*.ts"                   
   ],
   "exclude": [
     "node_modules",
