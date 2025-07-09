@@ -13,7 +13,7 @@
     "allowJs": true,                    // Allows JavaScript files to be compiled
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
-    "types": ["node", "prisma"]
+    "types": ["node"]
   },                // Allows default imports from modules with no default export
   "ts-node": {
     "esm": true,
