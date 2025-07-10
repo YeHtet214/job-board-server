@@ -66,9 +66,7 @@ app.use(errorHandler);
 // Export the app for vercel
 export default app;
 
-// Only run the server if not in production mode
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
-    console.log('Server is running on http://localhost:' + port);
-  })
-}
+// Start the server
+app.listen(port, () => {
+  console.log(`Server is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
+});
