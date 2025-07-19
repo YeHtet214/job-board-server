@@ -18,6 +18,7 @@ import errorHandler from './middleware/error.middleware.js';
 
 // Import Passport config
 import './config/passport.config.js';
+import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -25,7 +26,7 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
+  origin: FRONTEND_URL,
   credentials: true
 }));      
 
@@ -39,7 +40,7 @@ app.use(limiter);
 
 // Initialize session
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'secretJobBoardKey',
+  secret: SESSION_SECRET as string,
   resave: false,
   saveUninitialized: false,
   cookie: {

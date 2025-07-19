@@ -2,19 +2,14 @@ import prisma from "../prisma/client.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
-import { Resend } from 'resend';
-
 import { UserRole } from '../types/users.type.js';
 import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '../middleware/errorHandler.js';
-import { JWT_SECRET, REFRESH_TOKEN_SECRET, SMTP_CONFIG, SMTP_FROM_EMAIL, FRONTEND_URL } from "../config/env.config.js";
-const resend = new Resend(process.env.RESEND_API_KEY);
+import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "../config/env.config.js";
+import sendEmailService from "../config/emailService.config.js";
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '24h';
 const REFRESH_TOKEN_EXPIRY = '7d';
-
-const transporter = nodemailer.createTransport(SMTP_CONFIG);
 
 const checkUserExists = async (email: string) => {
   const user = await prisma.user.findUnique({
@@ -51,85 +46,14 @@ export const storeRefreshToken = async (userId: string, refreshToken: string) =>
   });
 }
 
-// const sendVerificationEmail = async (email: string, token: string) => {
-//   const verificationLink = `${FRONTEND_URL}/verify-email/${token}`;
-
-//   await transporter.sendMail({
-//     from: SMTP_FROM_EMAIL,
-//     to: email,
-//     subject: 'Verify your email address',
-//     html: `
-//       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-//         <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #211951;">
-//           <h1 style="color: #211951; margin: 0;">Job Board</h1>
-//           <p style="color: #666; font-size: 14px; margin-top: 5px;">Connect with opportunities</p>
-//         </div>
-        
-//         <div style="padding: 20px 0;">
-//           <h2 style="color: #333;">Email Verification</h2>
-//           <p style="color: #555; font-size: 16px; line-height: 1.5;">Thank you for creating an account! To get started, please verify your email address by clicking the button below.</p>
-          
-//           <div style="text-align: center; margin: 30px 0;">
-//             <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; background-color: #211951; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;">Verify Email Address</a>
-//           </div>
-          
-//           <p style="color: #555; font-size: 14px; line-height: 1.5;">If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-//           <p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; color: #333;">${verificationLink}</p>
-          
-//           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; color: #777; font-size: 14px;">
-//             <p><strong>Note:</strong> This verification link will expire in 24 hours.</p>
-//             <p>If you didn't create an account, you can safely ignore this email.</p>
-//           </div>
-//         </div>
-        
-//         <div style="background-color: #f7f7f7; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
-//           <p>Need help? Contact our support team at <a href="mailto:support@jobboard.com" style="color: #211951;">support@jobboard.com</a></p>
-//           <p>&copy; ${new Date().getFullYear()} Job Board. All rights reserved.</p>
-//         </div>
-//       </div>
-//     `
-//   });
-// }
-
 const sendVerificationEmail = async (email: string, token: string) => {
   const verificationLink = `${FRONTEND_URL}/verify-email/${token}`;
 
-  resend.emails.send({
-    from: SMTP_FROM_EMAIL,
-    to: email,
-    replyTo: SMTP_FROM_EMAIL,
-    subject: 'Verify your email address',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-        <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #211951;">
-          <h1 style="color: #211951; margin: 0;">Job Board</h1>
-          <p style="color: #666; font-size: 14px; margin-top: 5px;">Connect with opportunities</p>
-        </div>
-        
-        <div style="padding: 20px 0;">
-          <h2 style="color: #333;">Email Verification</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">Thank you for creating an account! To get started, please verify your email address by clicking the button below.</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; background-color: #211951; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;">Verify Email Address</a>
-          </div>
-          
-          <p style="color: #555; font-size: 14px; line-height: 1.5;">If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-          <p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; color: #333;">${verificationLink}</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; color: #777; font-size: 14px;">
-            <p><strong>Note:</strong> This verification link will expire in 24 hours.</p>
-            <p>If you didn't create an account, you can safely ignore this email.</p>
-          </div>
-        </div>
-        
-        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
-          <p>Need help? Contact our support team at <a href="mailto:support@jobboard.com" style="color: #211951;">support@jobboard.com</a></p>
-          <p>&copy; ${new Date().getFullYear()} Job Board. All rights reserved.</p>
-        </div>
-      </div>
-    `
-  })
+  await sendEmailService({
+    email,
+    link: verificationLink,
+    type: 'verify'
+  });
 }
 
 export const userSignUp = async (
@@ -422,40 +346,11 @@ export const requestPasswordReset = async (email: string) => {
 
   const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
 
-  await transporter.sendMail({
-    from: SMTP_FROM_EMAIL,
-    to: email,
-    subject: 'Reset Your Password',
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-        <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #211951;">
-          <h1 style="color: #211951; margin: 0;">Job Board</h1>
-          <p style="color: #666; font-size: 14px; margin-top: 5px;">Connect with opportunities</p>
-        </div>
-        
-        <div style="padding: 20px 0;">
-          <h2 style="color: #333;">Reset Password</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">To get access to your account back, reset password by clicking the button below.</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #211951; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;">Reset Password</a>
-          </div>
-          
-          <p style="color: #555; font-size: 14px; line-height: 1.5;">If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-          <p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; color: #333;">${resetLink}</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; color: #777; font-size: 14px;">
-            <p>If you didn't create an account, you can safely ignore this email.</p>
-          </div>
-        </div>
-        
-        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
-          <p>Need help? Contact our support team at <a href="mailto:support@jobboard.com" style="color: #211951;">support@jobboard.com</a></p>
-          <p>&copy; ${new Date().getFullYear()} Job Board. All rights reserved.</p>
-        </div>
-      </div>
-    `
-  });
+  await sendEmailService({
+    email,
+    link: resetLink,
+    type: 'resetPassword'
+  })
 
   return { message: 'Password reset email sent successfully' };
 }
