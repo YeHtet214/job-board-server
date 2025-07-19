@@ -53,7 +53,6 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use('/', (req, res) => res.status(200).send('Welcome to the Job Board API!') as any);
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/profiles', profileRouter);
