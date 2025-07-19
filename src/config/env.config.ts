@@ -16,7 +16,7 @@ if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER |
 
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-export const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+export const FRONTEND_URL = process.env.FRONTEND_URL;
 export const SESSION_SECRET = process.env.SESSION_SECRET;
 export const SMTP_USER = process.env.SMTP_USER;
 export const SMTP_PASS = process.env.SMTP_PASS;
