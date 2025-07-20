@@ -24,6 +24,7 @@ export const SMTP_HOST = process.env.SMTP_HOST;
 export const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
 export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID as string;
 export const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET as string;
+export const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI as string;
 
 export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME as string;
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY as string;
