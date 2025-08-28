@@ -22,6 +22,7 @@ import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
+import listEndpoints from 'express-list-endpoints';
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -61,6 +62,8 @@ app.use('/api/jobs', jobRouter);
 app.use('/api/applications', applicationRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/saved-jobs', savedJobRouter);
+console.log("enpointlist: ", listEndpoints(app));
+
 
 app.use(errorHandler);
 

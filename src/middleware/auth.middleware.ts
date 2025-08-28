@@ -5,6 +5,23 @@ import { RequestWithUser } from "../types/users.type.js";
 import { JWT_SECRET } from "../config/env.config.js";
 import prisma from "../prisma/client.js";
 
+const verifyToken = (token: string): Promise<any> => {
+ // Pre-check token expiration
+  const decoded = jwt.decode(token as string);
+
+  if (typeof decoded === 'object' && decoded !== null) {
+    if (!decoded || (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {
+      throw new UnauthorizedError("Token has expired");
+    }
+  }
+
+// Verify token with the secret
+  const secret = JWT_SECRET as string;
+  const user = jwt.verify(token, secret) as { userId: string, [key: string]: any };
+  
+  return Promise.resolve(user);
+}
+
 const authorize = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const token = req.headers['authorization']?.split(' ')[1];
@@ -22,22 +39,11 @@ const authorize = async (req: RequestWithUser, res: Response, next: NextFunction
       throw new UnauthorizedError("Token has been revoked");
     }
 
-    // Pre-check token expiration
-    const decoded = jwt.decode(token as string);
-
-    if (typeof decoded === 'object' && decoded !== null) {
-      if (!decoded || (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {
-        throw new UnauthorizedError("Token has expired");
-      }
-    }
-
-    // Verify token with the secret
     try {
-      const secret = JWT_SECRET as string;
-      const user = jwt.verify(token, secret) as { userId: string, [key: string]: any };
-      
+      const user = await verifyToken(token);
+      console.log("Verified user:", user); // Debugging log
       req.user = user;
-      next();
+      next();     
     } catch (jwtError) {
       throw new UnauthorizedError("Invalid authentication token");
     }

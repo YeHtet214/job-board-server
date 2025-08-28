@@ -73,9 +73,6 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
         const resumeURL = await resumeUploadToFirebase(file, userId);
         const applicantId = req.user.userId;
 
-        console.log("Resume URL from firebase : ", resumeURL)
-        console.log("Validated Data: ", validatedData)
-
         const application = await postNewApplication({ ...validatedData, resumeUrl: resumeURL, applicantId } as createApplicationDto);
 
         res.status(201).json({
@@ -94,9 +91,6 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
         const validatedData = matchedData(req, { locations: ['params', 'body'] });
         const resumeUrl = await resumeUploadToFirebase(req.file, req.user.userId);
         const applicantId = req.user.userId;
-
-        console.log("Validated Data: ", validatedData)
-        console.log("body: ", req.body);
 
         const applicationData: updateApplicationDto = {
             id: validatedData.id,
