@@ -5,7 +5,7 @@ import { RequestWithUser } from "../types/users.type.js";
 import { JWT_SECRET } from "../config/env.config.js";
 import prisma from "../prisma/client.js";
 
-const verifyToken = (token: string): Promise<any> => {
+export const verifyToken = (token: string): Promise<any> => {
  // Pre-check token expiration
   const decoded = jwt.decode(token as string);
 
