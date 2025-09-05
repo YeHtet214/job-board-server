@@ -6,7 +6,6 @@ import { JWT_SECRET } from "../config/env.config.js";
 import prisma from "../prisma/client.js";
 
 export const verifyToken = (token: string): Promise<any> => {
- // Pre-check token expiration
   const decoded = jwt.decode(token as string);
 
   if (typeof decoded === 'object' && decoded !== null) {
@@ -17,7 +16,7 @@ export const verifyToken = (token: string): Promise<any> => {
 
 // Verify token with the secret
   const secret = JWT_SECRET as string;
-  const user = jwt.verify(token, secret) as { userId: string, [key: string]: any };
+  const user = jwt.verify(token, secret) as { userId: string, email: string, [key: string]: any };
   
   return Promise.resolve(user);
 }
@@ -41,7 +40,6 @@ const authorize = async (req: RequestWithUser, res: Response, next: NextFunction
 
     try {
       const user = await verifyToken(token);
-      console.log("Verified user:", user); // Debugging log
       req.user = user;
       next();     
     } catch (jwtError) {

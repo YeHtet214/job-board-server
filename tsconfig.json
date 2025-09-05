@@ -21,7 +21,7 @@
   },
   "include": [
     "src/**/*",                          // Include all files inside the 'src' folder
-    "src/index.ts",                           // Also include the main 'index.ts' file
+    "src/temp.ts",                           // Also include the main 'index.ts' file
     "types/**/*",                    // Include all files inside the 'types' folder
     "prisma/**/*.ts"                   
   ],

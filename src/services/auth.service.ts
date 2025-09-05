@@ -19,15 +19,24 @@ const checkUserExists = async (email: string) => {
   return user;
 }
 
-export const generateTokens = (userId: string) => {
+/**
+ * Generates an access token and refresh token for a given user ID and email.
+ * Access token is used to authenticate user for a short period of time.
+ * Refresh token is used to generate a new access token once the existing one expires.
+ * 
+ * @param userId the ID of the user
+ * @param email the email of the user
+ * @returns an object containing the access token and refresh token
+ */
+export const generateTokens = (userId: string, email: string) => {
   const accessToken = jwt.sign(
-    { userId },
+    { userId, email },
     JWT_SECRET as string,
-    { expiresIn: ACCESS_TOKEN_EXPIRY }
+    { expiresIn: ACCESS_TOKEN_EXPIRY }  
   );
 
   const refreshToken = jwt.sign(
-    { userId },
+    { userId, email },
     REFRESH_TOKEN_SECRET as string,
     { expiresIn: REFRESH_TOKEN_EXPIRY }
   );
@@ -129,7 +138,7 @@ export const userSignIn = async (email: string, password: string) => {
     throw new UnauthorizedError('Please verify your email before signing in');
   }
 
-  const { accessToken, refreshToken } = generateTokens(user.id);
+  const { accessToken, refreshToken } = generateTokens(user.id, email);
   await storeRefreshToken(user.id, refreshToken);
 
   return {
