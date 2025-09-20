@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { RequestWithUser } from "../types/users.type.js";
+import { RequestWithUser } from "../types/users.js";
 import { fetchUserById, fetchUsers } from '../services/user.service.js';
 
 export const getCurrentUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {

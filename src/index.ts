@@ -1,3 +1,5 @@
+import express from "express";
+import { createServer } from 'http';
 import cors from 'cors';
 import passport from 'passport';
 import session from 'express-session';
@@ -18,9 +20,13 @@ import errorHandler from './middleware/error.middleware.js';
 // Import Passport config
 import './config/passport.config.js';
 import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
-import { app, httpServer, io } from './config/socket.config.js';
+// import { app, httpServer, io } from './config/socket.config.js';
+import { initSocketServer } from './config/socket.config.js';
 
-const port = process.env.PORT || 3000;
+const app = express();
+const port = process.env.PORT || 3000;  
+const httpServer = createServer(app);
+const io = initSocketServer(httpServer);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

@@ -1,6 +1,6 @@
 import prisma from "../prisma/client.js";
 import { BadRequestError, NotFoundError, ConflictError } from "../middleware/errorHandler.js";
-import { CreateCompanyDto, UpdateCompanyDto } from "../types/company.type.js";
+import { CreateCompanyDto, UpdateCompanyDto } from "../types/company.js";
 
 export const fetchAllCompanies = async () => {
     const companies = await prisma.company.findMany();

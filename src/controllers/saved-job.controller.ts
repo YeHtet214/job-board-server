@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { getSavedJobs, saveJob, removeSavedJob, isJobSaved, areJobsSaved } from '../services/job/saved-job.service.js';
 import prisma from '../prisma/client.js';
-import { RequestWithUser } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
 import { BadRequestError, UnauthorizedError } from '../middleware/errorHandler.js';
 
 /**

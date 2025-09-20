@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError, validationResult } from 'express-validator';
-import { CustomError } from '../../types/error.type.js';
+import { CustomError } from '../../types/error.js';
 import { authValidation } from './auth.validation.js';
 import { jobValidation } from './job.validation.js';
 import { applicationValidation } from './application.validation.js';

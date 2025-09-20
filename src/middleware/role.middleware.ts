@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { RequestWithUser } from '../types/users.type.js';
-import { CustomError } from '../types/error.type.js';
-import { UserRole } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
+import { CustomError } from '../types/error.js';
+import { UserRole } from '../types/users.js';
 import prisma from '../prisma/client.js';
 
 /**

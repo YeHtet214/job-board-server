@@ -1,7 +1,7 @@
 import prisma from "../../prisma/client.js";
 import { BadRequestError, NotFoundError, ForbiddenError } from "../../middleware/errorHandler.js";
-import { CreateJobDto } from "../../types/job.type.js";
-import { JobType } from "../../types/job.type.js";
+import { CreateJobDto } from "../../types/job.js";
+import { JobType } from "../../types/job.js";
 import { fetchUserById } from "../user.service.js";
 import { Prisma } from '@prisma/client';
 
@@ -66,8 +66,6 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
         }
     })();
 
-    console.log("ORder by: ", orderBy);
-
     // Count query
     const totalCount = await prisma.job.count({
         where: filters,
@@ -99,8 +97,6 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
             }
         }
     });
-
-    console.log("returned jobs: ", jobs);
 
     // Return in the format expected by the frontend
     return {

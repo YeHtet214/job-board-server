@@ -21,7 +21,7 @@ import errorHandler from './middleware/error.middleware.js';
 // Import Passport config
 import './config/passport.config.js';
 import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
-import { RequestWithUser } from './types/users.type.js';
+import { RequestWithUser } from './types/users.js';
 import { verifyToken } from './middleware/auth.middleware.js';
 import { fetchUserById } from './services/user.service.js';
 import { UnauthorizedError } from './middleware/errorHandler.js';

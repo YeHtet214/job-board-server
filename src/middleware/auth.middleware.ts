@@ -1,7 +1,7 @@
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 import { BadRequestError, UnauthorizedError } from "./errorHandler.js";
-import { RequestWithUser } from "../types/users.type.js";
+import { RequestWithUser } from "../types/users.js";
 import { JWT_SECRET } from "../config/env.config.js";
 import prisma from "../prisma/client.js";
 

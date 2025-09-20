@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
-import { RequestWithUser } from "../types/users.type.js";
-import { createApplicationDto, updateApplicationDto } from "../types/application.type.js";
+import { RequestWithUser } from "../types/users.js";
+import { createApplicationDto, updateApplicationDto } from "../types/applicaton.js";
 import {
     fetchAllApplicationsByJobId,
     fetchApplicationById,

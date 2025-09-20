@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { RequestWithUser } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
 import {
   fetchAllCompanies,
   getExistingCompany,
@@ -11,7 +11,7 @@ import {
 import { ForbiddenError } from '../middleware/errorHandler.js';
 import { matchedData } from 'express-validator';
 import { mediaUploadToCloudinary } from '../services/uploadCloud.service.js';
-import { CreateCompanyDto } from '../types/company.type.js';
+import { CreateCompanyDto } from '../types/company.js';
 
 export const getAllCompanies = async (req: Request, res: Response, next: NextFunction) => {
   try {

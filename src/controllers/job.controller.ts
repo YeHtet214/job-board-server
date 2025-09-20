@@ -9,13 +9,14 @@ import {
     JobSearchParams,
     getSearchSuggestions
 } from '../services/job/job.service.js';
-import { RequestWithUser } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
 import prisma from '../prisma/client.js';
 import { BadRequestError } from '../middleware/errorHandler.js';
-import { JobType } from '../types/job.type.js';
+import { JobType } from '../types/job.js';
 
 // Public controllers - no authentication required
 export const getAllJobs = async (req: Request, res: Response, next: NextFunction) => {
+
     try {
         // Extract search parameters from query
         const { 

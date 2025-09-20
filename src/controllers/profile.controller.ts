@@ -1,8 +1,8 @@
 import { NextFunction, Response } from "express";
 import { createNewProfile, deleteExistingProfile, fetchProfile, updateExistingProfile } from "../services/profile.service.js";
-import { RequestWithUser } from "../types/users.type.js";
+import { RequestWithUser } from "../types/users.js";
 import { matchedData } from "express-validator";
-import { CreateProfileDto, UpdateProfileDto } from "../types/profile.type.js";
+import { CreateProfileDto, UpdateProfileDto } from "../types/profile.js";
 import { resumeUploadToFirebase, mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
 
 export const getProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {

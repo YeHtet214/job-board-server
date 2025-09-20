@@ -1,4 +1,4 @@
-import { CustomError } from '../types/error.type.js';
+import { CustomError } from '../types/error.js';
 
 /**
  * BadRequestError - Used for validation or invalid input errors (400)

@@ -14,16 +14,16 @@ import { applicationValidation, jobValidation } from "../middleware/validation/i
 import { getAllApplicationsByJobId } from "../controllers/application.controller.js";
 
 const jobRouter = Router();
-jobRouter.use(authorize as RequestHandler);
-jobRouter.use(employerOnly as RequestHandler);
 
 // Public routes - anyone can view jobs
 jobRouter.get('/', jobValidation.getAll, getAllJobs);
-// The suggestions route must come before the :id route to avoid being treated as an ID parameter
 jobRouter.get('/suggestions', getSearchSuggestionsHandler);
 jobRouter.get('/company/:companyId', jobValidation.getByCompanyId, getJobsByCompanyId);
 
 jobRouter.get('/:id', jobValidation.getById, getJobById);
+
+jobRouter.use(authorize as RequestHandler);
+jobRouter.use(employerOnly as RequestHandler);
 
 // Protected routes - only authenticated employers can create/update/delete jobs
 jobRouter.get('/:id/applications', applicationValidation.getByJobId, applicationValidation.getByJobId, getAllApplicationsByJobId as RequestHandler);

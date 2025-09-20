@@ -1,11 +1,29 @@
+export type Conversation = {
+  id: string;
+  isDirect: boolean;
+  directKey?: string | null;
+  createdAt: Date;
+  participants?: Participant[];
+}
+
+export type Participant = {
+  id: string;
+  userId: string;
+  conversationId: string;
+  joinedAt: Date;
+  lastReadAt: Date | null;
+}
+
 
 export type Message = {
   id: string;
-  roomId: string;
-  message: string;
+  conversationId: string;
   senderId: string;
-  receiverId: string;
-  createdAt: string; // ISO
+  body: string;
+  meta?: any;
+  createdAt: Date | null;
+  deliveredAt: Date | null;
+  readAt: Date | null;
 };
 
 export type PrivateMessagePayload = {

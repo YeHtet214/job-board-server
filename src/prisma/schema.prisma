@@ -12,7 +12,6 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model User {
   id                     String                  @id @default(uuid())
   email                  String                  @unique
@@ -35,7 +34,7 @@ model User {
   applications           JobApplication[]
   savedJobs              SavedJob[]
   jobViews               JobView[]
-  conversationMember     ConversationParticipant?
+  conversationMember     ConversationParticipant[]
   Message                Message[]
   Notification           Notification[]
 
@@ -206,7 +205,7 @@ model Conversation {
 model ConversationParticipant {
   id             String    @id @default(uuid())
   conversationId String
-  userId         String   @unique
+  userId         String
   joinedAt       DateTime  @default(now())
   lastReadAt     DateTime?
 

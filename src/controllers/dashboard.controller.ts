@@ -1,5 +1,5 @@
 import { Response, NextFunction } from 'express';
-import { RequestWithUser } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
 import {
   fetchJobSeekerDashboardData,
   fetchEmployerDashboardData,

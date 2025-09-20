@@ -3,7 +3,7 @@ import authorize from "../middleware/auth.middleware.js";
 import { createNewApplication, deleteApplication, getAllApplicationsByJobId, getAllApplicationsByUserId, getApplicationById, updateApplication } from "../controllers/application.controller.js";
 import { applicationValidation } from "../middleware/validation/application.validation.js";
 import { uploadResume } from "../utils/multer.js";
-import { RequestWithUser } from "../types/users.type.js";
+import { RequestWithUser } from "../types/users.js";
 
 const applicationRouter = Router();
 

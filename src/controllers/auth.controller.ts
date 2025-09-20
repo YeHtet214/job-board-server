@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { userSignIn, userSignUp, refreshAccessToken, verifyEmail, userLogout, resendVerificationEmail, requestPasswordReset, resetPassword } from "../services/auth.service.js";
-import { RequestWithUser } from '../types/users.type.js';
+import { RequestWithUser } from '../types/users.js';
 import { BadRequestError, ForbiddenError, UnauthorizedError } from '../middleware/errorHandler.js';
 
 /**

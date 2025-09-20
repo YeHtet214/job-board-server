@@ -4,8 +4,8 @@ import { getJobSeekerActivity, getEmployerActivity } from './activity.service.js
 import { calculateJobSeekerProfileCompletion } from '../company/profile-completion.service.js';
 import { getCompanyProfileCompletion } from '../company/profile-completion.service.js';
 import { recordJobView } from '../job/job-view.service.js';
-import { JobResponse } from '../../types/job.type.js';
-import { applicationResponse } from '../../types/application.type.js';
+import { JobResponse } from '../../types/job.js';
+import { applicationResponse } from '../../types/applicaton.js';
 
 /**
  * Fetches job seeker dashboard data for a specific user
