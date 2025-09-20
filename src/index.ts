@@ -22,6 +22,7 @@ import './config/passport.config.js';
 import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
 // import { app, httpServer, io } from './config/socket.config.js';
 import { initSocketServer } from './config/socket.config.js';
+import MessagingRouter from "./routes/message.route.js";
 
 const app = express();
 const port = process.env.PORT || 3000;  
@@ -73,6 +74,7 @@ app.use('/api/jobs', jobRouter);
 app.use('/api/applications', applicationRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/saved-jobs', savedJobRouter);
+app.use('/api/conversations', MessagingRouter)
 
 app.use(errorHandler);
 

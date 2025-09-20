@@ -6,6 +6,7 @@ export function computeDirectKey(userA: string, userB: string) {
   return `direct:${sorted[0]}:${sorted[1]}`;
 }
 
+// Real Time Socket use function - handler on user send message
 export async function getOrCreateDirectConversation(
   userA: string,
   userB: string,
@@ -89,7 +90,13 @@ export async function listUserConversations(userId: string, limit = 50): Promise
   });
 }
 
-export async function fetchMessages(
+export async function fetchConversationById(id: string) {
+  return await prisma.conversation.findUnique({
+    where: { id }
+  })
+}
+
+export async function fetchMessagesByConversationId(
   conversationId: string,
   before?: Date,
   limit = 30,

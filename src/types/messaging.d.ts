@@ -14,7 +14,6 @@ export type Participant = {
   lastReadAt: Date | null;
 }
 
-
 export type Message = {
   id: string;
   conversationId: string;
