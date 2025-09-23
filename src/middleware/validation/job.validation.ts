@@ -3,6 +3,7 @@ import { body, param, query } from 'express-validator';
 /**
  * Validation rules for job endpoints
  */
+
 export const jobValidation = {
   // Validation for getting all jobs with optional filters
   getAll: [

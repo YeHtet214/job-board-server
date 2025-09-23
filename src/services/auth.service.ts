@@ -99,7 +99,7 @@ export const userSignUp = async (
 
   await sendVerificationEmail(email, verificationToken);
 
-  const { accessToken, refreshToken } = generateTokens(user.id);
+  const { accessToken, refreshToken } = generateTokens(user.id, user.email);
   await storeRefreshToken(user.id, refreshToken);
 
   return {

@@ -28,9 +28,12 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
         const profileImageURL = await mediaUploadToCloudinary(file);
         const resumeUrl = await resumeUploadToFirebase(file, userId);
 
-        const profile = await createNewProfile({ ...validatedData, userId, profileImageURL, resumeUrl } as CreateProfileDto);
+        console.log("file:", validatedData);
+        console.log("Body data:", req.body);
 
-        console.log("Profile created:", profile);
+        if (validatedData.hasOwnProperty('userId')) delete validatedData.userId;
+
+        const profile = await createNewProfile({ ...validatedData, userId, profileImageURL, resumeUrl } as CreateProfileDto);
 
         res.status(201).json({
             success: true,
@@ -38,6 +41,7 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
             data: profile
         });
     } catch (error) {
+        console.log(error);
         next(error);
     }
 }

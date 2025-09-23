@@ -12,6 +12,7 @@ export type Participant = {
   conversationId: string;
   joinedAt: Date;
   lastReadAt: Date | null;
+  user: User;
 }
 
 export type Message = {

@@ -44,7 +44,7 @@ export async function getOrCreateDirectConversation(
     });
   } catch (err: any) {
     console.log(err);
-    return null
+    return null;
   }
 }
 
@@ -66,7 +66,11 @@ export async function createMessage(
   return message;
 }
 
-export async function listUserConversations(userId: string, limit = 50): Promise<Conversation[]> {
+export async function listUserConversations(
+  userId: string,
+  limit = 50,
+): Promise<Conversation[]> {
+  
   return await prisma.conversation.findMany({
     where: {
       participants: {
@@ -79,7 +83,25 @@ export async function listUserConversations(userId: string, limit = 50): Promise
       createdAt: 'desc',
     },
     include: {
-      participants: { include: { user: true } },
+      participants: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              profile: {
+                select: { profileImageURL: true },
+              },
+              companies: {
+                select: { logo: true },
+              }
+            },
+          },
+        },
+      },
       messages: {
         take: 1,
         orderBy: { createdAt: 'desc' },
@@ -92,8 +114,8 @@ export async function listUserConversations(userId: string, limit = 50): Promise
 
 export async function fetchConversationById(id: string) {
   return await prisma.conversation.findUnique({
-    where: { id }
-  })
+    where: { id },
+  });
 }
 
 export async function fetchMessagesByConversationId(

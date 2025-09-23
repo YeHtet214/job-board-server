@@ -51,7 +51,7 @@ export const fetchUserById = async (id: string) => {
       isEmailVerified: true,
       createdAt: true,
       updatedAt: true,
-      // Exclude sensitive fields like passwordHash, tokens, etc.
+      profile: true,
     }
   });
 

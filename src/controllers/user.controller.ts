@@ -16,22 +16,12 @@ export const getCurrentUser = async (req: RequestWithUser, res: Response, next: 
             });
         }
 
-        // Return user data without sensitive information
-        const userData = {
-            id: user.id,
-            email: user.email,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            role: user.role,
-            isEmailVerified: user.isEmailVerified,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt
-        };
+        console.log("Current User is fetch: ", user);
 
         res.status(200).json({
             success: true,
             message: "User data fetched successfully",
-            data: userData
+            data: user
         });
     } catch (error) {
         next(error);

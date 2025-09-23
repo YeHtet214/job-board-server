@@ -18,8 +18,6 @@ interface UploadedFile {
 export const fetchProfile = async (userId: string) => {
     const profile = await prisma.profile.findUnique({ where: { userId } });
 
-    console.log("PROFILE FETCHING: ", profile);
-
     if (profile) {
         // Convert JSON back to typed arrays when returning
         return {

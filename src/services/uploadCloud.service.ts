@@ -1,6 +1,6 @@
 import cloudinary from "../config/cloudinary.config.js";
 import { bucket } from "../config/firebase.config.js";
-import { sanitizeName } from "../utils/sanitizedName.js";
+import { sanitizeName } from "../utils/index.js";
 
 export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
     if (!file) return;
@@ -22,7 +22,7 @@ export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
 }
 
 export const resumeUploadToFirebase = async (file: Express.Multer.File, userId: string) => {
-  if (!file) throw new Error("No file provided");
+  if (!file) return;
 
   const uniqueName = `${userId}_${Date.now()}_${sanitizeName(file.originalname)}`;
   const blob = bucket.file(`resumes/${uniqueName}`);
