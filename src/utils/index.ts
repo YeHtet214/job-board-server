@@ -1,4 +1,4 @@
-import { Conversation, NormalizedConversation } from '../types/messaging.js';
+import { Conversation, NormalizedConversation } from '@/types/messaging.js';
 
 export const sanitizeName = (originalName: string) => {
   const sanitizedName = originalName

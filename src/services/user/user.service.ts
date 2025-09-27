@@ -1,5 +1,5 @@
-import prisma from "../../prisma/client.js";
-import { CustomError } from "../../types/error.js";
+import prisma from "@/prisma/client.js";
+import { CustomError } from "@/types/error.js";
 
 /**
  * Get all users without sensitive information

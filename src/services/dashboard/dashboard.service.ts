@@ -1,11 +1,11 @@
-import prisma from '../../prisma/client.js';
-import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
-import { getJobSeekerActivity, getEmployerActivity } from './activity.service.js';
-import { calculateJobSeekerProfileCompletion } from '../company/profile-completion.service.js';
-import { getCompanyProfileCompletion } from '../company/profile-completion.service.js';
-import { recordJobView } from '../job/job-view.service.js';
-import { JobResponse } from '../../types/job.js';
-import { applicationResponse } from '../../types/applicaton.js';
+import prisma from '@/prisma/client.js';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '@/middleware/errorHandler.js';
+import { getJobSeekerActivity, getEmployerActivity } from '@/services/dashboard/activity.service.js';
+import { calculateJobSeekerProfileCompletion } from '@/services/company/profile-completion.service.js';
+import { getCompanyProfileCompletion } from '@/services/company/profile-completion.service.js';
+import { recordJobView } from '@/services/job/job-view.service.js';
+import { JobResponse } from '@/types/job.js';
+import { applicationResponse } from '@/types/applicaton.js';
 
 /**
  * Fetches job seeker dashboard data for a specific user

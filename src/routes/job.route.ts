@@ -7,11 +7,11 @@ import {
     updateJobHandler,
     deleteJobHandler,
     getSearchSuggestionsHandler
-} from "../controllers/job.controller.js";
-import { employerOnly } from "../middleware/role.middleware.js";
-import authorize from "../middleware/auth.middleware.js";
-import { applicationValidation, jobValidation } from "../middleware/validation/index.js";
-import { getAllApplicationsByJobId } from "../controllers/application.controller.js";
+} from "@/controllers/job.controller.js";
+import { employerOnly } from "@/middleware/role.middleware.js";
+import authorize from "@/middleware/auth.middleware.js";
+import { applicationValidation, jobValidation } from "@/middleware/validation/index.js";
+import { getAllApplicationsByJobId } from "@/controllers/application.controller.js";
 
 const jobRouter = Router();
 

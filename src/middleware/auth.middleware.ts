@@ -1,9 +1,9 @@
 import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
-import { BadRequestError, UnauthorizedError } from "./errorHandler.js";
-import { RequestWithUser } from "../types/users.js";
-import { JWT_SECRET } from "../config/env.config.js";
-import prisma from "../prisma/client.js";
+import { BadRequestError, UnauthorizedError } from "@/middleware/errorHandler.js";
+import { RequestWithUser } from "@/types/users.js";
+import { JWT_SECRET } from "@/config/env.config.js";
+import prisma from "@/prisma/client.js";
 
 export const verifyToken = (token: string): Promise<any> => {
   const decoded = jwt.decode(token as string);

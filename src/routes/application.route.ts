@@ -1,9 +1,8 @@
 import { NextFunction, Router, Response, RequestHandler } from "express";
-import authorize from "../middleware/auth.middleware.js";
-import { createNewApplication, deleteApplication, getAllApplicationsByJobId, getAllApplicationsByUserId, getApplicationById, updateApplication } from "../controllers/application.controller.js";
-import { applicationValidation } from "../middleware/validation/application.validation.js";
-import { uploadResume } from "../utils/mediaUploadMulter.js";
-import { RequestWithUser } from "../types/users.js";
+import authorize from "@/middleware/auth.middleware.js";
+import { createNewApplication, deleteApplication, getAllApplicationsByJobId, getAllApplicationsByUserId, getApplicationById, updateApplication } from "@/controllers/application.controller.js";
+import { applicationValidation } from "@/middleware/validation/application.validation.js";
+import { uploadResume } from "@/utils/mediaUploadMulter.js";
 
 const applicationRouter = Router();
 

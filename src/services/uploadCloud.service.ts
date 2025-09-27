@@ -1,6 +1,6 @@
-import cloudinary from "../config/cloudinary.config.js";
-import { bucket } from "../config/firebase.config.js";
-import { sanitizeName } from "../utils/index.js";
+import cloudinary from "@/config/cloudinary.config.js";
+import { bucket } from "@/config/firebase.config.js";
+import { sanitizeName } from "@/utils/index.js";
 
 export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
     if (!file) return;

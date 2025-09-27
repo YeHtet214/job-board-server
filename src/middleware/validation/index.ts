@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError, validationResult } from 'express-validator';
-import { CustomError } from '../../types/error.js';
-import { authValidation } from './auth.validation.js';
-import { jobValidation } from './job.validation.js';
-import { applicationValidation } from './application.validation.js';
-import { profileValidation } from './profile.validation.js';
+import { CustomError } from '@/types/error.js';
+import { authValidation } from '@/middleware/validation/auth.validation.js';
+import { jobValidation } from '@/middleware/validation/job.validation.js';
+import { applicationValidation } from '@/middleware/validation/application.validation.js';
+import { profileValidation } from '@/middleware/validation/profile.validation.js';
 
 /**
  * Middleware to validate request data based on the validation chains

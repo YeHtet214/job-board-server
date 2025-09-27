@@ -1,5 +1,5 @@
-import { JobResponse } from "./job.js";
-import { UserRole } from "./users.js";
+import { JobResponse } from "@/types/job.js";
+import { UserRole } from "@/types/users.js";
 
 type ApplicationStatus = "PENDING" | "INTERVIEW" | "ACCEPTED" | "REJECTED";
 

@@ -1,8 +1,8 @@
-import prisma from "../../prisma/client.js";
-import { BadRequestError, NotFoundError, ForbiddenError } from "../../middleware/errorHandler.js";
-import { CreateJobDto } from "../../types/job.js";
-import { JobType } from "../../types/job.js";
-import { fetchUserById } from "../user.service.js";
+import prisma from "@/prisma/client.js";
+import { BadRequestError, NotFoundError, ForbiddenError } from "@/middleware/errorHandler.js";
+import { CreateJobDto } from "@/types/job.js";
+import { JobType } from "@/types/job.js";
+import { fetchUserById } from "@/services/user/user.service.js";
 import { Prisma } from '@prisma/client';
 
 // Define search params interface to match frontend

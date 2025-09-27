@@ -1,11 +1,11 @@
-import prisma from "../prisma/client.js";
+import prisma from "@/prisma/client.js";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import crypto from 'crypto';
-import { UserRole } from '../types/users.js';
-import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '../middleware/errorHandler.js';
-import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "../config/env.config.js";
-import sendEmailService from "../config/emailService.config.js";
+import { UserRole } from '@/types/users.js';
+import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '@/middleware/errorHandler.js';
+import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "@/config/env.config.js";
+import sendEmailService from "@/config/emailService.config.js";
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '24h';

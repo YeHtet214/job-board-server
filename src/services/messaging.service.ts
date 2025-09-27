@@ -1,5 +1,5 @@
-import prisma from '../prisma/client.js';
-import { Conversation, Message } from '../types/messaging.js';
+import prisma from '@/prisma/client.js';
+import { Conversation, Message } from '@/types/messaging.js';
 
 export function computeDirectKey(userA: string, userB: string) {
   const sorted = [userA, userB].sort();

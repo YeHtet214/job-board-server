@@ -1,10 +1,10 @@
 import { NextFunction, RequestHandler, Request, Response, Router } from "express";
 import multer from "multer";
-import authorize from "../middleware/auth.middleware.js";
-import { createProfile, deleteProfile, getProfile, updateProfile, uploadResumeFile, uploadProfileImage } from "../controllers/profile.controller.js";
-import { profileValidation } from "../middleware/validation/index.js";
-import { validate } from "../middleware/validation/index.js";
-import { uploadMedia, uploadResume } from "../utils/mediaUploadMulter.js";
+import authorize from "@/middleware/auth.middleware.js";
+import { createProfile, deleteProfile, getProfile, updateProfile, uploadResumeFile, uploadProfileImage } from "@/controllers/profile.controller.js";
+import { profileValidation } from "@/middleware/validation/index.js";
+import { validate } from "@/middleware/validation/index.js";
+import { uploadMedia, uploadResume } from "@/utils/mediaUploadMulter.js";
 import { parse } from "path";
 
 const profileRouter = Router();

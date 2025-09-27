@@ -1,13 +1,13 @@
 import { RequestHandler, Router } from 'express';
-import authorize from '../middleware/auth.middleware.js';
-import { jobseekerOnly, employerOnly } from '../middleware/role.middleware.js';
+import authorize from '@/middleware/auth.middleware.js';
+import { jobseekerOnly, employerOnly } from '@/middleware/role.middleware.js';
 import {
   getJobSeekerDashboard,
   getEmployerDashboard,
   withdrawApplication,
   updateApplicationStatusHandler,
   getCompanyProfile
-} from '../controllers/dashboard.controller.js';
+} from '@/controllers/dashboard.controller.js';
 
 const dashboardRouter = Router();
 
