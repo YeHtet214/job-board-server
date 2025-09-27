@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prisma:push": "npx prisma db push --schema=src/prisma/schema.prisma"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma"
