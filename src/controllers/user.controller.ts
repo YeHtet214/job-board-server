@@ -16,8 +16,6 @@ export const getCurrentUser = async (req: RequestWithUser, res: Response, next: 
             });
         }
 
-        console.log("Current User is fetch: ", user);
-
         res.status(200).json({
             success: true,
             message: "User data fetched successfully",

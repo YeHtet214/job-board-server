@@ -24,7 +24,6 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
       }
     }
   });
-  console.log('in route: ', req.body)
   next();
 }
 

@@ -1,10 +1,29 @@
+
 export type Conversation = {
   id: string;
   isDirect: boolean;
   directKey?: string | null;
-  createdAt: Date;
-  participants?: Participant[];
+  createdAt?: Date;
+  updatedAt?: Date;
+  messages?: Message[];
+  lastMessage?: Message;
+  participants: Participant[];
 }
+
+export type NormalizedConversation = {
+  id: string;
+  receipent: {
+    id: string;
+    email: string;
+    name?: string;
+    avatar?: string | null;
+  } | null;
+  updatedAt?: Date;
+  mesages?: any[];
+  lastMessage?: any;
+  createdAt?: Date;
+  unreadCount?: number;
+};
 
 export type Participant = {
   id: string;
@@ -45,5 +64,3 @@ export type ClientToServerEvents = {
 export type ServerToClientEvents = {
   'chat:new': (msg: Message) => void;
 };
-
-/** Socket.io Types END */

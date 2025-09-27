@@ -28,9 +28,6 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
         const profileImageURL = await mediaUploadToCloudinary(file);
         const resumeUrl = await resumeUploadToFirebase(file, userId);
 
-        console.log("file:", validatedData);
-        console.log("Body data:", req.body);
-
         if (validatedData.hasOwnProperty('userId')) delete validatedData.userId;
 
         const profile = await createNewProfile({ ...validatedData, userId, profileImageURL, resumeUrl } as CreateProfileDto);
@@ -48,7 +45,6 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
 
 export const updateProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-        console.log("Resume updated:", req.file);
 
         const file = req.file;
         const userId = req.user.userId;
@@ -92,7 +88,6 @@ export const uploadResumeFile = async (req: RequestWithUser, res: Response, next
             });
         }
 
-        console.log("Resume uploaded:", req.file);
         const file = req.file;
         const userId = req.user.userId;
         const resumeUrl = await resumeUploadToFirebase(file, userId);

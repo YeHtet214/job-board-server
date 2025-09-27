@@ -77,9 +77,6 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
             throw error;
         }
 
-        console.log("IMAGE URL : ", data['profileImageURL'])
-        console.log("IMAGE URL IN AS OBJECT: ", data);
-
         // Prepare update data with proper handling of JSON fields
         const updateData: any = {};
         
@@ -94,7 +91,6 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
         if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
         if (data.portfolioUrl !== undefined) updateData.portfolioUrl = data.portfolioUrl;
 
-        console.log("The PROFILE data to be updated: ", updateData);
 
         const profile = await prisma.profile.update({
             where: { userId },

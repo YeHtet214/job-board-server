@@ -64,6 +64,11 @@ export function initSocketServer(httpServer: HTTPServer) {
     const user = (socket.data as any).user as SocketUser;
     console.log("socket connected:", socket.id, "user:", user?.userId ?? "guest");
 
+    // console.log("User Sockets: ", userSockets)
+    // console.log("SocketToUser: ", socketToUser);
+
+    // Don't clear the maps - this breaks presence tracking for multiple connections
+
     // Track presence
     if (user) {
       const set = userSockets.get(user.userId) ?? new Set<string>();
@@ -76,7 +81,7 @@ export function initSocketServer(httpServer: HTTPServer) {
 
       // Optionally auto-join recent conversations (be careful if user has thousands)
       try {
-        const convs = await listUserConversations(user.userId, 20); // join up to 20 most recent
+        const convs = await listUserConversations(user.userId, 10);
         for (const c of convs) {
           socket.join(c.id);
         }
@@ -154,7 +159,7 @@ export function initSocketServer(httpServer: HTTPServer) {
           });
           if (!conv) return ack?.({ ok: false, error: "Conversation not found" });
           const isParticipant = conv.participants.some((p) => p.userId === senderId);
-          if (!isParticipant) return ack?.({ ok: false, error: "Sender not a participant of the conversation" });
+          if (!isParticipant) return ack?.({ ok: false, error: "Sender is not a participant of the conversation" });
         }
 
         // Persist message
@@ -253,6 +258,8 @@ export function initSocketServer(httpServer: HTTPServer) {
       const uid = socketToUser.get(socket.id);
       if (uid) {
         const set = userSockets.get(uid);
+
+        console.log("userSockets size before delete: ", userSockets.size)
         if (set) {
           set.delete(socket.id);
           if (set.size === 0) {
