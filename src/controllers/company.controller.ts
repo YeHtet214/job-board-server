@@ -7,7 +7,7 @@ import {
   updateExistingCompany,
   deleteExistingCompany,
   getCompanyByOwnerId
-} from '../services/company.service.js';
+} from '../services/company/company.service.js';
 import { ForbiddenError } from '../middleware/errorHandler.js';
 import { matchedData } from 'express-validator';
 import { mediaUploadToCloudinary } from '../services/uploadCloud.service.js';
