@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveJobForUser = exports.removeSavedJobForUser = exports.getSavedJobsForUser = void 0;
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 /**
  * Gets saved jobs for a user

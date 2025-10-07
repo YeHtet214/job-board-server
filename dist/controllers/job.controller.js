@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteJobHandler = exports.updateJobHandler = exports.createJobHandler = exports.getSearchSuggestionsHandler = exports.getJobsByCompanyId = exports.getJobById = exports.getAllJobs = void 0;
 const job_service_js_1 = require("../services/job/job.service.js");
-const client_js_1 = __importDefault(require("../prisma/client.js"));
+const client_js_1 = __importDefault(require("../lib/client.js"));
 const errorHandler_js_1 = require("../middleware/errorHandler.js");
 // Public controllers - no authentication required
 const getAllJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

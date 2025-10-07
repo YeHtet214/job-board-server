@@ -16,7 +16,7 @@ exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 const env_config_js_1 = require("@/config/env.config.js");
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 const verifyToken = (token) => {
     const decoded = jsonwebtoken_1.default.decode(token);
     if (typeof decoded === 'object' && decoded !== null) {

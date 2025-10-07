@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCompanyProfileCompletion = exports.calculateCompanyProfileCompletion = exports.calculateJobSeekerProfileCompletion = void 0;
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 /**
  * Calculates job seeker profile completion percentage

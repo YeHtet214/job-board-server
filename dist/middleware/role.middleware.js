@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.jobseekerOnly = exports.employerOnly = exports.checkRole = void 0;
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 /**
  * Middleware to check if a user has the required role
  * @param roles Array of allowed roles

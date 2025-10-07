@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEmployerActivity = exports.getJobSeekerActivity = void 0;
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 /**
  * Gets recent activity for a job seeker
  * @param userId The job seeker user ID

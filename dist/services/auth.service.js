@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.requestPasswordReset = exports.resendVerificationEmail = exports.verifyEmail = exports.userLogout = exports.refreshAccessToken = exports.userSignIn = exports.userSignUp = exports.storeRefreshToken = exports.generateTokens = void 0;
-const client_1 = __importDefault(require("@/prisma/client"));
+const client_1 = __importDefault(require("@/lib/client"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -21,7 +21,7 @@ const errorHandler_1 = require("@/middleware/errorHandler");
 const env_config_1 = require("@/config/env.config");
 const emailService_config_1 = __importDefault(require("@/config/emailService.config"));
 const SALT_ROUNDS = 10;
-const ACCESS_TOKEN_EXPIRY = '24h';
+const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* () {
     const user = yield client_1.default.user.findUnique({

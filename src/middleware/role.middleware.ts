@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { RequestWithUser } from '@/types/users.js';
 import { CustomError } from '@/types/error.js';
 import { UserRole } from '@/types/users.js';
-import prisma from '@/prisma/client.js';
+import prisma from '@/lib/client.js';
 
 /**
  * Middleware to check if a user has the required role

@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordJobViewActivity = exports.updateApplicationStatus = exports.fetchEmployerDashboardData = exports.withdrawApplicationForUser = exports.fetchJobSeekerDashboardData = void 0;
-const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const client_js_1 = __importDefault(require("@/lib/client.js"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 const activity_service_js_1 = require("@/services/dashboard/activity.service.js");
 const profile_completion_service_js_1 = require("@/services/company/profile-completion.service.js");

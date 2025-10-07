@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const passport_1 = __importDefault(require("passport"));
 const passport_google_oauth20_1 = require("passport-google-oauth20");
 const env_config_js_1 = require("./env.config.js");
-const client_js_1 = __importDefault(require("../prisma/client.js"));
+const client_js_1 = __importDefault(require("../lib/client.js"));
 passport_1.default.serializeUser((user, done) => {
     done(null, user.id);
 });

@@ -23,8 +23,8 @@ const signUp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         const { accessToken, refreshToken, user } = yield (0, auth_service_js_1.userSignUp)(firstName, lastName, email, password, role);
         res.status(201).json({
             success: true,
-            message: "Successfully signed up. Please check your email for verification.",
-            data: { accessToken, refreshToken, user }
+            message: 'Successfully signed up. Please check your email for verification.',
+            data: { accessToken, refreshToken, user },
         });
     }
     catch (error) {
@@ -38,8 +38,8 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         const { user, accessToken, refreshToken } = yield (0, auth_service_js_1.userSignIn)(email, password);
         res.status(200).json({
             success: true,
-            message: "Successfully signed in",
-            data: { user, accessToken, refreshToken }
+            message: 'Successfully signed in',
+            data: { user, accessToken, refreshToken },
         });
     }
     catch (error) {
@@ -53,8 +53,8 @@ const refresh = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
         const { accessToken } = yield (0, auth_service_js_1.refreshAccessToken)(refreshToken);
         res.status(200).json({
             success: true,
-            message: "Access token refreshed successfully",
-            data: { accessToken }
+            message: 'Access token refreshed successfully',
+            data: { accessToken },
         });
     }
     catch (error) {
@@ -68,7 +68,7 @@ const verifyEmailToken = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const result = yield (0, auth_service_js_1.verifyEmail)(token);
         res.status(200).json({
             success: true,
-            message: result.message
+            message: result.message,
         });
     }
     catch (error) {
@@ -98,7 +98,7 @@ const resendVerification = (req, res, next) => __awaiter(void 0, void 0, void 0,
         const result = yield (0, auth_service_js_1.resendVerificationEmail)(email);
         res.status(200).json({
             success: true,
-            message: result.message
+            message: result.message,
         });
     }
     catch (error) {
@@ -112,7 +112,7 @@ const forgotPassword = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
         const result = yield (0, auth_service_js_1.requestPasswordReset)(email);
         res.status(200).json({
             success: true,
-            message: result.message
+            message: result.message,
         });
     }
     catch (error) {
@@ -126,7 +126,7 @@ const resetPasswordHandler = (req, res, next) => __awaiter(void 0, void 0, void 
         const result = yield (0, auth_service_js_1.resetPassword)(token, newPassword);
         res.status(200).json({
             success: true,
-            message: result.message
+            message: result.message,
         });
     }
     catch (error) {

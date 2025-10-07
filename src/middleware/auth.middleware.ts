@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { BadRequestError, UnauthorizedError } from "@/middleware/errorHandler.js";
 import { RequestWithUser } from "@/types/users.js";
 import { JWT_SECRET } from "@/config/env.config.js";
-import prisma from "@/prisma/client.js";
+import prisma from "@/lib/client.js";
 
 export const verifyToken = (token: string): Promise<any> => {
   const decoded = jwt.decode(token as string);
