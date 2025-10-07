@@ -11,10 +11,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "prisma:push": "npx prisma db push"
-  },
-  "prisma": {
-    "schema": "src/prisma/schema.prisma"
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma push"
   },
   "engines": {
     "node": "20.x"
