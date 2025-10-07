@@ -5,9 +5,9 @@ import {
     removeSavedJobHandler,
     isJobSavedHandler,
     batchCheckSavedJobsHandler
-} from "@/controllers/saved-job.controller.js";
-import { jobseekerOnly } from "@/middleware/role.middleware.js";
-import authorize from "@/middleware/auth.middleware.js";
+} from "../controllers/saved-job.controller.js";
+import { jobseekerOnly } from "../middleware/role.middleware.js";
+import authorize from "../middleware/auth.middleware.js";
 
 const savedJobRouter = Router();
 

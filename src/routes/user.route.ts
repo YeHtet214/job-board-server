@@ -1,7 +1,7 @@
-import { getAllUsers, getUserById } from '@/controllers/user.controller.js';
+import { getAllUsers, getUserById } from '../controllers/user.controller.js';
 import { RequestHandler, Router } from "express";
-import authorize from '@/middleware/auth.middleware.js';
-import { getCurrentUser } from '@/controllers/user.controller.js';
+import authorize from '../middleware/auth.middleware.js';
+import { getCurrentUser } from '../controllers/user.controller.js';
 
 const userRouter = Router();
 

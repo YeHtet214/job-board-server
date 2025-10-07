@@ -1,9 +1,9 @@
 import { RequestHandler, Router } from "express";
 import passport from 'passport';
 import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, forgotPassword, resetPasswordHandler } from "../controllers/auth.controller";
-import authorize from "@/middleware/auth.middleware.js";
-import { generateTokens, storeRefreshToken } from "@/services/auth.service.js";
-import { FRONTEND_URL } from "@/config/env.config.js";
+import authorize from "../middleware/auth.middleware.js";
+import { generateTokens, storeRefreshToken } from "../services/auth.service.js";
+import { FRONTEND_URL } from "../config/env.config.js";
 
 const authRouter = Router();
 
