@@ -1,6 +1,6 @@
-import prisma from "@/lib/prismaClient.js"
-import { CustomError } from "@/types/error.js";
-import { createApplicationDto, updateApplicationDto } from "@/types/applicaton.js";
+import prisma from "../../lib/prismaClient.js"
+import { CustomError } from "../../types/error.js";
+import { createApplicationDto, updateApplicationDto } from "../../types/applicaton.js";
 
 export const fetchAllApplicationsByUserId = async (userId: string) => {
     const applications = await prisma.jobApplication.findMany({

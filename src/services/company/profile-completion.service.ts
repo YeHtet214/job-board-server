@@ -1,5 +1,5 @@
-import prisma from '@/lib/prismaClient.js';
-import { UnauthorizedError } from '@/middleware/errorHandler.js';
+import prisma from '../../lib/prismaClient.js';
+import { UnauthorizedError } from '../../middleware/errorHandler.js';
 
 /**
  * Calculates job seeker profile completion percentage

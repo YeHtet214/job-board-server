@@ -6,9 +6,9 @@ import {
   deleteCompany,
   getAllCompanies,
   getCurrentCompany,
-} from '@/controllers/company.controller.js';
-import authorize from '@/middleware/auth.middleware.js';
-import { employerOnly } from '@/middleware/role.middleware.js';
+} from '../controllers/company.controller.js';
+import authorize from '../middleware/auth.middleware.js';
+import { employerOnly } from '../middleware/role.middleware.js';
 
 const companyRouter = Router();
 
