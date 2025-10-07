@@ -2,7 +2,7 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "dist/index.js",
-  "type": "module",
+  "type": "commonjs",
   "scripts": {
     "start": "node dist/index.js",
     "build": "tsc",
@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "prisma:push": "npx prisma db push --schema=src/prisma/schema.prisma"
+    "prisma:push": "npx prisma db push"
   },
   "prisma": {
     "schema": "src/prisma/schema.prisma"
@@ -42,6 +42,7 @@
     "firebase-admin": "^13.4.0",
     "jsonwebtoken": "^9.0.2",
     "knex": "^3.1.0",
+    "module-alias": "^2.2.3",
     "multer": "^1.4.5-lts.2",
     "nodemailer": "^6.10.0",
     "passport": "^0.7.0",
@@ -74,5 +75,8 @@
     "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.3"
+  },
+  "_moduleAliases": {
+    "@": "./dist"
   }
 }

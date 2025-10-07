@@ -7,14 +7,14 @@ import { rateLimit } from 'express-rate-limit';
 import bodyParser from 'body-parser';
 
 // Import your routers
-import authRouter from '@/routes/auth.route.js';
-import profileRouter from '@/routes/profile.route.js';
-import companyRouter from '@/routes/company.route.js';
-import jobRouter from '@/routes/job.route.js';
-import applicationRouter from '@/routes/application.route.js';
-import userRouter from '@/routes/user.route.js';
-import dashboardRouter from '@/routes/dashboard.routes.js';
-import savedJobRouter from '@/routes/saved-job.route.js';
+import authRouter from './routes/auth.route.js';
+import profileRouter from './routes/profile.route.js';
+import companyRouter from './routes/company.route.js';
+import jobRouter from './routes/job.route.js';
+import applicationRouter from './routes/application.route.js';
+import userRouter from './routes/user.route.js';
+import dashboardRouter from './routes/dashboard.routes.js';
+import savedJobRouter from './routes/saved-job.route.js';
 import errorHandler from '@/middleware/error.middleware.js';
 
 // Import Passport config

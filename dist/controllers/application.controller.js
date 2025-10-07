@@ -1,11 +1,23 @@
-import { fetchAllApplicationsByJobId, fetchApplicationById, postNewApplication, updateApplicationById, deleteExistingApplication, fetchAllApplicationsByUserId } from "../services/application/application.service.js";
-import { matchedData } from "express-validator";
-import { resumeUploadToFirebase } from "../services/uploadCloud.service.js";
-export const getAllApplicationsByUserId = async (req, res, next) => {
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteApplication = exports.updateApplication = exports.createNewApplication = exports.getApplicationById = exports.getAllApplicationsByJobId = exports.getAllApplicationsByUserId = void 0;
+const application_service_js_1 = require("@/services/application/application.service.js");
+const express_validator_1 = require("express-validator");
+const uploadCloud_service_js_1 = require("@/services/uploadCloud.service.js");
+const getAllApplicationsByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const validatedData = matchedData(req, { locations: ['params', 'body'] });
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
         const userId = req.user.userId;
-        const applications = await fetchAllApplicationsByUserId(userId);
+        const applications = yield (0, application_service_js_1.fetchAllApplicationsByUserId)(userId);
         res.status(200).json({
             success: true,
             message: "Applications fetched successfully",
@@ -15,12 +27,13 @@ export const getAllApplicationsByUserId = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const getAllApplicationsByJobId = async (req, res, next) => {
+});
+exports.getAllApplicationsByUserId = getAllApplicationsByUserId;
+const getAllApplicationsByJobId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const validatedData = matchedData(req, { locations: ['params', 'body'] });
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
         const jobId = validatedData.jobId;
-        const applications = await fetchAllApplicationsByJobId(jobId);
+        const applications = yield (0, application_service_js_1.fetchAllApplicationsByJobId)(jobId);
         res.status(200).json({
             success: true,
             message: "Applications fetched successfully",
@@ -30,13 +43,14 @@ export const getAllApplicationsByJobId = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const getApplicationById = async (req, res, next) => {
+});
+exports.getAllApplicationsByJobId = getAllApplicationsByJobId;
+const getApplicationById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get validated data
-        const validatedData = matchedData(req);
+        const validatedData = (0, express_validator_1.matchedData)(req);
         const id = validatedData.id;
-        const application = await fetchApplicationById(id);
+        const application = yield (0, application_service_js_1.fetchApplicationById)(id);
         res.status(200).json({
             success: true,
             message: "Application fetched successfully",
@@ -46,18 +60,17 @@ export const getApplicationById = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const createNewApplication = async (req, res, next) => {
+});
+exports.getApplicationById = getApplicationById;
+const createNewApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get validated data
-        const validatedData = matchedData(req, { locations: ['params', 'body'] });
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
         const file = req.file;
         const userId = req.user.userId;
-        const resumeURL = await resumeUploadToFirebase(file, userId);
+        const resumeURL = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
         const applicantId = req.user.userId;
-        console.log("Resume URL from firebase : ", resumeURL);
-        console.log("Validated Data: ", validatedData);
-        const application = await postNewApplication({ ...validatedData, resumeUrl: resumeURL, applicantId });
+        const application = yield (0, application_service_js_1.postNewApplication)(Object.assign(Object.assign({}, validatedData), { resumeUrl: resumeURL, applicantId }));
         res.status(201).json({
             success: true,
             message: "Application created successfully",
@@ -67,22 +80,21 @@ export const createNewApplication = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const updateApplication = async (req, res, next) => {
+});
+exports.createNewApplication = createNewApplication;
+const updateApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get validated data
-        const validatedData = matchedData(req, { locations: ['params', 'body'] });
-        const resumeUrl = await resumeUploadToFirebase(req.file, req.user.userId);
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
+        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(req.file, req.user.userId);
         const applicantId = req.user.userId;
-        console.log("Validated Data: ", validatedData);
-        console.log("body: ", req.body);
         const applicationData = {
             id: validatedData.id,
             resumeUrl: validatedData.resumeUrl,
             coverLetter: validatedData.coverLetter,
             status: validatedData.status
         };
-        const application = await updateApplicationById({ ...applicationData, applicantId });
+        const application = yield (0, application_service_js_1.updateApplicationById)(Object.assign(Object.assign({}, applicationData), { applicantId }));
         res.status(200).json({
             success: true,
             message: "Application updated successfully",
@@ -92,13 +104,14 @@ export const updateApplication = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const deleteApplication = async (req, res, next) => {
+});
+exports.updateApplication = updateApplication;
+const deleteApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get validated data
-        const validatedData = matchedData(req);
+        const validatedData = (0, express_validator_1.matchedData)(req);
         const id = validatedData.id;
-        const deletedApplication = await deleteExistingApplication(id);
+        const deletedApplication = yield (0, application_service_js_1.deleteExistingApplication)(id);
         res.status(200).json({
             success: true,
             message: 'Application deleted successfully',
@@ -108,4 +121,5 @@ export const deleteApplication = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
+});
+exports.deleteApplication = deleteApplication;

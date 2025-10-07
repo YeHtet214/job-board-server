@@ -1,4 +1,4 @@
-import prisma from '@/prisma/client.js';
+import prisma from '@/lib/client.js';
 
 export interface ActivityReturnType {
   id: string;

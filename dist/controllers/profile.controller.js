@@ -1,10 +1,22 @@
-import { createNewProfile, deleteExistingProfile, fetchProfile, updateExistingProfile } from "../services/profile.service.js";
-import { matchedData } from "express-validator";
-import { resumeUploadToFirebase, mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
-export const getProfile = async (req, res, next) => {
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uploadProfileImage = exports.uploadResumeFile = exports.deleteProfile = exports.updateProfile = exports.createProfile = exports.getProfile = void 0;
+const profile_service_js_1 = require("../services/profile.service.js");
+const express_validator_1 = require("express-validator");
+const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
+const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
-        const profile = await fetchProfile(userId);
+        const profile = yield (0, profile_service_js_1.fetchProfile)(userId);
         res.status(200).json({
             success: true,
             message: "Profile fetched successfully",
@@ -14,16 +26,18 @@ export const getProfile = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const createProfile = async (req, res, next) => {
+});
+exports.getProfile = getProfile;
+const createProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const file = req.file;
         const userId = req.user.userId;
-        const validatedData = matchedData(req, { locations: ['body'] });
-        const profileImageURL = await mediaUploadToCloudinary(file);
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
-        const profile = await createNewProfile({ ...validatedData, userId, profileImageURL, resumeUrl });
-        console.log("Profile created:", profile);
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['body'] });
+        const profileImageURL = yield (0, uploadCloud_service_js_1.mediaUploadToCloudinary)(file);
+        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
+        if (validatedData.hasOwnProperty('userId'))
+            delete validatedData.userId;
+        const profile = yield (0, profile_service_js_1.createNewProfile)(Object.assign(Object.assign({}, validatedData), { userId, profileImageURL, resumeUrl }));
         res.status(201).json({
             success: true,
             message: "Profile created successfully",
@@ -31,18 +45,19 @@ export const createProfile = async (req, res, next) => {
         });
     }
     catch (error) {
+        console.log(error);
         next(error);
     }
-};
-export const updateProfile = async (req, res, next) => {
+});
+exports.createProfile = createProfile;
+const updateProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log("Resume updated:", req.file);
         const file = req.file;
         const userId = req.user.userId;
-        const validatedData = matchedData(req, { locations: ['body'] });
-        const profileImageURL = await mediaUploadToCloudinary(file);
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
-        const profile = await updateExistingProfile(userId, { ...validatedData, profileImageURL, resumeUrl });
+        const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['body'] });
+        const profileImageURL = yield (0, uploadCloud_service_js_1.mediaUploadToCloudinary)(file);
+        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
+        const profile = yield (0, profile_service_js_1.updateExistingProfile)(userId, Object.assign(Object.assign({}, validatedData), { profileImageURL, resumeUrl }));
         res.status(200).json({
             success: true,
             message: "Profile updated successfully",
@@ -52,11 +67,12 @@ export const updateProfile = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const deleteProfile = async (req, res, next) => {
+});
+exports.updateProfile = updateProfile;
+const deleteProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
-        const profile = await deleteExistingProfile(userId);
+        const profile = yield (0, profile_service_js_1.deleteExistingProfile)(userId);
         res.status(200).json({
             success: true,
             message: "Profile deleted successfully",
@@ -66,8 +82,9 @@ export const deleteProfile = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const uploadResumeFile = async (req, res, next) => {
+});
+exports.deleteProfile = deleteProfile;
+const uploadResumeFile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -75,10 +92,9 @@ export const uploadResumeFile = async (req, res, next) => {
                 message: "No file uploaded"
             });
         }
-        console.log("Resume uploaded:", req.file);
         const file = req.file;
         const userId = req.user.userId;
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
+        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
         res.status(200).json({
             success: true,
             message: "Resume uploaded successfully",
@@ -88,8 +104,9 @@ export const uploadResumeFile = async (req, res, next) => {
     catch (error) {
         next(error);
     }
-};
-export const uploadProfileImage = async (req, res, next) => {
+});
+exports.uploadResumeFile = uploadResumeFile;
+const uploadProfileImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -114,9 +131,9 @@ export const uploadProfileImage = async (req, res, next) => {
                 message: "Image size should be less than 5MB"
             });
         }
-        const profileImageURL = await mediaUploadToCloudinary(file);
+        const profileImageURL = yield (0, uploadCloud_service_js_1.mediaUploadToCloudinary)(file);
         // Update the user's profile with the new image URL
-        await updateExistingProfile(userId, { profileImageURL });
+        yield (0, profile_service_js_1.updateExistingProfile)(userId, { profileImageURL });
         res.status(200).json({
             success: true,
             message: "Profile image uploaded successfully",
@@ -127,4 +144,5 @@ export const uploadProfileImage = async (req, res, next) => {
         console.error('Error uploading profile image:', error);
         next(error);
     }
-};
+});
+exports.uploadProfileImage = uploadProfileImage;

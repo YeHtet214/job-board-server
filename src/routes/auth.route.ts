@@ -1,6 +1,6 @@
 import { RequestHandler, Router } from "express";
 import passport from 'passport';
-import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, forgotPassword, resetPasswordHandler } from "@/controllers/auth.controller.js";
+import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, forgotPassword, resetPasswordHandler } from "../controllers/auth.controller";
 import authorize from "@/middleware/auth.middleware.js";
 import { generateTokens, storeRefreshToken } from "@/services/auth.service.js";
 import { FRONTEND_URL } from "@/config/env.config.js";
@@ -32,7 +32,7 @@ authRouter.get('/google/callback', passport.authenticate('google', {
             }
 
             // Generate tokens
-            const { accessToken, refreshToken } = generateTokens(user.id);
+            const { accessToken, refreshToken } = generateTokens(user.id, user.email);
 
             // Store refresh token in database
             await storeRefreshToken(user.id, refreshToken);

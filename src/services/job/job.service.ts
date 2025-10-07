@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client.js";
+import prisma from "@/lib/client.js";
 import { BadRequestError, NotFoundError, ForbiddenError } from "@/middleware/errorHandler.js";
 import { CreateJobDto } from "@/types/job.js";
 import { JobType } from "@/types/job.js";

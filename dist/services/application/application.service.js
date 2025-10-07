@@ -1,6 +1,21 @@
-import prisma from "../../prisma/client.js";
-export const fetchAllApplicationsByUserId = async (userId) => {
-    const applications = await prisma.jobApplication.findMany({
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteExistingApplication = exports.updateApplicationById = exports.postNewApplication = exports.fetchApplicationById = exports.fetchAllApplicationsByJobId = exports.fetchAllApplicationsByUserId = void 0;
+const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const fetchAllApplicationsByUserId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const applications = yield client_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
         omit: { jobId: true },
         include: { job: { include: { company: true } } }
@@ -11,9 +26,10 @@ export const fetchAllApplicationsByUserId = async (userId) => {
         throw error;
     }
     return applications;
-};
-export const fetchAllApplicationsByJobId = async (jobId) => {
-    const applications = await prisma.jobApplication.findMany({
+});
+exports.fetchAllApplicationsByUserId = fetchAllApplicationsByUserId;
+const fetchAllApplicationsByJobId = (jobId) => __awaiter(void 0, void 0, void 0, function* () {
+    const applications = yield client_js_1.default.jobApplication.findMany({
         where: { jobId }
     });
     if (!applications || applications.length === 0) {
@@ -22,9 +38,10 @@ export const fetchAllApplicationsByJobId = async (jobId) => {
         throw error;
     }
     return applications;
-};
-export const fetchApplicationById = async (id) => {
-    const application = await prisma.jobApplication.findUnique({
+});
+exports.fetchAllApplicationsByJobId = fetchAllApplicationsByJobId;
+const fetchApplicationById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const application = yield client_js_1.default.jobApplication.findUnique({
         where: { id },
         include: { job: { include: { company: true } } }
     });
@@ -34,12 +51,13 @@ export const fetchApplicationById = async (id) => {
         throw error;
     }
     return application;
-};
-export const postNewApplication = async (applicationData) => {
+});
+exports.fetchApplicationById = fetchApplicationById;
+const postNewApplication = (applicationData) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if job exists
     console.log(applicationData);
     console.log("Job ID: ", applicationData.jobId);
-    const job = await prisma.job.findUnique({
+    const job = yield client_js_1.default.job.findUnique({
         where: { id: applicationData.jobId }
     });
     if (!job) {
@@ -48,7 +66,7 @@ export const postNewApplication = async (applicationData) => {
         throw error;
     }
     // Check if user already applied for this job
-    const existingApplication = await prisma.jobApplication.findFirst({
+    const existingApplication = yield client_js_1.default.jobApplication.findFirst({
         where: {
             jobId: applicationData.jobId,
             applicantId: applicationData.applicantId
@@ -63,7 +81,7 @@ export const postNewApplication = async (applicationData) => {
     console.log("Job: ", job);
     console.log("Application Data: ", applicationData);
     // Create new application
-    const newApplication = await prisma.jobApplication.create({
+    const newApplication = yield client_js_1.default.jobApplication.create({
         data: {
             jobId: applicationData.jobId,
             applicantId: applicationData.applicantId,
@@ -76,10 +94,11 @@ export const postNewApplication = async (applicationData) => {
     });
     console.log("New Application: ", newApplication);
     return newApplication;
-};
-export const updateApplicationById = async (applicationData) => {
+});
+exports.postNewApplication = postNewApplication;
+const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if application exists
-    const application = await prisma.jobApplication.findUnique({
+    const application = yield client_js_1.default.jobApplication.findUnique({
         where: { id: applicationData.id }
     });
     if (!application) {
@@ -88,7 +107,7 @@ export const updateApplicationById = async (applicationData) => {
         throw error;
     }
     // Update application
-    const updatedApplication = await prisma.jobApplication.update({
+    const updatedApplication = yield client_js_1.default.jobApplication.update({
         where: { id: applicationData.id },
         data: {
             resumeUrl: applicationData.resumeUrl,
@@ -97,10 +116,11 @@ export const updateApplicationById = async (applicationData) => {
         }
     });
     return updatedApplication;
-};
-export const deleteExistingApplication = async (id) => {
+});
+exports.updateApplicationById = updateApplicationById;
+const deleteExistingApplication = (id) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if application exists
-    const application = await prisma.jobApplication.findUnique({
+    const application = yield client_js_1.default.jobApplication.findUnique({
         where: { id }
     });
     if (!application) {
@@ -109,8 +129,9 @@ export const deleteExistingApplication = async (id) => {
         throw error;
     }
     // Delete application
-    const deletedApplication = await prisma.jobApplication.delete({
+    const deletedApplication = yield client_js_1.default.jobApplication.delete({
         where: { id }
     });
     return deletedApplication;
-};
+});
+exports.deleteExistingApplication = deleteExistingApplication;

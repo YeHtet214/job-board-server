@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client.js"
+import prisma from "@/lib/client.js"
 import { CustomError } from "@/types/error.js";
 import { createApplicationDto, updateApplicationDto } from "@/types/applicaton.js";
 

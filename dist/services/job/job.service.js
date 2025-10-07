@@ -1,30 +1,39 @@
-import prisma from "../../prisma/client.js";
-import { BadRequestError, NotFoundError, ForbiddenError } from "../../middleware/errorHandler.js";
-import { fetchUserById } from "../user.service.js";
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteExistingJob = exports.updateJob = exports.createJob = exports.getSearchSuggestions = exports.fetchJobsByCompanyId = exports.fetchJobById = exports.fetchAllJobs = void 0;
+const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const errorHandler_js_1 = require("@/middleware/errorHandler.js");
+const user_service_js_1 = require("@/services/user/user.service.js");
 // Basic data access functions
-export const fetchAllJobs = async (params) => {
+const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () {
     const { keyword = '', location = '', jobTypes = [], experienceLevel = '', page = 1, limit = 10, sortBy = 'date_desc' // Default to newest first
      } = params || {};
     // Calculate pagination
     const skip = (page - 1) * limit;
-    const filters = {
-        isActive: true,
-        ...(keyword && {
-            OR: [
-                { title: { contains: keyword, mode: 'insensitive' } },
-                { description: { contains: keyword, mode: 'insensitive' } },
-            ],
-        }),
-        ...(location && {
-            location: { contains: location, mode: 'insensitive' },
-        }),
-        ...(jobTypes.length > 0 && {
-            type: { in: jobTypes },
-        }),
-        ...(experienceLevel && {
-            experienceLevel,
-        }),
-    };
+    const filters = Object.assign(Object.assign(Object.assign(Object.assign({ isActive: true }, (keyword && {
+        OR: [
+            { title: { contains: keyword, mode: 'insensitive' } },
+            { description: { contains: keyword, mode: 'insensitive' } },
+        ],
+    })), (location && {
+        location: { contains: location, mode: 'insensitive' },
+    })), (jobTypes.length > 0 && {
+        type: { in: jobTypes },
+    })), (experienceLevel && {
+        experienceLevel,
+    }));
     const orderBy = (() => {
         switch (sortBy) {
             case 'date_desc':
@@ -40,15 +49,14 @@ export const fetchAllJobs = async (params) => {
                 return { createdAt: 'desc' };
         }
     })();
-    console.log("ORder by: ", orderBy);
     // Count query
-    const totalCount = await prisma.job.count({
+    const totalCount = yield client_js_1.default.job.count({
         where: filters,
     });
     // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
     // Fetch jobs with pagination, sorting, and filtering
-    const jobs = await prisma.job.findMany({
+    const jobs = yield client_js_1.default.job.findMany({
         where: filters,
         orderBy: orderBy,
         skip,
@@ -70,7 +78,6 @@ export const fetchAllJobs = async (params) => {
             }
         }
     });
-    console.log("returned jobs: ", jobs);
     // Return in the format expected by the frontend
     return {
         jobs,
@@ -78,12 +85,13 @@ export const fetchAllJobs = async (params) => {
         totalCount,
         currentPage: page
     };
-};
-export const fetchJobById = async (id) => {
+});
+exports.fetchAllJobs = fetchAllJobs;
+const fetchJobById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     if (!id) {
-        throw new BadRequestError('Job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
-    const job = await prisma.job.findUnique({
+    const job = yield client_js_1.default.job.findUnique({
         where: { id },
         include: {
             company: {
@@ -103,13 +111,14 @@ export const fetchJobById = async (id) => {
         }
     });
     if (!job) {
-        throw new NotFoundError('Job not found');
+        throw new errorHandler_js_1.NotFoundError('Job not found');
     }
     return job;
-};
-export const fetchJobsByCompanyId = async (companyId, params) => {
+});
+exports.fetchJobById = fetchJobById;
+const fetchJobsByCompanyId = (companyId, params) => __awaiter(void 0, void 0, void 0, function* () {
     if (!companyId) {
-        throw new BadRequestError('Company ID is required');
+        throw new errorHandler_js_1.BadRequestError('Company ID is required');
     }
     const { page = 1, limit = 10, sortBy = 'date_desc' // Default to newest first
      } = params || {};
@@ -139,11 +148,11 @@ export const fetchJobsByCompanyId = async (companyId, params) => {
             orderBy = { createdAt: 'desc' };
     }
     // Get total count for pagination
-    const totalCount = await prisma.job.count({ where });
+    const totalCount = yield client_js_1.default.job.count({ where });
     // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
     // Fetch jobs with pagination and sorting
-    const jobs = await prisma.job.findMany({
+    const jobs = yield client_js_1.default.job.findMany({
         where,
         orderBy,
         skip,
@@ -171,7 +180,8 @@ export const fetchJobsByCompanyId = async (companyId, params) => {
         totalCount,
         currentPage: page
     };
-};
+});
+exports.fetchJobsByCompanyId = fetchJobsByCompanyId;
 /**
  * Get search suggestions for autocomplete
  * @param term The search term to get suggestions for
@@ -179,16 +189,16 @@ export const fetchJobsByCompanyId = async (companyId, params) => {
  * @param limit Maximum number of suggestions to return
  * @returns Array of suggestion strings
  */
-export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
+const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, ...args_1], void 0, function* (term, type = 'all', limit = 5) {
     if (!term) {
-        throw new BadRequestError('Search term is required');
+        throw new errorHandler_js_1.BadRequestError('Search term is required');
     }
     let keywordSuggestions = [];
     let locationSuggestions = [];
     // Get job title/description suggestions
     if (type === 'keyword' || type === 'all') {
         // First, search for matches in job titles
-        const titleMatches = await prisma.job.findMany({
+        const titleMatches = yield client_js_1.default.job.findMany({
             where: {
                 title: {
                     contains: term,
@@ -205,7 +215,7 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
         keywordSuggestions = titleMatches.map((jobTitle) => jobTitle.title);
         // If we need more suggestions, search in required skills
         if (keywordSuggestions.length < limit) {
-            const skillsMatches = await prisma.job.findMany({
+            const skillsMatches = yield client_js_1.default.job.findMany({
                 where: {
                     requiredSkills: {
                         has: term // This assumes requiredSkills is an array
@@ -225,7 +235,7 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
     }
     // Get location suggestions
     if (type === 'location' || type === 'all') {
-        const locationMatches = await prisma.job.findMany({
+        const locationMatches = yield client_js_1.default.job.findMany({
             where: {
                 location: {
                     contains: term,
@@ -256,30 +266,31 @@ export const getSearchSuggestions = async (term, type = 'all', limit = 5) => {
     }
     // Deduplicate and limit
     return [...new Set(suggestions)].slice(0, limit);
-};
+});
+exports.getSearchSuggestions = getSearchSuggestions;
 /**
  * Validates and processes job data before creation
  */
-export const createJob = async (jobData) => {
+const createJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
     // Validate required fields
     if (!jobData.title || !jobData.description || !jobData.companyId || !jobData.type || !jobData.postedById) {
-        throw new BadRequestError('Missing required job fields');
+        throw new errorHandler_js_1.BadRequestError('Missing required job fields');
     }
     // Validate job type
     if (!['FULL_TIME', 'PART_TIME', 'CONTRACT'].includes(jobData.type)) {
-        throw new BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
+        throw new errorHandler_js_1.BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
     }
     // Validate salary if provided
     if (jobData.salaryMin && jobData.salaryMax && Number(jobData.salaryMin) > Number(jobData.salaryMax)) {
-        throw new BadRequestError('Minimum salary cannot be greater than maximum salary');
+        throw new errorHandler_js_1.BadRequestError('Minimum salary cannot be greater than maximum salary');
     }
     // Fetch the user's company
-    const userCompany = await prisma.company.findFirst({
+    const userCompany = yield client_js_1.default.company.findFirst({
         where: { ownerId: jobData.postedById },
         select: { id: true }
     });
     if (!userCompany) {
-        throw new BadRequestError("You need to create a company before posting a job");
+        throw new errorHandler_js_1.BadRequestError("You need to create a company before posting a job");
     }
     // Process and transform the job data
     const processedData = {
@@ -297,27 +308,29 @@ export const createJob = async (jobData) => {
     };
     // Create the job in the database
     return createNewJob(processedData);
-};
+});
+exports.createJob = createJob;
 /**
  * Validates and processes job update data
  */
-export const updateJob = async (jobId, updateData, userId) => {
+const updateJob = (jobId, updateData, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     if (!jobId) {
-        throw new BadRequestError('Job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
     if (!userId) {
-        throw new BadRequestError('User ID is required');
+        throw new errorHandler_js_1.BadRequestError('User ID is required');
     }
     // Check if job exists and user has permission
-    const existingJob = await fetchJobById(jobId);
-    const userRole = (await fetchUserById(userId))?.role;
+    const existingJob = yield (0, exports.fetchJobById)(jobId);
+    const userRole = (_a = (yield (0, user_service_js_1.fetchUserById)(userId))) === null || _a === void 0 ? void 0 : _a.role;
     // Verify ownership
     if (existingJob.postedById !== userId || userRole !== 'EMPLOYER') {
-        throw new ForbiddenError('You don\'t have permission to update this job');
+        throw new errorHandler_js_1.ForbiddenError('You don\'t have permission to update this job');
     }
     // Validate job type if provided
     if (updateData.type && !['FULL_TIME', 'PART_TIME', 'CONTRACT'].includes(updateData.type)) {
-        throw new BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
+        throw new errorHandler_js_1.BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
     }
     // Process and transform the update data
     const processedUpdateData = {};
@@ -347,47 +360,44 @@ export const updateJob = async (jobId, updateData, userId) => {
         processedUpdateData.isActive = updateData.isActive;
     // Update the job in the database
     return updateExistingJob(jobId, processedUpdateData);
-};
+});
+exports.updateJob = updateJob;
 // Database operation functions (private to the service)
 /**
  * Creates a new job in the database
  * @private Should only be called from within the service
  */
-const createNewJob = async (jobData) => {
-    const job = await prisma.job.create({
-        data: {
-            ...jobData,
-            expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : undefined
-        }
+const createNewJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
+    const job = yield client_js_1.default.job.create({
+        data: Object.assign(Object.assign({}, jobData), { expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : undefined })
     });
     return job;
-};
+});
 /**
  * Updates an existing job in the database
  * @private Should only be called from within the service
  */
-const updateExistingJob = async (id, data) => {
+const updateExistingJob = (id, data) => __awaiter(void 0, void 0, void 0, function* () {
     // Update the job
-    const updatedJob = await prisma.job.update({
+    const updatedJob = yield client_js_1.default.job.update({
         where: { id },
-        data: {
-            ...data,
-            expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined
-        }
+        data: Object.assign(Object.assign({}, data), { expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined })
     });
     return updatedJob;
-};
-export const deleteExistingJob = async (id, userId) => {
+});
+const deleteExistingJob = (id, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     if (!id) {
-        throw new BadRequestError('Job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
     if (!userId) {
-        throw new BadRequestError('User ID is required');
+        throw new errorHandler_js_1.BadRequestError('User ID is required');
     }
-    const existingJob = await fetchJobById(id);
-    const userRole = (await fetchUserById(userId))?.role;
+    const existingJob = yield (0, exports.fetchJobById)(id);
+    const userRole = (_a = (yield (0, user_service_js_1.fetchUserById)(userId))) === null || _a === void 0 ? void 0 : _a.role;
     if (existingJob.postedById !== userId || userRole !== 'EMPLOYER') {
-        throw new ForbiddenError('You don\'t have permission to delete this job');
+        throw new errorHandler_js_1.ForbiddenError('You don\'t have permission to delete this job');
     }
-    return prisma.job.delete({ where: { id } });
-};
+    return client_js_1.default.job.delete({ where: { id } });
+});
+exports.deleteExistingJob = deleteExistingJob;

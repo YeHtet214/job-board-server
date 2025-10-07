@@ -1,29 +1,40 @@
-import { PrismaClient } from '@prisma/client';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-const prisma = new PrismaClient();
-export const fetchProfile = async (userId) => {
-    const profile = await prisma.profile.findUnique({ where: { userId } });
-    console.log("PROFILE FETCHING: ", profile);
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.uploadResume = exports.deleteExistingProfile = exports.updateExistingProfile = exports.createNewProfile = exports.fetchProfile = void 0;
+const client_1 = require("@prisma/client");
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
+const crypto_1 = __importDefault(require("crypto"));
+const prisma = new client_1.PrismaClient();
+const fetchProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const profile = yield prisma.profile.findUnique({ where: { userId } });
     if (profile) {
         // Convert JSON back to typed arrays when returning
-        return {
-            ...profile,
-            education: profile.education,
-            experience: profile.experience
-        };
+        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
     }
     return profile;
-};
-export const createNewProfile = async (profileData) => {
+});
+exports.fetchProfile = fetchProfile;
+const createNewProfile = (profileData) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const existingProfile = await fetchProfile(profileData.userId);
+        const existingProfile = yield (0, exports.fetchProfile)(profileData.userId);
         if (existingProfile) {
-            return updateExistingProfile(profileData.userId, profileData);
+            return (0, exports.updateExistingProfile)(profileData.userId, profileData);
         }
         // Create a new profile with properly serialized JSON fields
-        const profile = await prisma.profile.create({
+        const profile = yield prisma.profile.create({
             data: {
                 userId: profileData.userId,
                 bio: profileData.bio,
@@ -38,28 +49,23 @@ export const createNewProfile = async (profileData) => {
             }
         });
         // Convert JSON back to typed arrays when returning
-        return {
-            ...profile,
-            education: profile.education,
-            experience: profile.experience
-        };
+        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
     }
     catch (error) {
         const customError = new Error(error instanceof Error ? error.message : 'Failed to create profile');
         customError.status = 400;
         throw customError;
     }
-};
-export const updateExistingProfile = async (userId, data) => {
+});
+exports.createNewProfile = createNewProfile;
+const updateExistingProfile = (userId, data) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const existingProfile = await fetchProfile(userId);
+        const existingProfile = yield (0, exports.fetchProfile)(userId);
         if (!existingProfile) {
             const error = new Error("Profile not found");
             error.status = 404;
             throw error;
         }
-        console.log("IMAGE URL : ", data['profileImageURL']);
-        console.log("IMAGE URL IN AS OBJECT: ", data);
         // Prepare update data with proper handling of JSON fields
         const updateData = {};
         // Only include fields that are present in the update data
@@ -81,38 +87,35 @@ export const updateExistingProfile = async (userId, data) => {
             updateData.githubUrl = data.githubUrl;
         if (data.portfolioUrl !== undefined)
             updateData.portfolioUrl = data.portfolioUrl;
-        console.log("The PROFILE data to be updated: ", updateData);
-        const profile = await prisma.profile.update({
+        const profile = yield prisma.profile.update({
             where: { userId },
             data: updateData
         });
         // Convert JSON back to typed arrays when returning
-        return {
-            ...profile,
-            education: profile.education,
-            experience: profile.experience
-        };
+        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
     }
     catch (error) {
         const customError = new Error(error instanceof Error ? error.message : 'Failed to update profile');
         customError.status = 400;
         throw customError;
     }
-};
-export const deleteExistingProfile = async (userId) => {
-    const existingProfile = await fetchProfile(userId);
+});
+exports.updateExistingProfile = updateExistingProfile;
+const deleteExistingProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const existingProfile = yield (0, exports.fetchProfile)(userId);
     if (!existingProfile) {
         const error = new Error("Profile not found");
         error.status = 404;
         throw error;
     }
-    const profile = await prisma.profile.delete({ where: { userId } });
+    const profile = yield prisma.profile.delete({ where: { userId } });
     return profile;
-};
-export const uploadResume = async (userId, file) => {
+});
+exports.deleteExistingProfile = deleteExistingProfile;
+const uploadResume = (userId, file) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Check if profile exists
-        const existingProfile = await fetchProfile(userId);
+        const existingProfile = yield (0, exports.fetchProfile)(userId);
         if (!existingProfile) {
             const error = new Error("Profile not found");
             error.status = 404;
@@ -139,27 +142,27 @@ export const uploadResume = async (userId, file) => {
             throw error;
         }
         // Create uploads directory if it doesn't exist
-        const uploadsDir = path.join(__dirname, '../../uploads');
-        const userUploadsDir = path.join(uploadsDir, 'resumes', userId);
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
+        const uploadsDir = path_1.default.join(__dirname, '../../uploads');
+        const userUploadsDir = path_1.default.join(uploadsDir, 'resumes', userId);
+        if (!fs_1.default.existsSync(uploadsDir)) {
+            fs_1.default.mkdirSync(uploadsDir, { recursive: true });
         }
-        if (!fs.existsSync(path.join(uploadsDir, 'resumes'))) {
-            fs.mkdirSync(path.join(uploadsDir, 'resumes'), { recursive: true });
+        if (!fs_1.default.existsSync(path_1.default.join(uploadsDir, 'resumes'))) {
+            fs_1.default.mkdirSync(path_1.default.join(uploadsDir, 'resumes'), { recursive: true });
         }
-        if (!fs.existsSync(userUploadsDir)) {
-            fs.mkdirSync(userUploadsDir, { recursive: true });
+        if (!fs_1.default.existsSync(userUploadsDir)) {
+            fs_1.default.mkdirSync(userUploadsDir, { recursive: true });
         }
         // Generate unique filename using crypto instead of uuid
-        const fileExtension = path.extname(file.originalname);
-        const fileName = `${crypto.randomUUID()}${fileExtension}`;
-        const filePath = path.join(userUploadsDir, fileName);
+        const fileExtension = path_1.default.extname(file.originalname);
+        const fileName = `${crypto_1.default.randomUUID()}${fileExtension}`;
+        const filePath = path_1.default.join(userUploadsDir, fileName);
         // Write file to disk
-        fs.writeFileSync(filePath, file.buffer);
+        fs_1.default.writeFileSync(filePath, file.buffer);
         // Generate URL for the file
         const resumeUrl = `/uploads/resumes/${userId}/${fileName}`;
         // Update user profile with resume URL
-        await prisma.profile.update({
+        yield prisma.profile.update({
             where: { userId },
             data: { resumeUrl }
         });
@@ -170,4 +173,5 @@ export const uploadResume = async (userId, file) => {
         customError.status = 400;
         throw customError;
     }
-};
+});
+exports.uploadResume = uploadResume;

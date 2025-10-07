@@ -1,15 +1,30 @@
-import prisma from '../../prisma/client.js';
-import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.areJobsSaved = exports.isJobSaved = exports.saveJob = exports.removeSavedJob = exports.getSavedJobs = void 0;
+const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 /**
  * Gets saved jobs for a user
  * @param userId The user ID
  * @returns Array of saved jobs with details
  */
-export const getSavedJobs = async (userId) => {
+const getSavedJobs = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
-        throw new UnauthorizedError('Not authenticated');
+        throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
-    return prisma.savedJob.findMany({
+    return client_js_1.default.savedJob.findMany({
         where: { userId },
         select: {
             id: true,
@@ -31,55 +46,57 @@ export const getSavedJobs = async (userId) => {
         },
         orderBy: { createdAt: 'desc' }
     });
-};
+});
+exports.getSavedJobs = getSavedJobs;
 /**
  * Removes a saved job for a user
  * @param savedJobId The saved job ID to remove
  * @param userId The user ID
  */
-export const removeSavedJob = async (savedJobId, userId) => {
+const removeSavedJob = (savedJobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
-        throw new UnauthorizedError('Not authenticated');
+        throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
     if (!savedJobId) {
-        throw new BadRequestError('Saved job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Saved job ID is required');
     }
-    const savedJob = await prisma.savedJob.findUnique({
+    const savedJob = yield client_js_1.default.savedJob.findUnique({
         where: { id: savedJobId },
         select: { userId: true }
     });
     if (!savedJob) {
-        throw new NotFoundError('Saved job not found');
+        throw new errorHandler_js_1.NotFoundError('Saved job not found');
     }
     if (savedJob.userId !== userId) {
-        throw new UnauthorizedError('Not authorized to remove this saved job');
+        throw new errorHandler_js_1.UnauthorizedError('Not authorized to remove this saved job');
     }
-    return prisma.savedJob.delete({
+    return client_js_1.default.savedJob.delete({
         where: { id: savedJobId }
     });
-};
+});
+exports.removeSavedJob = removeSavedJob;
 /**
  * Saves a job for a user
  * @param jobId The job ID to save
  * @param userId The user ID
  */
-export const saveJob = async (jobId, userId) => {
+const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
-        throw new UnauthorizedError('Not authenticated');
+        throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
     if (!jobId) {
-        throw new BadRequestError('Job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
     // Check if job exists
-    const job = await prisma.job.findUnique({
+    const job = yield client_js_1.default.job.findUnique({
         where: { id: jobId },
         select: { id: true }
     });
     if (!job) {
-        throw new NotFoundError('Job not found');
+        throw new errorHandler_js_1.NotFoundError('Job not found');
     }
     // Check if already saved
-    const existingSave = await prisma.savedJob.findFirst({
+    const existingSave = yield client_js_1.default.savedJob.findFirst({
         where: {
             jobId,
             userId
@@ -89,50 +106,52 @@ export const saveJob = async (jobId, userId) => {
         return existingSave;
     }
     // Create new saved job
-    return prisma.savedJob.create({
+    return client_js_1.default.savedJob.create({
         data: {
             jobId,
             userId
         }
     });
-};
+});
+exports.saveJob = saveJob;
 /**
  * Check if job is saved by the user
  * @param jobId The job ID to check
  * @param userId The user ID
  * @returns The saved job record or null if not saved
  */
-export const isJobSaved = async (jobId, userId) => {
+const isJobSaved = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
-        throw new UnauthorizedError('Not authenticated');
+        throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
     if (!jobId) {
-        throw new BadRequestError('Job ID is required');
+        throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
-    return await prisma.savedJob.findFirst({
+    return yield client_js_1.default.savedJob.findFirst({
         where: {
             jobId,
             userId
         }
     });
-};
+});
+exports.isJobSaved = isJobSaved;
 /**
  * Check if multiple jobs are saved by the user in a single query
  * @param jobIds Array of job IDs to check
  * @param userId The user ID
  * @returns Object mapping job IDs to their saved status
  */
-export const areJobsSaved = async (jobIds, userId) => {
+const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
-        throw new UnauthorizedError('Not authenticated');
+        throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
     if (!jobIds || !Array.isArray(jobIds) || jobIds.length === 0) {
-        throw new BadRequestError('Valid array of job IDs is required');
+        throw new errorHandler_js_1.BadRequestError('Valid array of job IDs is required');
     }
     // Deduplicate job IDs
     const uniqueJobIds = [...new Set(jobIds)];
     // Get all saved jobs for the user that match the provided job IDs
-    const savedJobs = await prisma.savedJob.findMany({
+    const savedJobs = yield client_js_1.default.savedJob.findMany({
         where: {
             userId,
             jobId: {
@@ -158,4 +177,5 @@ export const areJobsSaved = async (jobIds, userId) => {
         };
     });
     return result;
-};
+});
+exports.areJobsSaved = areJobsSaved;

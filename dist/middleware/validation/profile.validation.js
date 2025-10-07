@@ -1,24 +1,30 @@
-import { body } from 'express-validator';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.profileValidation = void 0;
+const express_validator_1 = require("express-validator");
 /**
  * Validation rules for profile endpoints
  */
-export const profileValidation = {
+exports.profileValidation = {
     // Validation for creating a profile
     createProfile: [
-        body('bio')
-            .notEmpty().withMessage('Bio is required')
-            .isString().withMessage('Bio must be a string')
+        (0, express_validator_1.body)('bio')
+            .notEmpty()
+            .withMessage('Bio is required')
+            // .isString().withMessage('Bio must be a string')
             .trim(),
-        body('skills')
-            .isArray({ min: 1 }).withMessage('At least one skill is required')
+        (0, express_validator_1.body)('skills')
+            .isArray({ min: 1 })
+            .withMessage('At least one skill is required')
             .custom((skills) => {
             if (!skills.every((skill) => typeof skill === 'string')) {
                 throw new Error('All skills must be strings');
             }
             return true;
         }),
-        body('education')
-            .isArray().withMessage('Education must be an array')
+        (0, express_validator_1.body)('education')
+            .isArray()
+            .withMessage('Education must be an array')
             .custom((educationArr) => {
             if (!educationArr.length)
                 return true;
@@ -38,8 +44,9 @@ export const profileValidation = {
             }
             return true;
         }),
-        body('experience')
-            .isArray().withMessage('Experience must be an array')
+        (0, express_validator_1.body)('experience')
+            .isArray()
+            .withMessage('Experience must be an array')
             .custom((experienceArr) => {
             if (!experienceArr.length)
                 return true;
@@ -59,28 +66,33 @@ export const profileValidation = {
             }
             return true;
         }),
-        body('linkedInUrl')
+        (0, express_validator_1.body)('linkedInUrl')
             .optional({ values: 'falsy' })
-            .isURL().withMessage('LinkedIn URL must be a valid URL')
+            .isURL()
+            .withMessage('LinkedIn URL must be a valid URL')
             .trim(),
-        body('githubUrl')
+        (0, express_validator_1.body)('githubUrl')
             .optional({ values: 'falsy' })
-            .isURL().withMessage('GitHub URL must be a valid URL')
+            .isURL()
+            .withMessage('GitHub URL must be a valid URL')
             .trim(),
-        body('portfolioUrl')
+        (0, express_validator_1.body)('portfolioUrl')
             .optional({ values: 'falsy' })
-            .isURL().withMessage('Portfolio URL must be a valid URL')
-            .trim()
+            .isURL()
+            .withMessage('Portfolio URL must be a valid URL')
+            .trim(),
     ],
     // Validation for updating a profile - similar to create but all fields are optional
     updateProfile: [
-        body('bio')
+        (0, express_validator_1.body)('bio')
             .optional({ values: 'falsy' })
-            .isString().withMessage('Bio must be a string')
+            .isString()
+            .withMessage('Bio must be a string')
             .trim(),
-        body('skills')
+        (0, express_validator_1.body)('skills')
             .optional({ values: 'falsy' })
-            .isArray({ min: 1 }).withMessage('At least one skill is required')
+            .isArray({ min: 1 })
+            .withMessage('At least one skill is required')
             .custom((skills) => {
             if (!skills)
                 return true;
@@ -89,9 +101,10 @@ export const profileValidation = {
             }
             return true;
         }),
-        body('education')
+        (0, express_validator_1.body)('education')
             .optional({ values: 'falsy' })
-            .isArray().withMessage('Education must be an array')
+            .isArray()
+            .withMessage('Education must be an array')
             .custom((educationArr) => {
             if (!educationArr || !educationArr.length)
                 return true;
@@ -111,9 +124,10 @@ export const profileValidation = {
             }
             return true;
         }),
-        body('experience')
+        (0, express_validator_1.body)('experience')
             .optional({ values: 'falsy' })
-            .isArray().withMessage('Experience must be an array')
+            .isArray()
+            .withMessage('Experience must be an array')
             .custom((experienceArr) => {
             if (!experienceArr || !experienceArr.length)
                 return true;
@@ -133,17 +147,5 @@ export const profileValidation = {
             }
             return true;
         }),
-        body('linkedInUrl')
-            .optional({ values: 'falsy' })
-            .isURL().withMessage('LinkedIn URL must be a valid URL')
-            .trim(),
-        body('githubUrl')
-            .optional({ values: 'falsy' })
-            .isURL().withMessage('GitHub URL must be a valid URL')
-            .trim(),
-        body('portfolioUrl')
-            .optional({ values: 'falsy' })
-            .isURL().withMessage('Portfolio URL must be a valid URL')
-            .trim()
-    ]
+    ],
 };

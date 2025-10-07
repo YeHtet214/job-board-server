@@ -1,61 +1,76 @@
-import express from 'express';
-import cors from 'cors';
-import passport from 'passport';
-import session from 'express-session';
-import { rateLimit } from 'express-rate-limit';
-import bodyParser from 'body-parser';
-import authRouter from './routes/auth.route.js';
-import profileRouter from './routes/profile.route.js';
-import companyRouter from './routes/company.route.js';
-import jobRouter from './routes/job.route.js';
-import applicationRouter from './routes/application.route.js';
-import userRouter from './routes/user.route.js';
-import dashboardRouter from './routes/dashboard.routes.js';
-import savedJobRouter from './routes/saved-job.route.js';
-import errorHandler from './middleware/error.middleware.js';
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.io = exports.app = void 0;
+const express_1 = __importDefault(require("express"));
+const http_1 = require("http");
+const cors_1 = __importDefault(require("cors"));
+const passport_1 = __importDefault(require("passport"));
+const express_session_1 = __importDefault(require("express-session"));
+const express_rate_limit_1 = require("express-rate-limit");
+const body_parser_1 = __importDefault(require("body-parser"));
+// Import your routers
+const auth_route_js_1 = __importDefault(require("./routes/auth.route.js"));
+const profile_route_js_1 = __importDefault(require("./routes/profile.route.js"));
+const company_route_js_1 = __importDefault(require("./routes/company.route.js"));
+const job_route_js_1 = __importDefault(require("./routes/job.route.js"));
+const application_route_js_1 = __importDefault(require("./routes/application.route.js"));
+const user_route_js_1 = __importDefault(require("./routes/user.route.js"));
+const dashboard_routes_js_1 = __importDefault(require("./routes/dashboard.routes.js"));
+const saved_job_route_js_1 = __importDefault(require("./routes/saved-job.route.js"));
+const error_middleware_js_1 = __importDefault(require("@/middleware/error.middleware.js"));
 // Import Passport config
-import './config/passport.config.js';
-const app = express();
+require("@/config/passport.config.js");
+const env_config_js_1 = require("@/config/env.config.js");
+// import { app, httpServer, io } from '@/config/socket.config.js';
+const socket_config_js_1 = require("@/config/socket.config.js");
+const message_route_js_1 = __importDefault(require("@/routes/message.route.js"));
+const app = (0, express_1.default)();
+exports.app = app;
 const port = process.env.PORT || 3000;
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true
+const httpServer = (0, http_1.createServer)(app);
+const io = (0, socket_config_js_1.initSocketServer)(httpServer);
+exports.io = io;
+app.use(body_parser_1.default.json());
+app.use(body_parser_1.default.urlencoded({ extended: true }));
+app.use((0, cors_1.default)({
+    origin: env_config_js_1.FRONTEND_URL,
+    credentials: true,
 }));
 // Initialize rate limiter
-const limiter = rateLimit({
+const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 5 * 60 * 1000, // 15 minutes
-    limit: 1000 // limit each IP to 100 requests per windowMs
+    limit: 1000, // limit each IP to 100 requests per windowMs
 });
 app.use(limiter);
 // Initialize session
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'secretJobBoardKey',
+app.use((0, express_session_1.default)({
+    secret: env_config_js_1.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        maxAge: 24 * 60 * 60 * 1000 // 24 hours
-    }
+        secure: process.env.NODE_ENV === 'production', // Heroku uses HTTPS in production
+        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    },
 }));
 // Initialize Passport
-app.use(passport.initialize());
-app.use(passport.session());
-app.use('/api/users', userRouter);
-app.use('/api/auth', authRouter);
-app.use('/api/profiles', profileRouter);
-app.use('/api/companies', companyRouter);
-app.use('/api/jobs', jobRouter);
-app.use('/api/applications', applicationRouter);
-app.use('/api/dashboard', dashboardRouter);
-app.use('/api/saved-jobs', savedJobRouter);
-app.use(errorHandler);
-// Export the app for vercel
-export default app;
-// Only run the server if not in production mode
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(port, () => {
-        console.log('Server is running on http://localhost:' + port);
-    });
-}
+app.use(passport_1.default.initialize());
+app.use(passport_1.default.session());
+app.set('io', io);
+// Your existing routes
+app.use('/api/users', user_route_js_1.default);
+app.use('/api/auth', auth_route_js_1.default);
+app.use('/api/profiles', profile_route_js_1.default);
+app.use('/api/companies', company_route_js_1.default);
+app.use('/api/jobs', job_route_js_1.default);
+app.use('/api/applications', application_route_js_1.default);
+app.use('/api/dashboard', dashboard_routes_js_1.default);
+app.use('/api/saved-jobs', saved_job_route_js_1.default);
+app.use('/api/conversations', message_route_js_1.default);
+app.use(error_middleware_js_1.default);
+// Start the server
+httpServer.listen(port, () => {
+    console.log(`Server is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
+});

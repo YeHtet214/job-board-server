@@ -1,14 +1,21 @@
-import { validationResult } from 'express-validator';
-import { authValidation } from './auth.validation.js';
-import { jobValidation } from './job.validation.js';
-import { applicationValidation } from './application.validation.js';
-import { profileValidation } from './profile.validation.js';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.profileValidation = exports.applicationValidation = exports.jobValidation = exports.authValidation = exports.validate = void 0;
+const express_validator_1 = require("express-validator");
+const auth_validation_js_1 = require("@/middleware/validation/auth.validation.js");
+Object.defineProperty(exports, "authValidation", { enumerable: true, get: function () { return auth_validation_js_1.authValidation; } });
+const job_validation_js_1 = require("@/middleware/validation/job.validation.js");
+Object.defineProperty(exports, "jobValidation", { enumerable: true, get: function () { return job_validation_js_1.jobValidation; } });
+const application_validation_js_1 = require("@/middleware/validation/application.validation.js");
+Object.defineProperty(exports, "applicationValidation", { enumerable: true, get: function () { return application_validation_js_1.applicationValidation; } });
+const profile_validation_js_1 = require("@/middleware/validation/profile.validation.js");
+Object.defineProperty(exports, "profileValidation", { enumerable: true, get: function () { return profile_validation_js_1.profileValidation; } });
 /**
  * Middleware to validate request data based on the validation chains
  * @returns Express middleware function
  */
-export const validate = (req, res, next) => {
-    const errors = validationResult(req);
+const validate = (req, res, next) => {
+    const errors = (0, express_validator_1.validationResult)(req);
     if (errors.isEmpty()) {
         return next();
     }
@@ -23,4 +30,4 @@ export const validate = (req, res, next) => {
     error.data = extractedErrors;
     next(error);
 };
-export { authValidation, jobValidation, applicationValidation, profileValidation };
+exports.validate = validate;

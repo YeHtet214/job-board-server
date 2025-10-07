@@ -1,4 +1,4 @@
-import prisma from "@/prisma/client.js";
+import prisma from "@/lib/client.js";
 import { BadRequestError, NotFoundError, ConflictError } from "@/middleware/errorHandler.js";
 import { CreateCompanyDto, UpdateCompanyDto } from "@/types/company.js";
 

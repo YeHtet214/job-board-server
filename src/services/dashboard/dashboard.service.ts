@@ -1,4 +1,4 @@
-import prisma from '@/prisma/client.js';
+import prisma from '@/lib/client.js';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '@/middleware/errorHandler.js';
 import { getJobSeekerActivity, getEmployerActivity } from '@/services/dashboard/activity.service.js';
 import { calculateJobSeekerProfileCompletion } from '@/services/company/profile-completion.service.js';

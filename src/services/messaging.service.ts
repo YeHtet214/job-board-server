@@ -1,5 +1,5 @@
-import prisma from '@/prisma/client.js';
-import { Conversation, Message } from '@/types/messaging.js';
+import prisma from '@/lib/client';
+import { Conversation, Message } from '@/types/messaging';
 
 export function computeDirectKey(userA: string, userB: string) {
   const sorted = [userA, userB].sort();
@@ -18,7 +18,7 @@ export async function getOrCreateDirectConversation(
       where: { directKey },
       include: { participants: true },
     });
-    if (existing) return existing;
+    if (existing) return existing as Conversation;
 
     return await prisma.$transaction(async (tx) => {
       const recheck = await tx.conversation.findUnique({
@@ -41,7 +41,7 @@ export async function getOrCreateDirectConversation(
       });
 
       return conv;
-    });
+    }) as Conversation;
   } catch (err: any) {
     console.log(err);
     return null;

@@ -2,7 +2,7 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_REDIRECT_URI } from './env.config.js';
 
-import prisma from '../prisma/client.js';
+import prisma from '../lib/client.js';
 
 passport.serializeUser((user: any, done) => {
   done(null, user.id);

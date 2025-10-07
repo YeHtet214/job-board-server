@@ -1,31 +1,34 @@
-import { body, param } from 'express-validator';
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.applicationValidation = void 0;
+const express_validator_1 = require("express-validator");
 /**
  * Validation rules for application endpoints
  */
-export const applicationValidation = {
+exports.applicationValidation = {
     // Validation for creating a new application
     create: [
-        param('jobId')
+        (0, express_validator_1.param)('jobId')
             .notEmpty().withMessage('Job ID is required')
             .isString().withMessage('Job ID must be a string')
             .trim()
             .escape(),
-        body('fullName')
+        (0, express_validator_1.body)('fullName')
             .notEmpty().withMessage('Full name is required')
             .isString().withMessage('Full name must be a string')
             .trim()
             .escape(),
-        body('email')
+        (0, express_validator_1.body)('email')
             .notEmpty().withMessage('Email is required')
             .isString().withMessage('Email must be a string')
             .trim()
             .escape(),
-        body('phone')
+        (0, express_validator_1.body)('phone')
             .notEmpty().withMessage('Phone is required')
             .isString().withMessage('Phone must be a string')
             .trim()
             .escape(),
-        body('resume')
+        (0, express_validator_1.body)('resume')
             .optional()
             .custom((value) => {
             if (value && value.mimetype !== 'application/pdf') {
@@ -33,22 +36,22 @@ export const applicationValidation = {
             }
             return true;
         }),
-        body('useExistingResume')
+        (0, express_validator_1.body)('useExistingResume')
             .optional()
             .isBoolean().withMessage('Use existing resume must be a boolean'),
-        body('resumeUrl')
+        (0, express_validator_1.body)('resumeUrl')
             .notEmpty().withMessage('Resume URL is required')
             .isURL().withMessage('Resume URL must be a valid URL')
             .trim(),
-        body('coverLetter')
+        (0, express_validator_1.body)('coverLetter')
             .notEmpty().withMessage('Cover letter is required')
             .isString().withMessage('Cover letter must be a string')
             .trim()
             .escape(),
-        body('acceptTerms')
+        (0, express_validator_1.body)('acceptTerms')
             .notEmpty().withMessage('Accept terms is required')
             .isBoolean().withMessage('Accept terms must be a boolean'),
-        body('additionalInfo')
+        (0, express_validator_1.body)('additionalInfo')
             .optional()
             .isString().withMessage('Additional info must be a string')
             .trim()
@@ -56,21 +59,21 @@ export const applicationValidation = {
     ],
     // Validation for updating an application
     update: [
-        param('id')
+        (0, express_validator_1.param)('id')
             .notEmpty().withMessage('Application ID is required')
             .isString().withMessage('Application ID must be a string')
             .trim()
             .escape(),
-        body('resumeUrl')
+        (0, express_validator_1.body)('resumeUrl')
             .optional()
             .isURL().withMessage('Resume URL must be a valid URL')
             .trim(),
-        body('coverLetter')
+        (0, express_validator_1.body)('coverLetter')
             .optional()
             .isString().withMessage('Cover letter must be a string')
             .trim()
             .escape(),
-        body('status')
+        (0, express_validator_1.body)('status')
             .optional()
             .isString().withMessage('Status must be a string')
             .trim()
@@ -79,7 +82,7 @@ export const applicationValidation = {
     ],
     // Validation for getting an application by ID
     getByJobId: [
-        param('jobId')
+        (0, express_validator_1.param)('jobId')
             .notEmpty().withMessage('Application ID is required')
             .isString().withMessage('Application ID must be a string')
             .trim()
@@ -87,7 +90,7 @@ export const applicationValidation = {
     ],
     // Validation for getting an application by ID
     getById: [
-        param('id')
+        (0, express_validator_1.param)('id')
             .notEmpty().withMessage('Application ID is required')
             .isString().withMessage('Application ID must be a string')
             .trim()
@@ -95,7 +98,7 @@ export const applicationValidation = {
     ],
     // Validation for deleting an application
     delete: [
-        param('id')
+        (0, express_validator_1.param)('id')
             .notEmpty().withMessage('Application ID is required')
             .isString().withMessage('Application ID must be a string')
             .trim()

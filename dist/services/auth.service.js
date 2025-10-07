@@ -1,85 +1,80 @@
-import prisma from "../prisma/client.js";
-import bcrypt from 'bcrypt';
-import jwt from "jsonwebtoken";
-import crypto from 'crypto';
-import nodemailer from 'nodemailer';
-import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '../middleware/errorHandler.js';
-import { JWT_SECRET, REFRESH_TOKEN_SECRET, SMTP_CONFIG, SMTP_FROM_EMAIL, FRONTEND_URL } from "../config/env.config.js";
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.resetPassword = exports.requestPasswordReset = exports.resendVerificationEmail = exports.verifyEmail = exports.userLogout = exports.refreshAccessToken = exports.userSignIn = exports.userSignUp = exports.storeRefreshToken = exports.generateTokens = void 0;
+const client_1 = __importDefault(require("@/prisma/client"));
+const bcrypt_1 = __importDefault(require("bcrypt"));
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const crypto_1 = __importDefault(require("crypto"));
+const errorHandler_1 = require("@/middleware/errorHandler");
+const env_config_1 = require("@/config/env.config");
+const emailService_config_1 = __importDefault(require("@/config/emailService.config"));
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '24h';
 const REFRESH_TOKEN_EXPIRY = '7d';
-const transporter = nodemailer.createTransport(SMTP_CONFIG);
-const checkUserExists = async (email) => {
-    const user = await prisma.user.findUnique({
+const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    const user = yield client_1.default.user.findUnique({
         where: { email }
     });
     return user;
-};
-export const generateTokens = (userId) => {
-    const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    const refreshToken = jwt.sign({ userId }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+});
+/**
+ * Generates an access token and refresh token for a given user ID and email.
+ * Access token is used to authenticate user for a short period of time.
+ * Refresh token is used to generate a new access token once the existing one expires.
+ *
+ * @param userId the ID of the user
+ * @param email the email of the user
+ * @returns an object containing the access token and refresh token
+ */
+const generateTokens = (userId, email) => {
+    const accessToken = jsonwebtoken_1.default.sign({ userId, email }, env_config_1.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+    const refreshToken = jsonwebtoken_1.default.sign({ userId, email }, env_config_1.REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
     return { accessToken, refreshToken };
 };
-export const storeRefreshToken = async (userId, refreshToken) => {
+exports.generateTokens = generateTokens;
+const storeRefreshToken = (userId, refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    await prisma.refreshToken.create({
+    yield client_1.default.refreshToken.create({
         data: {
             token: refreshToken,
             userId,
             expiresAt
         }
     });
-};
-const sendVerificationEmail = async (email, token) => {
-    const verificationLink = `${FRONTEND_URL}/verify-email/${token}`;
-    await transporter.sendMail({
-        from: SMTP_FROM_EMAIL,
-        to: email,
-        subject: 'Verify your email address',
-        html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-        <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #211951;">
-          <h1 style="color: #211951; margin: 0;">Job Board</h1>
-          <p style="color: #666; font-size: 14px; margin-top: 5px;">Connect with opportunities</p>
-        </div>
-        
-        <div style="padding: 20px 0;">
-          <h2 style="color: #333;">Email Verification</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">Thank you for creating an account! To get started, please verify your email address by clicking the button below.</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${verificationLink}" style="display: inline-block; padding: 12px 24px; background-color: #211951; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;">Verify Email Address</a>
-          </div>
-          
-          <p style="color: #555; font-size: 14px; line-height: 1.5;">If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-          <p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; color: #333;">${verificationLink}</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; color: #777; font-size: 14px;">
-            <p><strong>Note:</strong> This verification link will expire in 24 hours.</p>
-            <p>If you didn't create an account, you can safely ignore this email.</p>
-          </div>
-        </div>
-        
-        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
-          <p>Need help? Contact our support team at <a href="mailto:support@jobboard.com" style="color: #211951;">support@jobboard.com</a></p>
-          <p>&copy; ${new Date().getFullYear()} Job Board. All rights reserved.</p>
-        </div>
-      </div>
-    `
+});
+exports.storeRefreshToken = storeRefreshToken;
+const sendVerificationEmail = (email, token) => __awaiter(void 0, void 0, void 0, function* () {
+    const verificationLink = `${env_config_1.FRONTEND_URL}/verify-email/${token}`;
+    yield (0, emailService_config_1.default)({
+        email,
+        link: verificationLink,
+        type: 'verify'
     });
-};
-export const userSignUp = async (firstName, lastName, email, password, role) => {
+});
+const userSignUp = (firstName, lastName, email, password, role) => __awaiter(void 0, void 0, void 0, function* () {
     // Validate required fields
     if (!firstName || !lastName || !email || !password || !role) {
-        throw new BadRequestError('All fields are required');
+        throw new errorHandler_1.BadRequestError('All fields are required');
     }
-    const existingUser = await checkUserExists(email);
+    const existingUser = yield checkUserExists(email);
     if (existingUser) {
-        throw new ConflictError('User with this email already exists');
+        throw new errorHandler_1.ConflictError('User with this email already exists');
     }
-    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
-    const user = await prisma.user.create({
+    const hashedPassword = yield bcrypt_1.default.hash(password, SALT_ROUNDS);
+    const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
+    const user = yield client_1.default.user.create({
         data: {
             firstName,
             lastName,
@@ -89,9 +84,9 @@ export const userSignUp = async (firstName, lastName, email, password, role) => 
             emailVerificationToken: verificationToken
         }
     });
-    await sendVerificationEmail(email, verificationToken);
-    const { accessToken, refreshToken } = generateTokens(user.id);
-    await storeRefreshToken(user.id, refreshToken);
+    yield sendVerificationEmail(email, verificationToken);
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, user.email);
+    yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         accessToken,
         refreshToken,
@@ -104,25 +99,26 @@ export const userSignUp = async (firstName, lastName, email, password, role) => 
             isEmailVerified: user.isEmailVerified
         }
     };
-};
-export const userSignIn = async (email, password) => {
+});
+exports.userSignUp = userSignUp;
+const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, function* () {
     // Validate required fields
     if (!email || !password) {
-        throw new BadRequestError('Email and password are required');
+        throw new errorHandler_1.BadRequestError('Email and password are required');
     }
-    const user = await checkUserExists(email);
+    const user = yield checkUserExists(email);
     if (!user || !user.passwordHash) {
-        throw new UnauthorizedError('Invalid credentials');
+        throw new errorHandler_1.UnauthorizedError('Invalid credentials');
     }
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-        throw new UnauthorizedError('Invalid credentials');
+        throw new errorHandler_1.UnauthorizedError('Invalid credentials');
     }
     if (!user.isEmailVerified) {
-        throw new UnauthorizedError('Please verify your email before signing in');
+        throw new errorHandler_1.UnauthorizedError('Please verify your email before signing in');
     }
-    const { accessToken, refreshToken } = generateTokens(user.id);
-    await storeRefreshToken(user.id, refreshToken);
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, email);
+    yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         user: {
             id: user.id,
@@ -135,13 +131,14 @@ export const userSignIn = async (email, password) => {
         accessToken,
         refreshToken
     };
-};
-export const refreshAccessToken = async (refreshToken) => {
+});
+exports.userSignIn = userSignIn;
+const refreshAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     if (!refreshToken) {
-        throw new BadRequestError('Refresh token is required');
+        throw new errorHandler_1.BadRequestError('Refresh token is required');
     }
     // Find the refresh token in the database
-    const storedToken = await prisma.refreshToken.findFirst({
+    const storedToken = yield client_1.default.refreshToken.findFirst({
         where: {
             token: refreshToken,
             expiresAt: {
@@ -150,37 +147,38 @@ export const refreshAccessToken = async (refreshToken) => {
         }
     });
     if (!storedToken) {
-        throw new UnauthorizedError('Invalid or expired refresh token');
+        throw new errorHandler_1.UnauthorizedError('Invalid or expired refresh token');
     }
     try {
         // Verify the refresh token
-        const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(refreshToken, env_config_1.REFRESH_TOKEN_SECRET);
         // Generate new access token
-        const accessToken = jwt.sign({ userId: decoded.userId }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+        const accessToken = jsonwebtoken_1.default.sign({ userId: decoded.userId }, env_config_1.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
         return { accessToken };
     }
     catch (error) {
-        throw new UnauthorizedError('Invalid refresh token');
+        throw new errorHandler_1.UnauthorizedError('Invalid refresh token');
     }
-};
-export const userLogout = async (token) => {
+});
+exports.refreshAccessToken = refreshAccessToken;
+const userLogout = (token) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token) {
-        throw new BadRequestError('Token is required');
+        throw new errorHandler_1.BadRequestError('Token is required');
     }
     try {
         // Verify the access token to get the user ID
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jsonwebtoken_1.default.verify(token, env_config_1.JWT_SECRET);
         if (!decoded || !decoded.userId) {
-            throw new UnauthorizedError('Invalid token');
+            throw new errorHandler_1.UnauthorizedError('Invalid token');
         }
         // Delete all refresh tokens for this user (effectively logging them out everywhere)
-        await prisma.refreshToken.deleteMany({
+        yield client_1.default.refreshToken.deleteMany({
             where: {
                 userId: decoded.userId
             }
         });
         // Add token to blacklist to prevent reuse
-        await prisma.blacklistedToken.create({
+        yield client_1.default.blacklistedToken.create({
             data: {
                 token,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
@@ -190,19 +188,20 @@ export const userLogout = async (token) => {
     }
     catch (error) {
         // If the token is invalid or expired
-        if (error instanceof jwt.JsonWebTokenError) {
-            throw new UnauthorizedError('Invalid token');
+        if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
+            throw new errorHandler_1.UnauthorizedError('Invalid token');
         }
         // For any other unexpected error
-        throw new InternalServerError('Error during logout process');
+        throw new errorHandler_1.InternalServerError('Error during logout process');
     }
-};
-export const verifyEmail = async (token) => {
+});
+exports.userLogout = userLogout;
+const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token) {
-        throw new BadRequestError('Verification token is required');
+        throw new errorHandler_1.BadRequestError('Verification token is required');
     }
     // First check if token is already in blacklist (previously used)
-    const blacklistedToken = await prisma.blacklistedToken.findFirst({
+    const blacklistedToken = yield client_1.default.blacklistedToken.findFirst({
         where: { token }
     });
     // If token is blacklisted, it means it was already used for verification
@@ -210,20 +209,20 @@ export const verifyEmail = async (token) => {
         return { message: 'Your email has already been verified. Please log in.' };
     }
     // Find user with this verification token
-    const user = await prisma.user.findFirst({
+    const user = yield client_1.default.user.findFirst({
         where: {
             emailVerificationToken: token
         }
     });
     if (!user) {
-        throw new BadRequestError('Invalid verification token');
+        throw new errorHandler_1.BadRequestError('Invalid verification token');
     }
     // Check if email is already verified
     if (user.isEmailVerified) {
         return { message: 'Email already verified. Please log in.' };
     }
     // Verify the email
-    await prisma.user.update({
+    yield client_1.default.user.update({
         where: {
             id: user.id
         },
@@ -233,7 +232,7 @@ export const verifyEmail = async (token) => {
         }
     });
     // Add the token to blacklist to prevent reuse
-    await prisma.blacklistedToken.create({
+    yield client_1.default.blacklistedToken.create({
         data: {
             token,
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
@@ -243,7 +242,7 @@ export const verifyEmail = async (token) => {
     if (user.role === 'JOBSEEKER') {
         try {
             // Create a job seeker profile
-            await prisma.$executeRaw `
+            yield client_1.default.$executeRaw `
         INSERT INTO "JobSeekerProfile" ("userId", "createdAt", "updatedAt")
         VALUES (${user.id}, NOW(), NOW())
       `;
@@ -254,22 +253,23 @@ export const verifyEmail = async (token) => {
         }
     }
     return { message: 'Email verified successfully. You can now log in.' };
-};
-export const resendVerificationEmail = async (email) => {
+});
+exports.verifyEmail = verifyEmail;
+const resendVerificationEmail = (email) => __awaiter(void 0, void 0, void 0, function* () {
     if (!email) {
-        throw new BadRequestError('Email is required');
+        throw new errorHandler_1.BadRequestError('Email is required');
     }
-    const user = await checkUserExists(email);
+    const user = yield checkUserExists(email);
     if (!user) {
-        throw new NotFoundError('User not found');
+        throw new errorHandler_1.NotFoundError('User not found');
     }
     if (user.isEmailVerified) {
-        throw new BadRequestError('Email is already verified');
+        throw new errorHandler_1.BadRequestError('Email is already verified');
     }
     // Generate a new verification token
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
     // Update the user with the new token
-    await prisma.user.update({
+    yield client_1.default.user.update({
         where: { id: user.id },
         data: {
             emailVerificationToken: verificationToken,
@@ -277,68 +277,41 @@ export const resendVerificationEmail = async (email) => {
         }
     });
     // Send the verification email with the new token
-    await sendVerificationEmail(email, verificationToken);
+    yield sendVerificationEmail(email, verificationToken);
     return { message: 'Verification email has been resent successfully. Please check your inbox.' };
-};
-export const requestPasswordReset = async (email) => {
+});
+exports.resendVerificationEmail = resendVerificationEmail;
+const requestPasswordReset = (email) => __awaiter(void 0, void 0, void 0, function* () {
     if (!email) {
-        throw new BadRequestError('Email is required');
+        throw new errorHandler_1.BadRequestError('Email is required');
     }
-    const user = await checkUserExists(email);
+    const user = yield checkUserExists(email);
     if (!user) {
-        throw new NotFoundError('User not found');
+        throw new errorHandler_1.NotFoundError('User not found');
     }
-    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetToken = crypto_1.default.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    await prisma.user.update({
+    yield client_1.default.user.update({
         where: { id: user.id },
         data: {
             resetPasswordToken: resetToken,
             resetPasswordExpiry: resetTokenExpiry
         }
     });
-    const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
-    await transporter.sendMail({
-        from: SMTP_FROM_EMAIL,
-        to: email,
-        subject: 'Reset Your Password',
-        html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-        <div style="text-align: center; padding-bottom: 20px; border-bottom: 2px solid #211951;">
-          <h1 style="color: #211951; margin: 0;">Job Board</h1>
-          <p style="color: #666; font-size: 14px; margin-top: 5px;">Connect with opportunities</p>
-        </div>
-        
-        <div style="padding: 20px 0;">
-          <h2 style="color: #333;">Reset Password</h2>
-          <p style="color: #555; font-size: 16px; line-height: 1.5;">To get access to your account back, reset password by clicking the button below.</p>
-          
-          <div style="text-align: center; margin: 30px 0;">
-            <a href="${resetLink}" style="display: inline-block; padding: 12px 24px; background-color: #211951; color: white; text-decoration: none; font-weight: bold; border-radius: 4px; font-size: 16px;">Reset Password</a>
-          </div>
-          
-          <p style="color: #555; font-size: 14px; line-height: 1.5;">If the button doesn't work, you can also copy and paste the following link into your browser:</p>
-          <p style="background-color: #f5f5f5; padding: 10px; border-radius: 4px; font-size: 12px; word-break: break-all; color: #333;">${resetLink}</p>
-          
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e1e1e1; color: #777; font-size: 14px;">
-            <p>If you didn't create an account, you can safely ignore this email.</p>
-          </div>
-        </div>
-        
-        <div style="background-color: #f7f7f7; padding: 15px; border-radius: 4px; margin-top: 20px; text-align: center; font-size: 12px; color: #666;">
-          <p>Need help? Contact our support team at <a href="mailto:support@jobboard.com" style="color: #211951;">support@jobboard.com</a></p>
-          <p>&copy; ${new Date().getFullYear()} Job Board. All rights reserved.</p>
-        </div>
-      </div>
-    `
+    const resetLink = `${env_config_1.FRONTEND_URL}/reset-password/${resetToken}`;
+    yield (0, emailService_config_1.default)({
+        email,
+        link: resetLink,
+        type: 'resetPassword'
     });
     return { message: 'Password reset email sent successfully' };
-};
-export const resetPassword = async (token, newPassword) => {
+});
+exports.requestPasswordReset = requestPasswordReset;
+const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token || !newPassword) {
-        throw new BadRequestError('Token and new password are required');
+        throw new errorHandler_1.BadRequestError('Token and new password are required');
     }
-    const user = await prisma.user.findFirst({
+    const user = yield client_1.default.user.findFirst({
         where: {
             resetPasswordToken: token,
             resetPasswordExpiry: {
@@ -347,10 +320,10 @@ export const resetPassword = async (token, newPassword) => {
         }
     });
     if (!user) {
-        throw new BadRequestError('Invalid or expired reset token');
+        throw new errorHandler_1.BadRequestError('Invalid or expired reset token');
     }
-    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
-    await prisma.user.update({
+    const hashedPassword = yield bcrypt_1.default.hash(newPassword, SALT_ROUNDS);
+    yield client_1.default.user.update({
         where: { id: user.id },
         data: {
             passwordHash: hashedPassword,
@@ -359,11 +332,12 @@ export const resetPassword = async (token, newPassword) => {
         }
     });
     // Blacklist the token to prevent reuse
-    await prisma.blacklistedToken.create({
+    yield client_1.default.blacklistedToken.create({
         data: {
             token,
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
         }
     });
     return { message: 'Password reset successful' };
-};
+});
+exports.resetPassword = resetPassword;

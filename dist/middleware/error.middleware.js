@@ -1,6 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 const errorHandler = (err, req, res, next) => {
     try {
-        let error = { ...err };
+        let error = Object.assign({}, err);
         error.message = err.message;
         if (err.name === 'CastError') {
             const message = err.message || 'Invalid data type';
@@ -46,4 +48,4 @@ const errorHandler = (err, req, res, next) => {
         next(error);
     }
 };
-export default errorHandler;
+exports.default = errorHandler;

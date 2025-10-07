@@ -2,8 +2,8 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { CreateProfileDto, UpdateProfileDto, Education, Experience } from '@/types/profile.js';
-import { CustomError } from "@/types/error.js";
+import { CreateProfileDto, UpdateProfileDto, Education, Experience } from '@/types/profile';
+import { CustomError } from "@/types/error";
 
 const prisma = new PrismaClient();
 

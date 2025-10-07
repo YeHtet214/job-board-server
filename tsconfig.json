@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "module": "NodeNext",                  // Use ESNext for ES Modules
-    "target": "ESNext",                  // Use ESNext target for modern JS features
-    "moduleResolution": "NodeNext",          // Use Node-style module resolution
+    "module": "commonjs",                  // Use ESNext for ES Modules
+    "target": "es6",                  // Use ESNext target for modern JS features
+    // "moduleResolution": "NodeNext",          // Use Node-style module resolution
     "esModuleInterop": true,             // Enables default import syntax
     "skipLibCheck": true,                // Skips type checking of declaration files
     "strict": true,                      // Enable strict mode for type safety
     "outDir": "./dist",                  // Compiled files will be placed in the 'dist' folder
     "rootDir": "./src",                  
-    "resolveJsonModule": true,           // Allows importing JSON files
+    // "resolveJsonModule": true,           // Allows importing JSON files
     "forceConsistentCasingInFileNames": true, // Ensures consistent file casing
     "allowJs": true,                    // Allows JavaScript files to be compiled
     "allowSyntheticDefaultImports": true,
@@ -16,7 +16,7 @@
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
   },                // Allows default imports from modules with no default export
   "ts-node": {
     "esm": true,
@@ -27,7 +27,7 @@
     "src/temp.ts",                           // Also include the main 'index.ts' file
     "types/**/*",                    // Include all files inside the 'types' folder
     "prisma/**/*.ts"                   
-  ],
+, "prisma"  ],
   "exclude": [
     "node_modules",
     "dist"                       // Exclude the 'node_modules' folder from the compilation

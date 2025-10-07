@@ -1,12 +1,27 @@
-import prisma from '../../prisma/client.js';
-import { NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.saveJobForUser = exports.removeSavedJobForUser = exports.getSavedJobsForUser = void 0;
+const client_js_1 = __importDefault(require("@/prisma/client.js"));
+const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 /**
  * Gets saved jobs for a user
  * @param userId The user ID
  * @returns Array of saved jobs with details
  */
-export const getSavedJobsForUser = async (userId) => {
-    return prisma.savedJob.findMany({
+const getSavedJobsForUser = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    return client_js_1.default.savedJob.findMany({
         where: { userId },
         select: {
             id: true,
@@ -28,43 +43,45 @@ export const getSavedJobsForUser = async (userId) => {
         },
         orderBy: { createdAt: 'desc' }
     });
-};
+});
+exports.getSavedJobsForUser = getSavedJobsForUser;
 /**
  * Removes a saved job for a user
  * @param savedJobId The saved job ID to remove
  * @param userId The user ID
  */
-export const removeSavedJobForUser = async (savedJobId, userId) => {
-    const savedJob = await prisma.savedJob.findUnique({
+const removeSavedJobForUser = (savedJobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const savedJob = yield client_js_1.default.savedJob.findUnique({
         where: { id: savedJobId },
         select: { userId: true }
     });
     if (!savedJob) {
-        throw new NotFoundError('Saved job not found');
+        throw new errorHandler_js_1.NotFoundError('Saved job not found');
     }
     if (savedJob.userId !== userId) {
-        throw new UnauthorizedError('Not authorized to remove this saved job');
+        throw new errorHandler_js_1.UnauthorizedError('Not authorized to remove this saved job');
     }
-    return prisma.savedJob.delete({
+    return client_js_1.default.savedJob.delete({
         where: { id: savedJobId }
     });
-};
+});
+exports.removeSavedJobForUser = removeSavedJobForUser;
 /**
  * Saves a job for a user
  * @param jobId The job ID to save
  * @param userId The user ID
  */
-export const saveJobForUser = async (jobId, userId) => {
+const saveJobForUser = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if job exists
-    const job = await prisma.job.findUnique({
+    const job = yield client_js_1.default.job.findUnique({
         where: { id: jobId },
         select: { id: true }
     });
     if (!job) {
-        throw new NotFoundError('Job not found');
+        throw new errorHandler_js_1.NotFoundError('Job not found');
     }
     // Check if already saved
-    const existingSave = await prisma.savedJob.findFirst({
+    const existingSave = yield client_js_1.default.savedJob.findFirst({
         where: {
             jobId,
             userId
@@ -74,10 +91,11 @@ export const saveJobForUser = async (jobId, userId) => {
         return existingSave;
     }
     // Create new saved job
-    return prisma.savedJob.create({
+    return client_js_1.default.savedJob.create({
         data: {
             jobId,
             userId
         }
     });
-};
+});
+exports.saveJobForUser = saveJobForUser;

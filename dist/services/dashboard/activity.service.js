@@ -1,11 +1,26 @@
-import prisma from '../../prisma/client.js';
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getEmployerActivity = exports.getJobSeekerActivity = void 0;
+const client_js_1 = __importDefault(require("@/prisma/client.js"));
 /**
  * Gets recent activity for a job seeker
  * @param userId The job seeker user ID
  */
-export const getJobSeekerActivity = async (userId) => {
+const getJobSeekerActivity = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Get recent job views
-    const views = await prisma.jobView.findMany({
+    const views = yield client_js_1.default.jobView.findMany({
         where: { userId },
         select: {
             id: true,
@@ -24,7 +39,7 @@ export const getJobSeekerActivity = async (userId) => {
         take: 5
     });
     // Get recent applications
-    const applications = await prisma.jobApplication.findMany({
+    const applications = yield client_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
         select: {
             id: true,
@@ -43,7 +58,7 @@ export const getJobSeekerActivity = async (userId) => {
         take: 5
     });
     // Get recent saved jobs
-    const saves = await prisma.savedJob.findMany({
+    const saves = yield client_js_1.default.savedJob.findMany({
         where: { userId },
         select: {
             id: true,
@@ -89,18 +104,16 @@ export const getJobSeekerActivity = async (userId) => {
         }))
     ].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
     // Return only the latest 10 activities
-    return allActivities.slice(0, 10).map(activity => ({
-        ...activity,
-        timestamp: activity.timestamp.toISOString()
-    }));
-};
+    return allActivities.slice(0, 10).map(activity => (Object.assign(Object.assign({}, activity), { timestamp: activity.timestamp.toISOString() })));
+});
+exports.getJobSeekerActivity = getJobSeekerActivity;
 /**
  * Gets recent activity for an employer
  * @param companyId The company ID
  */
-export const getEmployerActivity = async (companyId) => {
+const getEmployerActivity = (companyId) => __awaiter(void 0, void 0, void 0, function* () {
     // Get recent job postings
-    const jobPostings = await prisma.job.findMany({
+    const jobPostings = yield client_js_1.default.job.findMany({
         where: {
             companyId,
             createdAt: {
@@ -116,7 +129,7 @@ export const getEmployerActivity = async (companyId) => {
         take: 5
     });
     // Get expired/inactive jobs
-    const expiredJobs = await prisma.job.findMany({
+    const expiredJobs = yield client_js_1.default.job.findMany({
         where: {
             companyId,
             OR: [
@@ -136,7 +149,7 @@ export const getEmployerActivity = async (companyId) => {
         take: 5
     });
     // Get new applications
-    const newApplications = await prisma.jobApplication.findMany({
+    const newApplications = yield client_js_1.default.jobApplication.findMany({
         where: {
             job: { companyId },
             createdAt: {
@@ -163,7 +176,7 @@ export const getEmployerActivity = async (companyId) => {
         take: 5
     });
     // Get interview scheduled
-    const interviews = await prisma.jobApplication.findMany({
+    const interviews = yield client_js_1.default.jobApplication.findMany({
         where: {
             job: { companyId },
             status: 'INTERVIEW',
@@ -208,26 +221,33 @@ export const getEmployerActivity = async (companyId) => {
             relatedEntity: 'Your company',
             entityId: job.id
         })),
-        ...newApplications.map((app) => ({
-            id: app.id,
-            type: 'NEW_APPLICATION',
-            timestamp: app.createdAt,
-            title: `New application from ${app.applicant?.firstName ?? ''} ${app.applicant?.lastName ?? ''}`,
-            relatedEntity: app.job?.title ?? '',
-            entityId: app.job?.id ?? ''
-        })),
-        ...interviews.map((app) => ({
-            id: app.id,
-            type: 'INTERVIEW_SCHEDULED',
-            timestamp: app.updatedAt,
-            title: `Interview scheduled with ${app.applicant?.firstName} ${app.applicant?.lastName}`,
-            relatedEntity: app.job?.title,
-            entityId: app.job?.id
-        }))
-    ].sort((a, b) => (b.timestamp?.getTime() ?? 0) - (a.timestamp?.getTime() ?? 0));
+        ...newApplications.map((app) => {
+            var _a, _b, _c, _d, _e, _f, _g, _h;
+            return ({
+                id: app.id,
+                type: 'NEW_APPLICATION',
+                timestamp: app.createdAt,
+                title: `New application from ${(_b = (_a = app.applicant) === null || _a === void 0 ? void 0 : _a.firstName) !== null && _b !== void 0 ? _b : ''} ${(_d = (_c = app.applicant) === null || _c === void 0 ? void 0 : _c.lastName) !== null && _d !== void 0 ? _d : ''}`,
+                relatedEntity: (_f = (_e = app.job) === null || _e === void 0 ? void 0 : _e.title) !== null && _f !== void 0 ? _f : '',
+                entityId: (_h = (_g = app.job) === null || _g === void 0 ? void 0 : _g.id) !== null && _h !== void 0 ? _h : ''
+            });
+        }),
+        ...interviews.map((app) => {
+            var _a, _b, _c, _d;
+            return ({
+                id: app.id,
+                type: 'INTERVIEW_SCHEDULED',
+                timestamp: app.updatedAt,
+                title: `Interview scheduled with ${(_a = app.applicant) === null || _a === void 0 ? void 0 : _a.firstName} ${(_b = app.applicant) === null || _b === void 0 ? void 0 : _b.lastName}`,
+                relatedEntity: (_c = app.job) === null || _c === void 0 ? void 0 : _c.title,
+                entityId: (_d = app.job) === null || _d === void 0 ? void 0 : _d.id
+            });
+        })
+    ].sort((a, b) => { var _a, _b, _c, _d; return ((_b = (_a = b.timestamp) === null || _a === void 0 ? void 0 : _a.getTime()) !== null && _b !== void 0 ? _b : 0) - ((_d = (_c = a.timestamp) === null || _c === void 0 ? void 0 : _c.getTime()) !== null && _d !== void 0 ? _d : 0); });
     // Return only the latest 10 activities
-    return allActivities.slice(0, 10).map(activity => ({
-        ...activity,
-        timestamp: activity.timestamp?.toISOString()
-    }));
-};
+    return allActivities.slice(0, 10).map(activity => {
+        var _a;
+        return (Object.assign(Object.assign({}, activity), { timestamp: (_a = activity.timestamp) === null || _a === void 0 ? void 0 : _a.toISOString() }));
+    });
+});
+exports.getEmployerActivity = getEmployerActivity;
