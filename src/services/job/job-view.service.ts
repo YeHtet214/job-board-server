@@ -1,5 +1,5 @@
-import prisma from '@/lib/client.js';
-import { NotFoundError } from '@/middleware/errorHandler.js';
+import prisma from '../../lib/prismaClient.js';
+import { NotFoundError } from '../../middleware/errorHandler.js';
 
 /**
  * Records a job view by a user, avoiding duplicate recent views

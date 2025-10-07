@@ -1,5 +1,5 @@
-import prisma from '@/lib/client.js';
-import { BadRequestError, NotFoundError, UnauthorizedError } from '@/middleware/errorHandler.js';
+import prisma from '../../lib/prismaClient.js';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
 
 /**
  * Gets saved jobs for a user

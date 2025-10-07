@@ -1,5 +1,8 @@
-import prisma from '@/lib/client.js';
-import { NotFoundError, UnauthorizedError } from '@/middleware/errorHandler.js';
+import prisma from '../../lib/prismaClient.js';
+import {
+  NotFoundError,
+  UnauthorizedError,
+} from '../../middleware/errorHandler.js';
 
 /**
  * Gets saved jobs for a user
@@ -21,13 +24,13 @@ export const getSavedJobsForUser = async (userId: string) => {
             select: {
               id: true,
               name: true,
-              logo: true
-            }
-          }
-        }
-      }
+              logo: true,
+            },
+          },
+        },
+      },
     },
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: 'desc' },
   });
 };
 
@@ -36,10 +39,13 @@ export const getSavedJobsForUser = async (userId: string) => {
  * @param savedJobId The saved job ID to remove
  * @param userId The user ID
  */
-export const removeSavedJobForUser = async (savedJobId: string, userId: string) => {
+export const removeSavedJobForUser = async (
+  savedJobId: string,
+  userId: string,
+) => {
   const savedJob = await prisma.savedJob.findUnique({
     where: { id: savedJobId },
-    select: { userId: true }
+    select: { userId: true },
   });
 
   if (!savedJob) {
@@ -51,7 +57,7 @@ export const removeSavedJobForUser = async (savedJobId: string, userId: string) 
   }
 
   return prisma.savedJob.delete({
-    where: { id: savedJobId }
+    where: { id: savedJobId },
   });
 };
 
@@ -64,7 +70,7 @@ export const saveJobForUser = async (jobId: string, userId: string) => {
   // Check if job exists
   const job = await prisma.job.findUnique({
     where: { id: jobId },
-    select: { id: true }
+    select: { id: true },
   });
 
   if (!job) {
@@ -75,8 +81,8 @@ export const saveJobForUser = async (jobId: string, userId: string) => {
   const existingSave = await prisma.savedJob.findFirst({
     where: {
       jobId,
-      userId
-    }
+      userId,
+    },
   });
 
   if (existingSave) {
@@ -87,7 +93,7 @@ export const saveJobForUser = async (jobId: string, userId: string) => {
   return prisma.savedJob.create({
     data: {
       jobId,
-      userId
-    }
+      userId,
+    },
   });
 };

@@ -11,7 +11,7 @@ import {
   createNotification,
   markConversationRead,
 } from "../services/messaging.service.js"; // adjust import paths
-import prisma from "../lib/client.js";
+import prisma from "../lib/prismaClient.js";
 
 type SocketUser = { userId: string; email?: string } | null;
 

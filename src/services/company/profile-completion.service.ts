@@ -1,4 +1,4 @@
-import prisma from '@/lib/client.js';
+import prisma from '@/lib/prismaClient.js';
 import { UnauthorizedError } from '@/middleware/errorHandler.js';
 
 /**

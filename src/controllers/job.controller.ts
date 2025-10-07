@@ -10,7 +10,7 @@ import {
     getSearchSuggestions
 } from '../services/job/job.service.js';
 import { RequestWithUser } from '../types/users.js';
-import prisma from '../lib/client.js';
+import prisma from '../lib/prismaClient.js';
 import { BadRequestError } from '../middleware/errorHandler.js';
 import { JobType } from '../types/job.js';
 

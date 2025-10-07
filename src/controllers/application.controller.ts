@@ -1,6 +1,6 @@
 import { NextFunction, Response } from "express";
-import { RequestWithUser } from "@/types/users.js";
-import { createApplicationDto, updateApplicationDto } from "@/types/applicaton.js";
+import { RequestWithUser } from "../types/users.js";
+import { createApplicationDto, updateApplicationDto } from "../types/applicaton.js";
 import {
     fetchAllApplicationsByJobId,
     fetchApplicationById,
@@ -8,9 +8,9 @@ import {
     updateApplicationById,
     deleteExistingApplication,
     fetchAllApplicationsByUserId
-} from "@/services/application/application.service.js";
+} from "../services/application/application.service.js";
 import { matchedData } from "express-validator";
-import { resumeUploadToFirebase } from "@/services/uploadCloud.service.js";
+import { resumeUploadToFirebase } from "../services/uploadCloud.service.js";
 
 export const getAllApplicationsByUserId = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {

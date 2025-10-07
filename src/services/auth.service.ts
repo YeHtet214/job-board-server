@@ -1,11 +1,11 @@
-import prisma from "@/lib/client";
+import prisma from "../lib/prismaClient";
 import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import crypto from 'crypto';
-import { UserRole } from '@/types/users';
-import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '@/middleware/errorHandler';
-import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "@/config/env.config";
-import sendEmailService from "@/config/emailService.config";
+import { UserRole } from '../types/users';
+import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '../middleware/errorHandler';
+import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "../config/env.config";
+import sendEmailService from "../config/emailService.config";
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '15m';
