@@ -16,7 +16,7 @@ exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 const env_config_js_1 = require("@/config/env.config.js");
-const client_js_1 = __importDefault(require("@/lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("@/lib/prismaClient.js"));
 const verifyToken = (token) => {
     const decoded = jsonwebtoken_1.default.decode(token);
     if (typeof decoded === 'object' && decoded !== null) {
@@ -38,7 +38,7 @@ const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             throw new errorHandler_js_1.BadRequestError("Authentication token is required");
         }
         // Check if token is in blacklist
-        const isBlacklistedToken = yield client_js_1.default.blacklistedToken.findFirst({
+        const isBlacklistedToken = yield prismaClient_js_1.default.blacklistedToken.findFirst({
             where: { token }
         });
         if (isBlacklistedToken) {

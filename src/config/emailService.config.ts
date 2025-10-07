@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import { SMTP_USER, SMTP_PASS, SMTP_PORT, SMTP_HOST } from "./env.config.js";
-import { InternalServerError } from "@/middleware/errorHandler.js";
+import { InternalServerError } from "../middleware/errorHandler.js";
 
 const emailContents = (link: string) => [
   {

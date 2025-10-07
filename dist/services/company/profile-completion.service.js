@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCompanyProfileCompletion = exports.calculateCompanyProfileCompletion = exports.calculateJobSeekerProfileCompletion = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("@/lib/prismaClient.js"));
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
 /**
  * Calculates job seeker profile completion percentage
@@ -21,7 +21,7 @@ const errorHandler_js_1 = require("@/middleware/errorHandler.js");
  * @returns Profile completion percentage
  */
 const calculateJobSeekerProfileCompletion = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const profile = yield client_js_1.default.profile.findUnique({
+    const profile = yield prismaClient_js_1.default.profile.findUnique({
         where: { userId }
     });
     if (!profile)
@@ -96,7 +96,7 @@ exports.calculateCompanyProfileCompletion = calculateCompanyProfileCompletion;
  */
 const getCompanyProfileCompletion = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify the user is an employer
-    const user = yield client_js_1.default.user.findUnique({
+    const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id: userId },
         select: { role: true }
     });
@@ -104,7 +104,7 @@ const getCompanyProfileCompletion = (userId) => __awaiter(void 0, void 0, void 0
         throw new errorHandler_js_1.UnauthorizedError('User is not an employer');
     }
     // Get the company for this employer
-    const company = yield client_js_1.default.company.findFirst({
+    const company = yield prismaClient_js_1.default.company.findFirst({
         where: { ownerId: userId }
     });
     if (!company) {

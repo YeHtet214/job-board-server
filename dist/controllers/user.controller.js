@@ -10,7 +10,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserById = exports.getAllUsers = exports.getCurrentUser = void 0;
-const user_service_js_1 = require("@/services/user/user.service.js");
+const user_service_js_1 = require("../services/user/user.service.js");
 const getCurrentUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;

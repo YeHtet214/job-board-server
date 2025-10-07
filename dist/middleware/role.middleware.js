@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.jobseekerOnly = exports.employerOnly = exports.checkRole = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("../lib/prismaClient.js"));
 /**
  * Middleware to check if a user has the required role
  * @param roles Array of allowed roles
@@ -30,7 +30,7 @@ const checkRole = (roles) => {
                 throw error;
             }
             // Fetch the user from the database to get their role
-            const user = yield client_js_1.default.user.findUnique({
+            const user = yield prismaClient_js_1.default.user.findUnique({
                 where: { id: userId },
                 select: { role: true }
             });

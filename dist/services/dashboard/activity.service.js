@@ -13,14 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getEmployerActivity = exports.getJobSeekerActivity = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
 /**
  * Gets recent activity for a job seeker
  * @param userId The job seeker user ID
  */
 const getJobSeekerActivity = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Get recent job views
-    const views = yield client_js_1.default.jobView.findMany({
+    const views = yield prismaClient_js_1.default.jobView.findMany({
         where: { userId },
         select: {
             id: true,
@@ -39,7 +39,7 @@ const getJobSeekerActivity = (userId) => __awaiter(void 0, void 0, void 0, funct
         take: 5
     });
     // Get recent applications
-    const applications = yield client_js_1.default.jobApplication.findMany({
+    const applications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
         select: {
             id: true,
@@ -58,7 +58,7 @@ const getJobSeekerActivity = (userId) => __awaiter(void 0, void 0, void 0, funct
         take: 5
     });
     // Get recent saved jobs
-    const saves = yield client_js_1.default.savedJob.findMany({
+    const saves = yield prismaClient_js_1.default.savedJob.findMany({
         where: { userId },
         select: {
             id: true,
@@ -113,7 +113,7 @@ exports.getJobSeekerActivity = getJobSeekerActivity;
  */
 const getEmployerActivity = (companyId) => __awaiter(void 0, void 0, void 0, function* () {
     // Get recent job postings
-    const jobPostings = yield client_js_1.default.job.findMany({
+    const jobPostings = yield prismaClient_js_1.default.job.findMany({
         where: {
             companyId,
             createdAt: {
@@ -129,7 +129,7 @@ const getEmployerActivity = (companyId) => __awaiter(void 0, void 0, void 0, fun
         take: 5
     });
     // Get expired/inactive jobs
-    const expiredJobs = yield client_js_1.default.job.findMany({
+    const expiredJobs = yield prismaClient_js_1.default.job.findMany({
         where: {
             companyId,
             OR: [
@@ -149,7 +149,7 @@ const getEmployerActivity = (companyId) => __awaiter(void 0, void 0, void 0, fun
         take: 5
     });
     // Get new applications
-    const newApplications = yield client_js_1.default.jobApplication.findMany({
+    const newApplications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: {
             job: { companyId },
             createdAt: {
@@ -176,7 +176,7 @@ const getEmployerActivity = (companyId) => __awaiter(void 0, void 0, void 0, fun
         take: 5
     });
     // Get interview scheduled
-    const interviews = yield client_js_1.default.jobApplication.findMany({
+    const interviews = yield prismaClient_js_1.default.jobApplication.findMany({
         where: {
             job: { companyId },
             status: 'INTERVIEW',

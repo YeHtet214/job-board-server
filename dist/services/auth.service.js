@@ -13,18 +13,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPassword = exports.requestPasswordReset = exports.resendVerificationEmail = exports.verifyEmail = exports.userLogout = exports.refreshAccessToken = exports.userSignIn = exports.userSignUp = exports.storeRefreshToken = exports.generateTokens = void 0;
-const client_1 = __importDefault(require("@/lib/client"));
+const prismaClient_1 = __importDefault(require("../lib/prismaClient"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
-const errorHandler_1 = require("@/middleware/errorHandler");
-const env_config_1 = require("@/config/env.config");
-const emailService_config_1 = __importDefault(require("@/config/emailService.config"));
+const errorHandler_1 = require("../middleware/errorHandler");
+const env_config_1 = require("../config/env.config");
+const emailService_config_1 = __importDefault(require("../config/emailService.config"));
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield client_1.default.user.findUnique({
+    const user = yield prismaClient_1.default.user.findUnique({
         where: { email }
     });
     return user;
@@ -46,7 +46,7 @@ const generateTokens = (userId, email) => {
 exports.generateTokens = generateTokens;
 const storeRefreshToken = (userId, refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    yield client_1.default.refreshToken.create({
+    yield prismaClient_1.default.refreshToken.create({
         data: {
             token: refreshToken,
             userId,
@@ -74,7 +74,7 @@ const userSignUp = (firstName, lastName, email, password, role) => __awaiter(voi
     }
     const hashedPassword = yield bcrypt_1.default.hash(password, SALT_ROUNDS);
     const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
-    const user = yield client_1.default.user.create({
+    const user = yield prismaClient_1.default.user.create({
         data: {
             firstName,
             lastName,
@@ -138,7 +138,7 @@ const refreshAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, f
         throw new errorHandler_1.BadRequestError('Refresh token is required');
     }
     // Find the refresh token in the database
-    const storedToken = yield client_1.default.refreshToken.findFirst({
+    const storedToken = yield prismaClient_1.default.refreshToken.findFirst({
         where: {
             token: refreshToken,
             expiresAt: {
@@ -172,13 +172,13 @@ const userLogout = (token) => __awaiter(void 0, void 0, void 0, function* () {
             throw new errorHandler_1.UnauthorizedError('Invalid token');
         }
         // Delete all refresh tokens for this user (effectively logging them out everywhere)
-        yield client_1.default.refreshToken.deleteMany({
+        yield prismaClient_1.default.refreshToken.deleteMany({
             where: {
                 userId: decoded.userId
             }
         });
         // Add token to blacklist to prevent reuse
-        yield client_1.default.blacklistedToken.create({
+        yield prismaClient_1.default.blacklistedToken.create({
             data: {
                 token,
                 expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
@@ -201,7 +201,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
         throw new errorHandler_1.BadRequestError('Verification token is required');
     }
     // First check if token is already in blacklist (previously used)
-    const blacklistedToken = yield client_1.default.blacklistedToken.findFirst({
+    const blacklistedToken = yield prismaClient_1.default.blacklistedToken.findFirst({
         where: { token }
     });
     // If token is blacklisted, it means it was already used for verification
@@ -209,7 +209,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
         return { message: 'Your email has already been verified. Please log in.' };
     }
     // Find user with this verification token
-    const user = yield client_1.default.user.findFirst({
+    const user = yield prismaClient_1.default.user.findFirst({
         where: {
             emailVerificationToken: token
         }
@@ -222,7 +222,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
         return { message: 'Email already verified. Please log in.' };
     }
     // Verify the email
-    yield client_1.default.user.update({
+    yield prismaClient_1.default.user.update({
         where: {
             id: user.id
         },
@@ -232,7 +232,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
         }
     });
     // Add the token to blacklist to prevent reuse
-    yield client_1.default.blacklistedToken.create({
+    yield prismaClient_1.default.blacklistedToken.create({
         data: {
             token,
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
@@ -242,7 +242,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     if (user.role === 'JOBSEEKER') {
         try {
             // Create a job seeker profile
-            yield client_1.default.$executeRaw `
+            yield prismaClient_1.default.$executeRaw `
         INSERT INTO "JobSeekerProfile" ("userId", "createdAt", "updatedAt")
         VALUES (${user.id}, NOW(), NOW())
       `;
@@ -269,7 +269,7 @@ const resendVerificationEmail = (email) => __awaiter(void 0, void 0, void 0, fun
     // Generate a new verification token
     const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
     // Update the user with the new token
-    yield client_1.default.user.update({
+    yield prismaClient_1.default.user.update({
         where: { id: user.id },
         data: {
             emailVerificationToken: verificationToken,
@@ -291,7 +291,7 @@ const requestPasswordReset = (email) => __awaiter(void 0, void 0, void 0, functi
     }
     const resetToken = crypto_1.default.randomBytes(32).toString('hex');
     const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-    yield client_1.default.user.update({
+    yield prismaClient_1.default.user.update({
         where: { id: user.id },
         data: {
             resetPasswordToken: resetToken,
@@ -311,7 +311,7 @@ const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, 
     if (!token || !newPassword) {
         throw new errorHandler_1.BadRequestError('Token and new password are required');
     }
-    const user = yield client_1.default.user.findFirst({
+    const user = yield prismaClient_1.default.user.findFirst({
         where: {
             resetPasswordToken: token,
             resetPasswordExpiry: {
@@ -323,7 +323,7 @@ const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, 
         throw new errorHandler_1.BadRequestError('Invalid or expired reset token');
     }
     const hashedPassword = yield bcrypt_1.default.hash(newPassword, SALT_ROUNDS);
-    yield client_1.default.user.update({
+    yield prismaClient_1.default.user.update({
         where: { id: user.id },
         data: {
             passwordHash: hashedPassword,
@@ -332,7 +332,7 @@ const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, 
         }
     });
     // Blacklist the token to prevent reuse
-    yield client_1.default.blacklistedToken.create({
+    yield prismaClient_1.default.blacklistedToken.create({
         data: {
             token,
             expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year

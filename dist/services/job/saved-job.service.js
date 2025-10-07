@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.areJobsSaved = exports.isJobSaved = exports.saveJob = exports.removeSavedJob = exports.getSavedJobs = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
-const errorHandler_js_1 = require("@/middleware/errorHandler.js");
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
+const errorHandler_js_1 = require("../../middleware/errorHandler.js");
 /**
  * Gets saved jobs for a user
  * @param userId The user ID
@@ -24,7 +24,7 @@ const getSavedJobs = (userId) => __awaiter(void 0, void 0, void 0, function* () 
     if (!userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
     }
-    return client_js_1.default.savedJob.findMany({
+    return prismaClient_js_1.default.savedJob.findMany({
         where: { userId },
         select: {
             id: true,
@@ -60,7 +60,7 @@ const removeSavedJob = (savedJobId, userId) => __awaiter(void 0, void 0, void 0,
     if (!savedJobId) {
         throw new errorHandler_js_1.BadRequestError('Saved job ID is required');
     }
-    const savedJob = yield client_js_1.default.savedJob.findUnique({
+    const savedJob = yield prismaClient_js_1.default.savedJob.findUnique({
         where: { id: savedJobId },
         select: { userId: true }
     });
@@ -70,7 +70,7 @@ const removeSavedJob = (savedJobId, userId) => __awaiter(void 0, void 0, void 0,
     if (savedJob.userId !== userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authorized to remove this saved job');
     }
-    return client_js_1.default.savedJob.delete({
+    return prismaClient_js_1.default.savedJob.delete({
         where: { id: savedJobId }
     });
 });
@@ -88,7 +88,7 @@ const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* (
         throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
     // Check if job exists
-    const job = yield client_js_1.default.job.findUnique({
+    const job = yield prismaClient_js_1.default.job.findUnique({
         where: { id: jobId },
         select: { id: true }
     });
@@ -96,7 +96,7 @@ const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* (
         throw new errorHandler_js_1.NotFoundError('Job not found');
     }
     // Check if already saved
-    const existingSave = yield client_js_1.default.savedJob.findFirst({
+    const existingSave = yield prismaClient_js_1.default.savedJob.findFirst({
         where: {
             jobId,
             userId
@@ -106,7 +106,7 @@ const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* (
         return existingSave;
     }
     // Create new saved job
-    return client_js_1.default.savedJob.create({
+    return prismaClient_js_1.default.savedJob.create({
         data: {
             jobId,
             userId
@@ -127,7 +127,7 @@ const isJobSaved = (jobId, userId) => __awaiter(void 0, void 0, void 0, function
     if (!jobId) {
         throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
-    return yield client_js_1.default.savedJob.findFirst({
+    return yield prismaClient_js_1.default.savedJob.findFirst({
         where: {
             jobId,
             userId
@@ -151,7 +151,7 @@ const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, funct
     // Deduplicate job IDs
     const uniqueJobIds = [...new Set(jobIds)];
     // Get all saved jobs for the user that match the provided job IDs
-    const savedJobs = yield client_js_1.default.savedJob.findMany({
+    const savedJobs = yield prismaClient_js_1.default.savedJob.findMany({
         where: {
             userId,
             jobId: {

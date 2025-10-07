@@ -20,13 +20,13 @@ const application_route_js_1 = __importDefault(require("./routes/application.rou
 const user_route_js_1 = __importDefault(require("./routes/user.route.js"));
 const dashboard_routes_js_1 = __importDefault(require("./routes/dashboard.routes.js"));
 const saved_job_route_js_1 = __importDefault(require("./routes/saved-job.route.js"));
-const error_middleware_js_1 = __importDefault(require("@/middleware/error.middleware.js"));
+const error_middleware_js_1 = __importDefault(require("./middleware/error.middleware.js"));
 // Import Passport config
-require("@/config/passport.config.js");
-const env_config_js_1 = require("@/config/env.config.js");
-// import { app, httpServer, io } from '@/config/socket.config.js';
-const socket_config_js_1 = require("@/config/socket.config.js");
-const message_route_js_1 = __importDefault(require("@/routes/message.route.js"));
+require("./config/passport.config.js");
+const env_config_js_1 = require("./config/env.config.js");
+// import { app, httpServer, io } from './config/socket.config.js';
+const socket_config_js_1 = require("./config/socket.config.js");
+const message_route_js_1 = __importDefault(require("./routes/message.route.js"));
 const app = (0, express_1.default)();
 exports.app = app;
 const port = process.env.PORT || 3000;

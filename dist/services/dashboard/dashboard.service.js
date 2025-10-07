@@ -13,12 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordJobViewActivity = exports.updateApplicationStatus = exports.fetchEmployerDashboardData = exports.withdrawApplicationForUser = exports.fetchJobSeekerDashboardData = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
-const errorHandler_js_1 = require("@/middleware/errorHandler.js");
-const activity_service_js_1 = require("@/services/dashboard/activity.service.js");
-const profile_completion_service_js_1 = require("@/services/company/profile-completion.service.js");
-const profile_completion_service_js_2 = require("@/services/company/profile-completion.service.js");
-const job_view_service_js_1 = require("@/services/job/job-view.service.js");
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
+const errorHandler_js_1 = require("../../middleware/errorHandler.js");
+const activity_service_js_1 = require("../../services/dashboard/activity.service.js");
+const profile_completion_service_js_1 = require("../../services/company/profile-completion.service.js");
+const profile_completion_service_js_2 = require("../../services/company/profile-completion.service.js");
+const job_view_service_js_1 = require("../../services/job/job-view.service.js");
 /**
  * Fetches job seeker dashboard data for a specific user
  * @param userId The ID of the job seeker
@@ -26,7 +26,7 @@ const job_view_service_js_1 = require("@/services/job/job-view.service.js");
  */
 const fetchJobSeekerDashboardData = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify user exists and is a job seeker
-    const user = yield client_js_1.default.user.findUnique({
+    const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id: userId },
         select: { role: true }
     });
@@ -37,7 +37,7 @@ const fetchJobSeekerDashboardData = (userId) => __awaiter(void 0, void 0, void 0
         throw new errorHandler_js_1.UnauthorizedError('User is not a job seeker');
     }
     // Get applications
-    const applications = yield client_js_1.default.jobApplication.findMany({
+    const applications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
         select: {
             id: true,
@@ -93,7 +93,7 @@ exports.fetchJobSeekerDashboardData = fetchJobSeekerDashboardData;
  * @param userId The user ID
  */
 const withdrawApplicationForUser = (applicationId, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const application = yield client_js_1.default.jobApplication.findUnique({
+    const application = yield prismaClient_js_1.default.jobApplication.findUnique({
         where: { id: applicationId },
         select: { applicantId: true }
     });
@@ -103,7 +103,7 @@ const withdrawApplicationForUser = (applicationId, userId) => __awaiter(void 0, 
     if (application.applicantId !== userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authorized to withdraw this application');
     }
-    return client_js_1.default.jobApplication.delete({
+    return prismaClient_js_1.default.jobApplication.delete({
         where: { id: applicationId }
     });
 });
@@ -115,7 +115,7 @@ exports.withdrawApplicationForUser = withdrawApplicationForUser;
  */
 const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify user exists and is an employer
-    const user = yield client_js_1.default.user.findUnique({
+    const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id: userId },
         select: { role: true }
     });
@@ -126,7 +126,7 @@ const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0,
         throw new errorHandler_js_1.UnauthorizedError('User is not an employer');
     }
     // Get company for this employer
-    const company = yield client_js_1.default.company.findFirst({
+    const company = yield prismaClient_js_1.default.company.findFirst({
         where: { ownerId: userId },
         select: {
             id: true,
@@ -138,7 +138,7 @@ const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0,
         throw new errorHandler_js_1.NotFoundError('Company not found for this employer');
     }
     // Get company's jobs
-    const jobs = yield client_js_1.default.job.findMany({
+    const jobs = yield prismaClient_js_1.default.job.findMany({
         where: { companyId: company.id },
         select: {
             id: true,
@@ -158,7 +158,7 @@ const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0,
     });
     // Get applications for the company's jobs
     const jobIds = jobs.map(job => job.id).filter(Boolean);
-    const applications = yield client_js_1.default.jobApplication.findMany({
+    const applications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: {
             jobId: { in: jobIds }
         },
@@ -245,7 +245,7 @@ exports.fetchEmployerDashboardData = fetchEmployerDashboardData;
  */
 const updateApplicationStatus = (applicationId, status, userId, notes) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify application exists
-    const application = yield client_js_1.default.jobApplication.findUnique({
+    const application = yield prismaClient_js_1.default.jobApplication.findUnique({
         where: { id: applicationId },
         select: {
             job: {
@@ -273,7 +273,7 @@ const updateApplicationStatus = (applicationId, status, userId, notes) => __awai
         throw new errorHandler_js_1.BadRequestError(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
     }
     // Update application status
-    return client_js_1.default.jobApplication.update({
+    return prismaClient_js_1.default.jobApplication.update({
         where: { id: applicationId },
         data: {
             status: status,

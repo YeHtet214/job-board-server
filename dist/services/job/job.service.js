@@ -13,9 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteExistingJob = exports.updateJob = exports.createJob = exports.getSearchSuggestions = exports.fetchJobsByCompanyId = exports.fetchJobById = exports.fetchAllJobs = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
-const errorHandler_js_1 = require("@/middleware/errorHandler.js");
-const user_service_js_1 = require("@/services/user/user.service.js");
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
+const errorHandler_js_1 = require("../../middleware/errorHandler.js");
+const user_service_js_1 = require("../../services/user/user.service.js");
 // Basic data access functions
 const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () {
     const { keyword = '', location = '', jobTypes = [], experienceLevel = '', page = 1, limit = 10, sortBy = 'date_desc' // Default to newest first
@@ -50,13 +50,13 @@ const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () 
         }
     })();
     // Count query
-    const totalCount = yield client_js_1.default.job.count({
+    const totalCount = yield prismaClient_js_1.default.job.count({
         where: filters,
     });
     // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
     // Fetch jobs with pagination, sorting, and filtering
-    const jobs = yield client_js_1.default.job.findMany({
+    const jobs = yield prismaClient_js_1.default.job.findMany({
         where: filters,
         orderBy: orderBy,
         skip,
@@ -91,7 +91,7 @@ const fetchJobById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     if (!id) {
         throw new errorHandler_js_1.BadRequestError('Job ID is required');
     }
-    const job = yield client_js_1.default.job.findUnique({
+    const job = yield prismaClient_js_1.default.job.findUnique({
         where: { id },
         include: {
             company: {
@@ -148,11 +148,11 @@ const fetchJobsByCompanyId = (companyId, params) => __awaiter(void 0, void 0, vo
             orderBy = { createdAt: 'desc' };
     }
     // Get total count for pagination
-    const totalCount = yield client_js_1.default.job.count({ where });
+    const totalCount = yield prismaClient_js_1.default.job.count({ where });
     // Calculate total pages
     const totalPages = Math.ceil(totalCount / limit);
     // Fetch jobs with pagination and sorting
-    const jobs = yield client_js_1.default.job.findMany({
+    const jobs = yield prismaClient_js_1.default.job.findMany({
         where,
         orderBy,
         skip,
@@ -198,7 +198,7 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
     // Get job title/description suggestions
     if (type === 'keyword' || type === 'all') {
         // First, search for matches in job titles
-        const titleMatches = yield client_js_1.default.job.findMany({
+        const titleMatches = yield prismaClient_js_1.default.job.findMany({
             where: {
                 title: {
                     contains: term,
@@ -215,7 +215,7 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
         keywordSuggestions = titleMatches.map((jobTitle) => jobTitle.title);
         // If we need more suggestions, search in required skills
         if (keywordSuggestions.length < limit) {
-            const skillsMatches = yield client_js_1.default.job.findMany({
+            const skillsMatches = yield prismaClient_js_1.default.job.findMany({
                 where: {
                     requiredSkills: {
                         has: term // This assumes requiredSkills is an array
@@ -235,7 +235,7 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
     }
     // Get location suggestions
     if (type === 'location' || type === 'all') {
-        const locationMatches = yield client_js_1.default.job.findMany({
+        const locationMatches = yield prismaClient_js_1.default.job.findMany({
             where: {
                 location: {
                     contains: term,
@@ -285,7 +285,7 @@ const createJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
         throw new errorHandler_js_1.BadRequestError('Minimum salary cannot be greater than maximum salary');
     }
     // Fetch the user's company
-    const userCompany = yield client_js_1.default.company.findFirst({
+    const userCompany = yield prismaClient_js_1.default.company.findFirst({
         where: { ownerId: jobData.postedById },
         select: { id: true }
     });
@@ -368,7 +368,7 @@ exports.updateJob = updateJob;
  * @private Should only be called from within the service
  */
 const createNewJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
-    const job = yield client_js_1.default.job.create({
+    const job = yield prismaClient_js_1.default.job.create({
         data: Object.assign(Object.assign({}, jobData), { expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : undefined })
     });
     return job;
@@ -379,7 +379,7 @@ const createNewJob = (jobData) => __awaiter(void 0, void 0, void 0, function* ()
  */
 const updateExistingJob = (id, data) => __awaiter(void 0, void 0, void 0, function* () {
     // Update the job
-    const updatedJob = yield client_js_1.default.job.update({
+    const updatedJob = yield prismaClient_js_1.default.job.update({
         where: { id },
         data: Object.assign(Object.assign({}, data), { expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined })
     });
@@ -398,6 +398,6 @@ const deleteExistingJob = (id, userId) => __awaiter(void 0, void 0, void 0, func
     if (existingJob.postedById !== userId || userRole !== 'EMPLOYER') {
         throw new errorHandler_js_1.ForbiddenError('You don\'t have permission to delete this job');
     }
-    return client_js_1.default.job.delete({ where: { id } });
+    return prismaClient_js_1.default.job.delete({ where: { id } });
 });
 exports.deleteExistingJob = deleteExistingJob;

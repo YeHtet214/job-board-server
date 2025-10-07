@@ -13,8 +13,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.cleanupOldJobViews = exports.getRecentJobViews = exports.recordJobView = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
-const errorHandler_js_1 = require("@/middleware/errorHandler.js");
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
+const errorHandler_js_1 = require("../../middleware/errorHandler.js");
 /**
  * Records a job view by a user, avoiding duplicate recent views
  * @param jobId The ID of the job being viewed
@@ -22,7 +22,7 @@ const errorHandler_js_1 = require("@/middleware/errorHandler.js");
  * @returns The created JobView record or null if it's a duplicate
  */
 const recordJobView = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const job = yield client_js_1.default.job.findUnique({
+    const job = yield prismaClient_js_1.default.job.findUnique({
         where: { id: jobId },
         select: { id: true }
     });
@@ -30,7 +30,7 @@ const recordJobView = (jobId, userId) => __awaiter(void 0, void 0, void 0, funct
         throw new errorHandler_js_1.NotFoundError('Job not found');
     }
     // Check if this user has viewed this job in the last 24 hours
-    const recentView = yield client_js_1.default.jobView.findFirst({
+    const recentView = yield prismaClient_js_1.default.jobView.findFirst({
         where: {
             jobId,
             userId,
@@ -41,7 +41,7 @@ const recordJobView = (jobId, userId) => __awaiter(void 0, void 0, void 0, funct
     if (recentView) {
         return null;
     }
-    return client_js_1.default.jobView.create({
+    return prismaClient_js_1.default.jobView.create({
         data: {
             jobId,
             userId
@@ -56,7 +56,7 @@ exports.recordJobView = recordJobView;
  * @returns Array of recent job views
  */
 const getRecentJobViews = (userId_1, ...args_1) => __awaiter(void 0, [userId_1, ...args_1], void 0, function* (userId, limit = 5) {
-    return client_js_1.default.jobView.findMany({
+    return prismaClient_js_1.default.jobView.findMany({
         where: { userId },
         select: {
             id: true,
@@ -88,7 +88,7 @@ exports.getRecentJobViews = getRecentJobViews;
 const cleanupOldJobViews = (...args_1) => __awaiter(void 0, [...args_1], void 0, function* (daysToKeep = 30) {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
-    const result = yield client_js_1.default.jobView.deleteMany({
+    const result = yield prismaClient_js_1.default.jobView.deleteMany({
         where: {
             createdAt: { lt: cutoffDate }
         }

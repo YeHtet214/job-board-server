@@ -13,13 +13,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.fetchUserById = exports.fetchUsers = void 0;
-const client_js_1 = __importDefault(require("@/lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
 /**
  * Get all users without sensitive information
  * @returns Array of user data without sensitive fields
  */
 const fetchUsers = () => __awaiter(void 0, void 0, void 0, function* () {
-    const users = yield client_js_1.default.user.findMany({
+    const users = yield prismaClient_js_1.default.user.findMany({
         select: {
             id: true,
             email: true,
@@ -50,7 +50,7 @@ exports.fetchUsers = fetchUsers;
  * @returns User data without sensitive fields
  */
 const fetchUserById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const user = yield client_js_1.default.user.findUnique({
+    const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id },
         select: {
             id: true,

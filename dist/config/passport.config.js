@@ -15,13 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const passport_1 = __importDefault(require("passport"));
 const passport_google_oauth20_1 = require("passport-google-oauth20");
 const env_config_js_1 = require("./env.config.js");
-const client_js_1 = __importDefault(require("../lib/client.js"));
+const prismaClient_js_1 = __importDefault(require("../lib/prismaClient.js"));
 passport_1.default.serializeUser((user, done) => {
     done(null, user.id);
 });
 passport_1.default.deserializeUser((id, done) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const user = yield client_js_1.default.user.findUnique({
+        const user = yield prismaClient_js_1.default.user.findUnique({
             where: { id }
         });
         if (user) {
@@ -45,12 +45,12 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
     var _a, _b;
     try {
         // Check if user exists
-        let user = yield client_js_1.default.user.findUnique({
+        let user = yield prismaClient_js_1.default.user.findUnique({
             where: { email: profile.emails[0].value }
         });
         if (!user) {
             // Create new user if doesn't exist
-            user = yield client_js_1.default.user.create({
+            user = yield prismaClient_js_1.default.user.create({
                 data: {
                     email: profile.emails[0].value,
                     firstName: ((_a = profile.name) === null || _a === void 0 ? void 0 : _a.givenName) || '',

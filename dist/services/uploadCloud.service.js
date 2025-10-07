@@ -13,9 +13,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resumeUploadToFirebase = exports.mediaUploadToCloudinary = void 0;
-const cloudinary_config_js_1 = __importDefault(require("@/config/cloudinary.config.js"));
-const firebase_config_js_1 = require("@/config/firebase.config.js");
-const index_js_1 = require("@/utils/index.js");
+const cloudinary_config_js_1 = __importDefault(require("../config/cloudinary.config.js"));
+const firebase_config_js_1 = require("../config/firebase.config.js");
+const index_js_1 = require("../utils/index.js");
 const mediaUploadToCloudinary = (file) => __awaiter(void 0, void 0, void 0, function* () {
     if (!file)
         return;

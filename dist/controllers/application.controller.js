@@ -10,9 +10,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteApplication = exports.updateApplication = exports.createNewApplication = exports.getApplicationById = exports.getAllApplicationsByJobId = exports.getAllApplicationsByUserId = void 0;
-const application_service_js_1 = require("@/services/application/application.service.js");
+const application_service_js_1 = require("../services/application/application.service.js");
 const express_validator_1 = require("express-validator");
-const uploadCloud_service_js_1 = require("@/services/uploadCloud.service.js");
+const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
 const getAllApplicationsByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });

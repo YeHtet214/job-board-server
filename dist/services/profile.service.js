@@ -13,13 +13,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadResume = exports.deleteExistingProfile = exports.updateExistingProfile = exports.createNewProfile = exports.fetchProfile = void 0;
-const client_1 = require("@prisma/client");
+const prismaClient_1 = __importDefault(require("../lib/prismaClient"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const crypto_1 = __importDefault(require("crypto"));
-const prisma = new client_1.PrismaClient();
 const fetchProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const profile = yield prisma.profile.findUnique({ where: { userId } });
+    const profile = yield prismaClient_1.default.profile.findUnique({ where: { userId } });
     if (profile) {
         // Convert JSON back to typed arrays when returning
         return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
@@ -34,7 +33,7 @@ const createNewProfile = (profileData) => __awaiter(void 0, void 0, void 0, func
             return (0, exports.updateExistingProfile)(profileData.userId, profileData);
         }
         // Create a new profile with properly serialized JSON fields
-        const profile = yield prisma.profile.create({
+        const profile = yield prismaClient_1.default.profile.create({
             data: {
                 userId: profileData.userId,
                 bio: profileData.bio,
@@ -87,7 +86,7 @@ const updateExistingProfile = (userId, data) => __awaiter(void 0, void 0, void 0
             updateData.githubUrl = data.githubUrl;
         if (data.portfolioUrl !== undefined)
             updateData.portfolioUrl = data.portfolioUrl;
-        const profile = yield prisma.profile.update({
+        const profile = yield prismaClient_1.default.profile.update({
             where: { userId },
             data: updateData
         });
@@ -108,7 +107,7 @@ const deleteExistingProfile = (userId) => __awaiter(void 0, void 0, void 0, func
         error.status = 404;
         throw error;
     }
-    const profile = yield prisma.profile.delete({ where: { userId } });
+    const profile = yield prismaClient_1.default.profile.delete({ where: { userId } });
     return profile;
 });
 exports.deleteExistingProfile = deleteExistingProfile;
@@ -162,7 +161,7 @@ const uploadResume = (userId, file) => __awaiter(void 0, void 0, void 0, functio
         // Generate URL for the file
         const resumeUrl = `/uploads/resumes/${userId}/${fileName}`;
         // Update user profile with resume URL
-        yield prisma.profile.update({
+        yield prismaClient_1.default.profile.update({
             where: { userId },
             data: { resumeUrl }
         });
