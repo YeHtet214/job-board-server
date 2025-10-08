@@ -58,6 +58,8 @@ export const signIn = async (
   try {
     const { email, password } = req.body;
 
+    console.log("Sign in email & password: ", email, password);
+
     const { user, accessToken, refreshToken } = await userSignIn(
       email,
       password,

@@ -12,6 +12,7 @@ const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 const checkUserExists = async (email: string) => {
+  console.log("Email in checkUserExists: ", email);
   const user = await prisma.user.findUnique({
     where: { email }
   });
