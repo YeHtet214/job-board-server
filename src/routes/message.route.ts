@@ -11,7 +11,7 @@ const MessagingRouter = Router();
 
 MessagingRouter.use(authorize as RequestHandler);
 
-MessagingRouter.get('/', getAllConversations as RequestHandler);
+MessagingRouter.get('/',  getAllConversations as RequestHandler);
 MessagingRouter.get('/:id', getConversationById as RequestHandler);
 MessagingRouter.get(
   '/:id/messages',

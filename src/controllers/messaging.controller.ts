@@ -21,8 +21,6 @@ export const getAllConversations = async (
     // format the conversations to remove unncessary data depend on the user role
     const formattedConversations = normalizedConversations(conversations, userId);
 
-    console.log("REturn conversations: ", formattedConversations);
-
     return res.status(200).json({
       success: true,
       message: "Successfully fetch user's conversations",

@@ -103,7 +103,7 @@ export async function listUserConversations(
         },
       },
       messages: {
-        take: 1,
+        take: 20,
         orderBy: { createdAt: 'desc' },
         include: { sender: true },
       },

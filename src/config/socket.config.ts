@@ -29,7 +29,7 @@ const socketToUser = new Map<string, string>();
 export function initSocketServer(httpServer: HTTPServer) {
   const io = new IOServer(httpServer, {
     cors: {
-      origin: [FRONTEND_URL || "http://localhost:5173", "http://localhost:3000"],
+      origin: [FRONTEND_URL || "http://localhost:5173"],
       credentials: true,
     },
     // transports: ['websocket', 'polling'], // optionally configure
@@ -45,6 +45,8 @@ export function initSocketServer(httpServer: HTTPServer) {
   io.use(async (socket, next) => {
     try {
       const token = (socket.handshake.auth as any)?.token.split(' ')[1] as string | undefined;
+
+      console.log("Token is ", token);
 
       if (!token) {
         // No token -> allow as guest
@@ -91,9 +93,6 @@ export function initSocketServer(httpServer: HTTPServer) {
 
       // Notify presence to others (optional)
       io.emit("presence:update", { userId: user.userId, status: "online" });
-    } else {
-      // guest connected
-      // guests can still subscribe to public events if you have them
     }
 
     // --- Secure join handler: validate membership before letting a socket join a conversation ---
