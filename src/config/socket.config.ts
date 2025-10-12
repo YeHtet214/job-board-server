@@ -12,19 +12,14 @@ import {
   markConversationRead,
 } from "../services/messaging.service.js"; // adjust import paths
 import prisma from "../lib/prismaClient.js";
+import { handleOnConnection } from "@/utils/socketConnectionManage.js";
 
-type SocketUser = { userId: string; email?: string } | null;
+export type SocketUser = { userId: string; email?: string };
+export type SocketDataType = Map<string, Set<string>> & { user?: SocketUser | null }; // userId -> set of socketIds for that user
+export type socketToUserType = Map<string, string>; // socketId -> userId
 
-// In-memory presence maps (single instance)
-/**
- * userId -> set of socketIds for that user
- */
-const userSockets = new Map<string, Set<string>>();
-
-/**
- * socketId -> userId
- */
-const socketToUser = new Map<string, string>();
+const userSockets: SocketDataType = new Map(); 
+const socketToUser: socketToUserType = new Map();
 
 export function initSocketServer(httpServer: HTTPServer) {
   const io = new IOServer(httpServer, {
@@ -63,37 +58,7 @@ export function initSocketServer(httpServer: HTTPServer) {
   });
 
   io.on("connection", async (socket) => {
-    const user = (socket.data as any).user as SocketUser;
-    console.log("socket connected:", socket.id, "user:", user?.userId ?? "guest");
-
-    // console.log("User Sockets: ", userSockets)
-    // console.log("SocketToUser: ", socketToUser);
-
-    // Don't clear the maps - this breaks presence tracking for multiple connections
-
-    // Track presence
-    if (user) {
-      const set = userSockets.get(user.userId) ?? new Set<string>();
-      set.add(socket.id);
-      userSockets.set(user.userId, set);
-      socketToUser.set(socket.id, user.userId);
-
-      // join personal notification room
-      socket.join(`user:${user.userId}`);
-
-      // Optionally auto-join recent conversations (be careful if user has thousands)
-      try {
-        const convs = await listUserConversations(user.userId, 10);
-        for (const c of convs) {
-          socket.join(c.id);
-        }
-      } catch (err) {
-        console.error("auto-join convs failed:", err);
-      }
-
-      // Notify presence to others (optional)
-      io.emit("presence:update", { userId: user.userId, status: "online" });
-    }
+    handleOnConnection(socket, io, socket.data.user, userSockets);
 
     // --- Secure join handler: validate membership before letting a socket join a conversation ---
     socket.on("join", async (roomId: string, ack?: (res: any) => void) => {
