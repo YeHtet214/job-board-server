@@ -17,13 +17,7 @@ export const verifyToken = (token: string): Promise<any> => {
     }
   }
 
-  // Verify token with the secret
-  const secret = JWT_SECRET as string;
-  const user = jwt.verify(token, secret) as {
-    userId: string;
-    email: string;
-    [key: string]: any;
-  };
+  const user = jwt.verify(token, JWT_SECRET);
 
   return Promise.resolve(user);
 };

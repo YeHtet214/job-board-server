@@ -27,7 +27,7 @@ export class NotFoundError extends Error implements CustomError {
  */
 export class UnauthorizedError extends Error implements CustomError {
   status = 401;
-  constructor(message: string, public data?: Record<string, any>) {
+  constructor(message = "Unauthorized", public data?: Record<string, any>) {
     super(message);
     this.name = 'UnauthorizedError';
   }

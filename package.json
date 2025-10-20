@@ -18,6 +18,9 @@
     "db:reset": "prisma migrate reset && npm run seed",
     "db:seed": "prisma db seed"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "engines": {
     "node": "20.x"
   },

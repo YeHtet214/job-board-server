@@ -15,19 +15,13 @@ import prisma from "../lib/prismaClient.js";
 
 type SocketUser = { userId: string; email?: string } | null;
 
-// In-memory presence maps (single instance)
-/**
- * userId -> set of socketIds for that user
- */
-const userSockets = new Map<string, Set<string>>();
+export const io = new IOServer;
 
-/**
- * socketId -> userId
- */
-const socketToUser = new Map<string, string>();
+const userSockets = new Map<string, Set<string>>(); // To map userId (key) to set of socketIds (value) for that user
+const socketToUser = new Map<string, string>(); // To map socketId (key) to userId (value)
 
 export function initSocketServer(httpServer: HTTPServer) {
-  const io = new IOServer(httpServer, {
+  io.attach(httpServer, {
     cors: {
       origin: [FRONTEND_URL || "http://localhost:5173"],
       credentials: true,
@@ -63,7 +57,7 @@ export function initSocketServer(httpServer: HTTPServer) {
   });
 
   io.on("connection", async (socket) => {
-    const user = (socket.data as any).user as SocketUser;
+    const user: SocketUser = (socket.data).user;
     console.log("socket connected:", socket.id, "user:", user?.userId ?? "guest");
 
     // console.log("User Sockets: ", userSockets)
