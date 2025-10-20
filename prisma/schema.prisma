@@ -200,7 +200,6 @@ model Conversation {
   messages     Message[]
 
   @@index([createdAt])
-  
 }
 
 model ConversationParticipant {

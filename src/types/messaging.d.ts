@@ -31,25 +31,29 @@ export type Participant = {
   conversationId: string;
   joinedAt: Date;
   lastReadAt: Date | null;
-  user: User;
 }
 
-export type Message = {
-  id: string;
+// export type Message = {
+//   id: string;
+//   conversationId: string;
+//   senderId: string;
+//   body: string;
+//   meta?: any;
+//   createdAt: Date | null;
+//   deliveredAt: Date | null;
+//   readAt: Date | null;
+// };
+
+export interface SendMessagePayload {
   conversationId: string;
-  senderId: string;
+  receiverId: string;
   body: string;
   meta?: any;
-  createdAt: Date | null;
-  deliveredAt: Date | null;
-  readAt: Date | null;
 };
 
-export type PrivateMessagePayload = {
+export interface CreateMessagePayload extends SendMessagePayload {
   senderId: string;
-  receiverId: string;
-  message: string;
-};
+}
 
 export type ClientToServerEvents = {
   join: (roomId: string) => void;

@@ -1,69 +1,18 @@
+import { Message, NotiType } from '@prisma/client';
 import prisma from '../lib/prismaClient';
-import { Conversation, Message } from '../types/messaging';
-
-export function computeDirectKey(userA: string, userB: string) {
-  const sorted = [userA, userB].sort();
-  return `direct:${sorted[0]}:${sorted[1]}`;
-}
+import { Conversation, CreateMessagePayload } from '../types/messaging';
 
 // Real Time Socket use function - handler on user send message
-export async function getOrCreateDirectConversation(
-  userA: string,
-  userB: string,
-): Promise<Conversation | null> {
-  const directKey = computeDirectKey(userA, userB);
 
-  try {
-    const existing = await prisma.conversation.findUnique({
-      where: { directKey },
-      include: { participants: true },
-    });
-    if (existing) return existing as Conversation;
-
-    return await prisma.$transaction(async (tx) => {
-      const recheck = await tx.conversation.findUnique({
-        where: { directKey },
-      });
-      if (recheck) return recheck;
-
-      const conv = await tx.conversation.create({
-        data: {
-          isDirect: true,
-          directKey,
-          participants: {
-            create: [
-              { user: { connect: { id: userA } } },
-              { user: { connect: { id: userB } } },
-            ],
-          },
-        },
-        include: { participants: true },
-      });
-
-      return conv;
-    }) as Conversation;
-  } catch (err: any) {
-    console.log(err);
-    return null;
-  }
-}
-
-export async function createMessage(
-  conversationId: string,
-  senderId: string,
-  body: string,
-  meta?: any,
-): Promise<Message> {
-  const message = await prisma.message.create({
+export async function createMessage(payload: CreateMessagePayload): Promise<Message> {
+  return await prisma.message.create({
     data: {
-      conversationId,
-      senderId,
-      body,
-      meta,
+      conversationId: payload.conversationId,
+      senderId: payload.senderId,
+      body: payload.body,
+      meta: payload.meta
     },
   });
-
-  return message;
 }
 
 export async function listUserConversations(
@@ -145,7 +94,7 @@ export async function markConversationRead(
 
 export async function createNotification(
   userId: string,
-  type: string,
+  type: NotiType,
   payload: any,
 ) {
   return prisma.notification.create({

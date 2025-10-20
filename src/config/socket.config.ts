@@ -4,15 +4,15 @@ import { FRONTEND_URL } from './env.config.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
 
 import {
-  computeDirectKey,
-  getOrCreateDirectConversation,
   createMessage,
   listUserConversations,
   createNotification,
   markConversationRead,
 } from "../services/messaging.service.js"; // adjust import paths
 import prisma from "../lib/prismaClient.js";
-import { handleOnConnection } from "@/utils/socketConnectionManage.js";
+import { handleOnConnection, handleOnDisconnect, messageSendController, notifyMessageReceiveController } from "@/controllers/socket.controller.js";
+import { SendMessagePayload } from "@/types/messaging.js";
+import { Message } from "@prisma/client";
 
 export type SocketUser = { userId: string; email?: string };
 export type SocketDataType = Map<string, Set<string>> & { user?: SocketUser | null }; // userId -> set of socketIds for that user
@@ -27,16 +27,9 @@ export function initSocketServer(httpServer: HTTPServer) {
       origin: [FRONTEND_URL || "http://localhost:5173"],
       credentials: true,
     },
-    // transports: ['websocket', 'polling'], // optionally configure
   });
-
-  // --- Optional: Redis adapter for multi-instance scaling ---
-  // import { createAdapter } from '@socket.io/redis-adapter'
-  // const pubClient = createClient({ url: process.env.REDIS_URL }); await pubClient.connect();
-  // const subClient = pubClient.duplicate(); await subClient.connect();
-  // io.adapter(createAdapter(pubClient, subClient));
-
-  // Handshake/auth middleware: optional auth (guests allowed)
+  
+  // Handshake/auth middleware
   io.use(async (socket, next) => {
     try {
       const token = (socket.handshake.auth as any)?.token.split(' ')[1];
@@ -60,133 +53,17 @@ export function initSocketServer(httpServer: HTTPServer) {
 
     handleOnConnection(socket, io, user, userSockets);
 
-    // --- Secure join handler: validate membership before letting a socket join a conversation ---
-    socket.on("join", async (roomId: string, ack?: (res: any) => void) => {
-      try {
-        // find conversation
-        const conv = await prisma.conversation.findUnique({
-          where: { id: roomId },
-          include: { participants: true },
-        });
-
-        if (!conv) {
-          ack?.({ ok: false, error: "Conversation not found" });
-          return;
-        }
-
-        // if direct (private) conversation, require the socket's user to be a participant
-        if (conv.isDirect) {
-          if (!user) {
-            ack?.({ ok: false, error: "Not authenticated" });
-            return;
-          }
-          const isParticipant = conv.participants.some((p) => p.userId === user.userId);
-          if (!isParticipant) {
-            ack?.({ ok: false, error: "Not a participant" });
-            return;
-          }
-        }
-
-        socket.join(roomId);
-        ack?.({ ok: true });
-      } catch (err: any) {
-        console.error("join error:", err);
-        ack?.({ ok: false, error: err.message });
-      }
-    });
+    // socket.on("join", async (convId: string, ack?: (res: any) => void) => {
+    //   handleJoinOwnRoomForNoti(socket, convId, user, ack);
+    // });
 
     // --- Send message flow ---
-    // payload: { senderId, receiverId, text, meta? } OR { conversationId, text, meta? }
-    socket.on("chat:send", async (payload: any, ack?: (res: any) => void) => {
-      try {
-        console.log('payload: ', payload)
-        if (!payload) {
-          return ack?.({ ok: false, error: "Empty payload" });
-        }
+    socket.on("chat:send", async (payload: SendMessagePayload, callback: () => void) => {
+      const message: Message | null = await messageSendController(socket, io, payload, user, callback);
 
-        const senderId = user!.userId as string;
-        let convId = payload.conversationId as string | undefined;
-
-        // If conversationId not provided, compute or get/create direct conversation
-        if (!convId) {
-          const receiverId = payload.receiverId as string;
-          if (!receiverId) return ack?.({ ok: false, error: "Missing receiverId" });
-
-          const conv = await getOrCreateDirectConversation(senderId, receiverId);
-          if (!conv) return;
-          convId = conv.id;
-        } else {
-          // Optional: ensure conversation exists and sender is a participant
-          const conv = await prisma.conversation.findUnique({
-            where: { id: convId },
-            include: { participants: true },
-          });
-          if (!conv) return ack?.({ ok: false, error: "Conversation not found" });
-          const isParticipant = conv.participants.some((p) => p.userId === senderId);
-          if (!isParticipant) return ack?.({ ok: false, error: "Sender is not a participant of the conversation" });
-        }
-
-        // Persist message
-        const message = await createMessage(convId, senderId, payload.text, payload.meta ?? null);
-
-        // Ensure sender socket is joined to the conversation room
-        socket.join(convId);
-
-        // Broadcast new message to the conversation room
-        io.to(convId).emit("chat:new", {
-          id: message.id,
-          conversationId: convId,
-          senderId: message.senderId,
-          body: message.body,
-          meta: message.meta,
-          createdAt: message.createdAt,
-        });
-
-        // Determine the receiver(s) to notify (for direct chat there will be one other participant)
-        // Find participants excluding sender
-        const participants = await prisma.conversationParticipant.findMany({
-          where: { conversationId: convId, NOT: { userId: senderId } },
-          select: { userId: true },
-        });
-
-        for (const p of participants) {
-          const receiverId = p.userId;
-          const sockets = userSockets.get(receiverId);
-          if (sockets && sockets.size > 0) {
-            // Receiver is online: ensure each socket joins the conversation (server-driven)
-            for (const sid of sockets) {
-              // join the socket to the conversation room (idempotent)
-              io.to(sid).socketsJoin(convId);
-            }
-
-            // Send a notification event to receiver's personal room
-            io.to(`user:${receiverId}`).emit("notification", {
-              type: "new_message",
-              conversationId: convId,
-              message: {
-                id: message.id,
-                senderId: message.senderId,
-                body: message.body.slice(0, 200),
-                createdAt: message.createdAt,
-              },
-            });
-
-            // Optionally mark deliveredAt for this message (not implemented here)
-          } else {
-            // Receiver offline: persist a notification for later
-            await createNotification(receiverId, "new_message", {
-              conversationId: convId,
-              messageId: message.id,
-              snippet: message.body.slice(0, 200),
-              senderId,
-            });
-          }
-        }
-
-        ack?.({ ok: true, messageId: message.id, conversationId: convId });
-      } catch (err: any) {
-        console.error("chat:send error:", err);
-        ack?.({ ok: false, error: err.message ?? "server error" });
+      if (message) {
+        // notify room participants about new message
+        await notifyMessageReceiveController({message, receiverId: payload.receiverId, userSockets, callback});
       }
     });
 
@@ -219,24 +96,7 @@ export function initSocketServer(httpServer: HTTPServer) {
 
     // --- Disconnect cleanup ---
     socket.on("disconnect", (reason) => {
-      const uid = socketToUser.get(socket.id);
-      if (uid) {
-        const set = userSockets.get(uid);
-
-        console.log("userSockets size before delete: ", userSockets.size)
-        if (set) {
-          set.delete(socket.id);
-          if (set.size === 0) {
-            userSockets.delete(uid);
-            // user fully offline
-            io.emit("presence:update", { userId: uid, status: "offline" });
-          } else {
-            userSockets.set(uid, set);
-          }
-        }
-        socketToUser.delete(socket.id);
-      }
-      console.log("socket disconnected:", socket.id, "reason:", reason);
+      handleOnDisconnect(socket, io, userSockets, socketToUser);
     });
   });
 
