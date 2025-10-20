@@ -32,13 +32,13 @@ const checkUserExists = async (email: string) => {
 export const generateTokens = (userId: string, email: string) => {
   const accessToken = jwt.sign(
     { userId, email },
-    JWT_SECRET as string,
+    JWT_SECRET,
     { expiresIn: ACCESS_TOKEN_EXPIRY }  
   );
 
   const refreshToken = jwt.sign(
     { userId, email },
-    REFRESH_TOKEN_SECRET as string,
+    REFRESH_TOKEN_SECRET,
     { expiresIn: REFRESH_TOKEN_EXPIRY }
   );
 

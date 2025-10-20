@@ -200,7 +200,6 @@ model Conversation {
   messages     Message[]
 
   @@index([createdAt])
-  
 }
 
 model ConversationParticipant {
@@ -235,10 +234,16 @@ model Message {
   @@index([senderId, createdAt])
 }
 
+enum NotiType {
+  New_Message
+  Job_Application           // get by employer for applying the posted job by job seeker  
+  Application_Status_Update // for job seekers applications' status updated by employer
+}
+
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  type      String // e.g. "new_message", "job_update"
+  type      NotiType
   payload   Json
   read      Boolean  @default(false)
   createdAt DateTime @default(now())

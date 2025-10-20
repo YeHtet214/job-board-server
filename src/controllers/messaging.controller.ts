@@ -8,6 +8,7 @@ import {
 import { profile } from 'console';
 import { normalizedConversations } from '../utils/index.js';
 
+
 export const getAllConversations = async (
   req: RequestWithUser,
   res: Response,
@@ -20,8 +21,6 @@ export const getAllConversations = async (
 
     // format the conversations to remove unncessary data depend on the user role
     const formattedConversations = normalizedConversations(conversations, userId);
-
-    console.log("REturn conversations: ", formattedConversations);
 
     return res.status(200).json({
       success: true,

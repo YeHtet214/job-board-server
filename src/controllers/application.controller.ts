@@ -46,6 +46,8 @@ export const getAllApplicationsByJobId = async (req: RequestWithUser, res: Respo
     }
 }
 
+
+
 export const getApplicationById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
         // Get validated data

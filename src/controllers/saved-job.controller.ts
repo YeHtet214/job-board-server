@@ -12,7 +12,6 @@ export const getSavedJobsHandler = async (req: RequestWithUser, res: Response, n
     console.log("User id in getSavedJobsHanlder: ", userId);
 
     const savedJobs = await getSavedJobs(userId);
-    console.log("Saved Jobs: ", savedJobs);
     res.status(200).json({
       success: true,
       message: 'Successfully fetched saved jobs',
