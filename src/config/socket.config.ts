@@ -20,8 +20,9 @@ export type socketToUserType = Map<string, string>; // socketId -> userId
 
 const userSockets: SocketDataType = new Map(); 
 const socketToUser: socketToUserType = new Map();
+
 export function initSocketServer(httpServer: HTTPServer) {
-  io.attach(httpServer, {
+  const io = new IOServer(httpServer, {
     cors: {
       origin: [FRONTEND_URL || "http://localhost:5173"],
       credentials: true,
@@ -38,9 +39,7 @@ export function initSocketServer(httpServer: HTTPServer) {
   // Handshake/auth middleware: optional auth (guests allowed)
   io.use(async (socket, next) => {
     try {
-      const token = (socket.handshake.auth as any)?.token.split(' ')[1] as string | undefined;
-
-      console.log("Token is ", token);
+      const token = (socket.handshake.auth as any)?.token.split(' ')[1];
 
       if (!token) {
         // No token -> allow as guest
@@ -57,8 +56,9 @@ export function initSocketServer(httpServer: HTTPServer) {
   });
 
   io.on("connection", async (socket) => {
+    const user: SocketUser = socket.data.user;
 
-    handleOnConnection(socket, io, socket.data.user, userSockets);
+    handleOnConnection(socket, io, user, userSockets);
 
     // --- Secure join handler: validate membership before letting a socket join a conversation ---
     socket.on("join", async (roomId: string, ack?: (res: any) => void) => {
@@ -242,5 +242,4 @@ export function initSocketServer(httpServer: HTTPServer) {
 
   return io;
 }
-
 
