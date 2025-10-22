@@ -51,43 +51,6 @@ export const handleOnDisconnect = (
   socketToUser.delete(socket.id);
 };
 
-// export const handleJoinOwnRoomForNoti = async (
-//   socket: Socket,
-//   convId: string,
-//   user: SocketUser,
-//   ack?: any,
-// ) => {
-//   try {
-//     const conv = await fetchConversationById(convId);
-
-//     if (!conv) {
-//       ack?.({ ok: false, error: 'Conversation not found' });
-//       return;
-//     }
-
-//     // if direct (private) conversation, require the socket's user to be a participant
-//     if (conv.isDirect) {
-//       if (!user) {
-//         ack?.({ ok: false, error: 'Not authenticated' });
-//         return;
-//       }
-//       const isParticipant = conv.participants.some(
-//         (p) => p.userId === user.userId,
-//       );
-//       if (!isParticipant) {
-//         ack?.({ ok: false, error: 'Not a participant' });
-//         return;
-//       }
-//     }
-
-//     socket.join(roomId);
-//     ack?.({ ok: true });
-//   } catch (err: any) {
-//     console.error('join error:', err);
-//     ack?.({ ok: false, error: err.message });
-//   }
-// };
-
 interface MessageSendProps {
   socket: Socket;
   io: Server;
@@ -102,7 +65,7 @@ export const messageSendController = async (
   payload: SendMessagePayload,
   user: AuthenticatedUser,
   callback: (res: any) => void,
-) => {
+): Promise<Message | null> => {
   try {
     console.log('payload: ', payload);
     if (!payload) {
@@ -173,8 +136,6 @@ export const notifyMessageReceiveController = async ({
     const { conversationId: convId, senderId } = message;
     const receiverSockets = userSockets.get(receiverId);
 
-    console.log("INside notify chekcing props=> ", "message: ", message,  " receiverId: ", receiverId, ", user sockets ", receiverSockets);
-
     if (receiverSockets && receiverSockets.size > 0) {
       // Receiver is online: ensure each socket joins the conversation (server-driven)
       for (const sid of receiverSockets) {
@@ -208,3 +169,7 @@ export const notifyMessageReceiveController = async ({
     callback({ ok: false, error: err.message ?? 'server error' });
   }
 };
+
+export const dispatchNotifications = async  ( ) =>  {
+
+}

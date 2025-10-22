@@ -372,32 +372,32 @@ async function main() {
     data: [
       {
         userId: jobSeeker1.id,
-        type: 'application_update',
+        type: 'Application_Status_Update',
+        status: 'PENDING',
         payload: {
           message: 'Your application status has been updated',
           applicationId: createdJobs[2].id,
           newStatus: 'INTERVIEW',
         },
-        read: false,
       },
       {
         userId: jobSeeker2.id,
-        type: 'new_message',
+        type: 'New_Message',
+        status: 'PENDING',
         payload: {
           message: 'You have a new message from Sarah Johnson',
           conversationId: conversation.id,
           senderName: 'Sarah Johnson',
         },
-        read: true,
       },
       {
         userId: jobSeeker1.id,
-        type: 'job_recommendation',
+        type: 'New_Message',
+        status:  'PENDING',
         payload: {
           message: 'New jobs matching your skills',
           jobIds: [createdJobs[3].id, createdJobs[4].id],
         },
-        read: false,
       },
     ],
   });

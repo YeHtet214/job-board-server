@@ -53,9 +53,10 @@ export function initSocketServer(httpServer: HTTPServer) {
 
     handleOnConnection(socket, io, user, userSockets);
 
-    // socket.on("join", async (convId: string, ack?: (res: any) => void) => {
-    //   handleJoinOwnRoomForNoti(socket, convId, user, ack);
-    // });
+    socket.on("join", async (convId: string, ack?: (res: any) => void) => {
+      // get the notifications when offline
+      await dispatchNotifications(convId, user.userId);
+    });
 
     // --- Send message flow ---
     socket.on("chat:send", async (payload: SendMessagePayload, callback: () => void) => {
