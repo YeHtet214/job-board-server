@@ -10,7 +10,7 @@ import {
   markConversationRead,
 } from "../services/messaging.service.js"; // adjust import paths
 import prisma from "../lib/prismaClient.js";
-import { handleOnConnection, handleOnDisconnect, messageSendController, notifyMessageReceiveController } from "@/controllers/socket.controller.js";
+import { dispatchNotifications, handleOnConnection, handleOnDisconnect, messageSendController, notifyMessageReceiveController } from "@/controllers/socket.controller.js";
 import { SendMessagePayload } from "@/types/messaging.js";
 import { Message } from "@prisma/client";
 
@@ -53,9 +53,9 @@ export function initSocketServer(httpServer: HTTPServer) {
 
     handleOnConnection(socket, io, user, userSockets);
 
-    socket.on("join", async (convId: string, ack?: (res: any) => void) => {
+    socket.on("join", async (convId: string, callback: (res: any) => void) => {
       // get the notifications when offline
-      await dispatchNotifications(convId, user.userId);
+      await dispatchNotifications(user.userId, callback);
     });
 
     // --- Send message flow ---

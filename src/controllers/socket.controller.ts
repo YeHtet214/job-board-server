@@ -1,4 +1,4 @@
-import { createDirectConversationWithMessage } from '@/services/socket.service';
+import { createDirectConversationWithMessage, GetPendingNotis } from '@/services/socket.service';
 import { SocketDataType, SocketUser } from '../config/socket.config';
 import { Server, Socket } from 'socket.io';
 import { SendMessagePayload } from '@/types/messaging';
@@ -81,11 +81,12 @@ export const messageSendController = async (
     const directKey: string = computeDirectKey(senderId, receiverId);
 
     // If conversationId not provided, compute or get/create direct conversation
-    const newMessage: Message | null = await createDirectConversationWithMessage({
-      directKey,
-      senderId,
-      payload,
-    });
+    const newMessage: Message | null =
+      await createDirectConversationWithMessage({
+        directKey,
+        senderId,
+        payload,
+      });
 
     if (!newMessage) {
       callback({
@@ -170,6 +171,14 @@ export const notifyMessageReceiveController = async ({
   }
 };
 
-export const dispatchNotifications = async  ( ) =>  {
+export const dispatchNotifications = async (userId: string, callback: (res: any) => void) => {
+  try {
+    const pendingNotis = await GetPendingNotis(userId);
 
-}
+    callback({ ok: true, notis: pendingNotis });
+    return pendingNotis;
+  } catch (err: any) {
+    console.error('dispatchNotifications error:', err);
+    return [];
+  }
+};

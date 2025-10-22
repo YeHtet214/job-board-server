@@ -4,13 +4,15 @@ import { Conversation, CreateMessagePayload } from '../types/messaging';
 
 // Real Time Socket use function - handler on user send message
 
-export async function createMessage(payload: CreateMessagePayload): Promise<Message> {
+export async function createMessage(
+  payload: CreateMessagePayload,
+): Promise<Message> {
   return await prisma.message.create({
     data: {
       conversationId: payload.conversationId,
       senderId: payload.senderId,
       body: payload.body,
-      meta: payload.meta
+      meta: payload.meta,
     },
   });
 }
@@ -19,7 +21,6 @@ export async function listUserConversations(
   userId: string,
   limit = 50,
 ): Promise<Conversation[]> {
-  
   return await prisma.conversation.findMany({
     where: {
       participants: {
@@ -46,7 +47,7 @@ export async function listUserConversations(
               },
               companies: {
                 select: { logo: true },
-              }
+              },
             },
           },
         },
@@ -102,6 +103,7 @@ export async function createNotification(
   });
 }
 
+
 export async function countUnreadNotifications(userId: string) {
-  return prisma.notification.count({ where: { userId, read: false } });
+  return prisma.notification.count({ where: { userId, status: 'DELIVERED' } });
 }

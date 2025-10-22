@@ -1,17 +1,25 @@
 import prisma from '../lib/prismaClient';
-import { Conversation, CreateMessagePayload, SendMessagePayload } from '@/types/messaging';
+import {
+  Conversation,
+  CreateMessagePayload,
+  SendMessagePayload,
+} from '@/types/messaging';
 import { Message } from '@prisma/client';
 import { createMessage } from './messaging.service';
 
-interface createDirectConversationProps{
+interface createDirectConversationProps {
   directKey: string;
   senderId: string;
-  payload: SendMessagePayload
+  payload: SendMessagePayload;
 }
 
-export async function createDirectConversationWithMessage({ directKey, senderId, payload }: createDirectConversationProps): Promise<Message | null> {
+export async function createDirectConversationWithMessage({
+  directKey,
+  senderId,
+  payload,
+}: createDirectConversationProps): Promise<Message | null> {
   try {
-    return (await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx) => {
       const existingConversation = await tx.conversation.findUnique({
         where: { directKey },
         include: { participants: true },
@@ -32,7 +40,7 @@ export async function createDirectConversationWithMessage({ directKey, senderId,
               { user: { connect: { id: payload.receiverId } } },
             ],
           },
-        }
+        },
       });
 
       const message: Message = await tx.message.create({
@@ -40,18 +48,25 @@ export async function createDirectConversationWithMessage({ directKey, senderId,
           conversationId: conv.id,
           senderId,
           body: payload.body,
-          meta: payload.meta
+          meta: payload.meta,
         },
-      })
+      });
 
       if (!message) {
         return null;
       }
 
       return message;
-    }));
+    });
   } catch (err: any) {
     console.log(err);
     return null;
   }
 }
+
+export const GetPendingNotis = async (userId: string) => {
+  return await prisma.notification.findMany({
+    where: { userId, status: 'PENDING' },
+    orderBy: { createdAt: 'desc' },
+  });
+};
