@@ -1,3 +1,4 @@
+import { Notification, NotiType } from '@prisma/client';
 
 export type Conversation = {
   id: string;
@@ -8,7 +9,7 @@ export type Conversation = {
   messages?: Message[];
   lastMessage?: Message;
   participants: Participant[];
-}
+};
 
 export type NormalizedConversation = {
   id: string;
@@ -31,7 +32,7 @@ export type Participant = {
   conversationId: string;
   joinedAt: Date;
   lastReadAt: Date | null;
-}
+};
 
 // export type Message = {
 //   id: string;
@@ -49,10 +50,21 @@ export interface SendMessagePayload {
   receiverId: string;
   body: string;
   meta?: any;
-};
+}
 
 export interface CreateMessagePayload extends SendMessagePayload {
   senderId: string;
+}
+
+export interface DirectMessageNotification {
+  type: NotiType;
+  conversationId: string;
+  message: {
+    id: string;
+    senderId: string;
+    body: string;
+    createdAt: Date;
+  };
 }
 
 export type ClientToServerEvents = {

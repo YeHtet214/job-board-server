@@ -4,7 +4,7 @@ import {
   CreateMessagePayload,
   SendMessagePayload,
 } from '@/types/messaging';
-import { Message } from '@prisma/client';
+import { Message, Notification, NotiType } from '@prisma/client';
 import { createMessage } from './messaging.service';
 
 interface createDirectConversationProps {
@@ -64,9 +64,32 @@ export async function createDirectConversationWithMessage({
   }
 }
 
-export const GetPendingNotis = async (userId: string) => {
+export interface CreateNotificationProp {
+  receiverId: string;
+  type: NotiType;
+  payload: {
+    conversationId: string;
+    messageId: string;
+    snippet: string;
+    senderName: string;
+  };
+}
+
+export async function createNotification({ receiverId, type, payload }: CreateNotificationProp): Promise<Notification> {
+  return await prisma.notification.create({
+    data: {
+      receiverId,
+      type,
+      payload,
+    }
+  })
+}
+
+export const getOfflineNotifications = async (receiverId: string): Promise<Notification[]> => {
   return await prisma.notification.findMany({
-    where: { userId, status: 'PENDING' },
-    orderBy: { createdAt: 'desc' },
-  });
+    where: {
+      receiverId,
+      status: 'PENDING',
+    }
+  })
 };

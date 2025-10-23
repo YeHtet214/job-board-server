@@ -371,7 +371,7 @@ async function main() {
   await prisma.notification.createMany({
     data: [
       {
-        userId: jobSeeker1.id,
+        receiverId: jobSeeker1.id,
         type: 'Application_Status_Update',
         status: 'PENDING',
         payload: {
@@ -381,7 +381,7 @@ async function main() {
         },
       },
       {
-        userId: jobSeeker2.id,
+        receiverId: jobSeeker2.id,
         type: 'New_Message',
         status: 'PENDING',
         payload: {
@@ -391,7 +391,7 @@ async function main() {
         },
       },
       {
-        userId: jobSeeker1.id,
+        receiverId: jobSeeker1.id,
         type: 'New_Message',
         status:  'PENDING',
         payload: {

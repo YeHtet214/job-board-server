@@ -1,4 +1,4 @@
-import { Server as IOServer } from "socket.io";
+import { Server as IOServer, Socket } from "socket.io";
 import type { Server as HTTPServer } from "http";
 import { FRONTEND_URL } from './env.config.js';
 import { verifyToken } from '../middleware/auth.middleware.js';
@@ -6,16 +6,15 @@ import { verifyToken } from '../middleware/auth.middleware.js';
 import {
   createMessage,
   listUserConversations,
-  createNotification,
   markConversationRead,
 } from "../services/messaging.service.js"; // adjust import paths
 import prisma from "../lib/prismaClient.js";
 import { dispatchNotifications, handleOnConnection, handleOnDisconnect, messageSendController, notifyMessageReceiveController } from "@/controllers/socket.controller.js";
 import { SendMessagePayload } from "@/types/messaging.js";
 import { Message } from "@prisma/client";
+import { AuthenticatedUser } from "@/types/users.js";
 
-export type SocketUser = { userId: string; email?: string };
-export type SocketDataType = Map<string, Set<string>> & { user?: SocketUser | null }; // userId -> set of socketIds for that user
+export type SocketDataType = Map<string, Set<string>> & { user?: AuthenticatedUser | null }; // userId -> set of socketIds for that user
 export type socketToUserType = Map<string, string>; // socketId -> userId
 
 const userSockets: SocketDataType = new Map(); 
@@ -40,7 +39,7 @@ export function initSocketServer(httpServer: HTTPServer) {
         return next();
       }
       const user = await verifyToken(token); // should throw if invalid
-      (socket.data as any).user = user as SocketUser;
+      socket.data.user = user as AuthenticatedUser;
       return next();
     } catch (err: any) {
       // invalid token -> reject connection
@@ -48,23 +47,24 @@ export function initSocketServer(httpServer: HTTPServer) {
     }
   });
 
-  io.on("connection", async (socket) => {
-    const user: SocketUser = socket.data.user;
+  io.on("connection", async (socket: Socket) => {
+    const user: AuthenticatedUser = socket.data.user;
 
     handleOnConnection(socket, io, user, userSockets);
 
-    socket.on("join", async (convId: string, callback: (res: any) => void) => {
-      // get the notifications when offline
-      await dispatchNotifications(user.userId, callback);
-    });
+    console.log("User: ", user)
+
+    socket.on("updateNotiStatus", async (notisIds: string[]) => {
+      console.log("Noti ids to update", notisIds)
+    })
 
     // --- Send message flow ---
     socket.on("chat:send", async (payload: SendMessagePayload, callback: () => void) => {
-      const message: Message | null = await messageSendController(socket, io, payload, user, callback);
+      const message: Message | null = await messageSendController({socket, io, payload, user, callback});
 
       if (message) {
         // notify room participants about new message
-        await notifyMessageReceiveController({message, receiverId: payload.receiverId, userSockets, callback});
+        await notifyMessageReceiveController({message, receiverId: payload.receiverId, userSockets, senderName: user.userName, callback});
       }
     });
 

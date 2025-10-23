@@ -11,6 +11,8 @@ export interface UploadedFile {
 // Define the user type
 export interface AuthenticatedUser {
   userId: string;
+  email: string;
+  userName: string;
   [key: string]: any;
 }
 

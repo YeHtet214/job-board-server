@@ -1,60 +1,73 @@
-import prisma from "../lib/prismaClient";
+import prisma from '../lib/prismaClient';
 import bcrypt from 'bcrypt';
-import jwt from "jsonwebtoken";
+import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { UserRole } from '../types/users';
-import { BadRequestError, NotFoundError, UnauthorizedError, ConflictError, InternalServerError } from '../middleware/errorHandler';
-import { JWT_SECRET, REFRESH_TOKEN_SECRET, FRONTEND_URL } from "../config/env.config";
-import sendEmailService from "../config/emailService.config";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+  ConflictError,
+  InternalServerError,
+} from '../middleware/errorHandler';
+import {
+  JWT_SECRET,
+  REFRESH_TOKEN_SECRET,
+  FRONTEND_URL,
+} from '../config/env.config';
+import sendEmailService from '../config/emailService.config';
 
 const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 const checkUserExists = async (email: string) => {
-  console.log("Email in checkUserExists: ", email);
+  console.log('Email in checkUserExists: ', email);
   const user = await prisma.user.findUnique({
-    where: { email }
+    where: { email },
   });
 
   return user;
-}
+};
 
 /**
  * Generates an access token and refresh token for a given user ID and email.
  * Access token is used to authenticate user for a short period of time.
  * Refresh token is used to generate a new access token once the existing one expires.
- * 
+ *
  * @param userId the ID of the user
  * @param email the email of the user
  * @returns an object containing the access token and refresh token
  */
-export const generateTokens = (userId: string, email: string) => {
-  const accessToken = jwt.sign(
-    { userId, email },
-    JWT_SECRET,
-    { expiresIn: ACCESS_TOKEN_EXPIRY }  
-  );
+export const generateTokens = (
+  userId: string,
+  email: string,
+  userName: string,
+) => {
+  const accessToken = jwt.sign({ userId, email, userName }, JWT_SECRET, {
+    expiresIn: ACCESS_TOKEN_EXPIRY,
+  });
 
-  const refreshToken = jwt.sign(
-    { userId, email },
-    REFRESH_TOKEN_SECRET,
-    { expiresIn: REFRESH_TOKEN_EXPIRY }
-  );
+  const refreshToken = jwt.sign({ userId, email, userName }, REFRESH_TOKEN_SECRET, {
+    expiresIn: REFRESH_TOKEN_EXPIRY,
+  });
 
   return { accessToken, refreshToken };
-}
+};
 
-export const storeRefreshToken = async (userId: string, refreshToken: string) => {
+export const storeRefreshToken = async (
+  userId: string,
+  refreshToken: string,
+) => {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
   await prisma.refreshToken.create({
     data: {
       token: refreshToken,
       userId,
-      expiresAt
-    }
+      expiresAt,
+    },
   });
-}
+};
 
 const sendVerificationEmail = async (email: string, token: string) => {
   const verificationLink = `${FRONTEND_URL}/verify-email/${token}`;
@@ -62,16 +75,16 @@ const sendVerificationEmail = async (email: string, token: string) => {
   await sendEmailService({
     email,
     link: verificationLink,
-    type: 'verify'
+    type: 'verify',
   });
-}
+};
 
 export const userSignUp = async (
   firstName: string,
   lastName: string,
   email: string,
   password: string,
-  role: UserRole
+  role: UserRole,
 ) => {
   // Validate required fields
   if (!firstName || !lastName || !email || !password || !role) {
@@ -94,13 +107,18 @@ export const userSignUp = async (
       email,
       passwordHash: hashedPassword,
       role,
-      emailVerificationToken: verificationToken
-    }
+      emailVerificationToken: verificationToken,
+    },
   });
 
   await sendVerificationEmail(email, verificationToken);
 
-  const { accessToken, refreshToken } = generateTokens(user.id, user.email);
+  const userName = `${firstName} ${lastName}`;
+  const { accessToken, refreshToken } = generateTokens(
+    user.id,
+    user.email,
+    userName,
+  );
   await storeRefreshToken(user.id, refreshToken);
 
   return {
@@ -112,10 +130,10 @@ export const userSignUp = async (
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      isEmailVerified: user.isEmailVerified
-    }
+      isEmailVerified: user.isEmailVerified,
+    },
   };
-}
+};
 
 export const userSignIn = async (email: string, password: string) => {
   // Validate required fields
@@ -139,7 +157,12 @@ export const userSignIn = async (email: string, password: string) => {
     throw new UnauthorizedError('Please verify your email before signing in');
   }
 
-  const { accessToken, refreshToken } = generateTokens(user.id, email);
+  const userName = `${user.firstName} ${user.lastName}`;
+  const { accessToken, refreshToken } = generateTokens(
+    user.id,
+    email,
+    userName,
+  );
   await storeRefreshToken(user.id, refreshToken);
 
   return {
@@ -149,12 +172,12 @@ export const userSignIn = async (email: string, password: string) => {
       lastName: user.lastName,
       email: user.email,
       role: user.role,
-      isEmailVerified: user.isEmailVerified
+      isEmailVerified: user.isEmailVerified,
     },
     accessToken,
-    refreshToken
+    refreshToken,
   };
-}
+};
 
 export const refreshAccessToken = async (refreshToken: string) => {
   if (!refreshToken) {
@@ -166,9 +189,9 @@ export const refreshAccessToken = async (refreshToken: string) => {
     where: {
       token: refreshToken,
       expiresAt: {
-        gt: new Date()
-      }
-    }
+        gt: new Date(),
+      },
+    },
   });
 
   if (!storedToken) {
@@ -177,20 +200,23 @@ export const refreshAccessToken = async (refreshToken: string) => {
 
   try {
     // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET as string) as { userId: string };
-    
+    const decoded = jwt.verify(
+      refreshToken,
+      REFRESH_TOKEN_SECRET as string,
+    ) as { userId: string };
+
     // Generate new access token
     const accessToken = jwt.sign(
       { userId: decoded.userId },
       JWT_SECRET as string,
-      { expiresIn: ACCESS_TOKEN_EXPIRY }
+      { expiresIn: ACCESS_TOKEN_EXPIRY },
     );
 
     return { accessToken };
   } catch (error) {
     throw new UnauthorizedError('Invalid refresh token');
   }
-}
+};
 
 export const userLogout = async (token: string) => {
   if (!token) {
@@ -199,8 +225,10 @@ export const userLogout = async (token: string) => {
 
   try {
     // Verify the access token to get the user ID
-    const decoded = jwt.verify(token, JWT_SECRET as string) as { userId: string };
-    
+    const decoded = jwt.verify(token, JWT_SECRET as string) as {
+      userId: string;
+    };
+
     if (!decoded || !decoded.userId) {
       throw new UnauthorizedError('Invalid token');
     }
@@ -208,16 +236,16 @@ export const userLogout = async (token: string) => {
     // Delete all refresh tokens for this user (effectively logging them out everywhere)
     await prisma.refreshToken.deleteMany({
       where: {
-        userId: decoded.userId
-      }
+        userId: decoded.userId,
+      },
     });
 
     // Add token to blacklist to prevent reuse
     await prisma.blacklistedToken.create({
       data: {
         token,
-        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-      }
+        expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
     });
 
     return { message: 'Logged out successfully' };
@@ -226,11 +254,11 @@ export const userLogout = async (token: string) => {
     if (error instanceof jwt.JsonWebTokenError) {
       throw new UnauthorizedError('Invalid token');
     }
-    
+
     // For any other unexpected error
     throw new InternalServerError('Error during logout process');
   }
-}
+};
 
 export const verifyEmail = async (token: string) => {
   if (!token) {
@@ -239,7 +267,7 @@ export const verifyEmail = async (token: string) => {
 
   // First check if token is already in blacklist (previously used)
   const blacklistedToken = await prisma.blacklistedToken.findFirst({
-    where: { token }
+    where: { token },
   });
 
   // If token is blacklisted, it means it was already used for verification
@@ -250,8 +278,8 @@ export const verifyEmail = async (token: string) => {
   // Find user with this verification token
   const user = await prisma.user.findFirst({
     where: {
-      emailVerificationToken: token
-    }
+      emailVerificationToken: token,
+    },
   });
 
   if (!user) {
@@ -266,20 +294,20 @@ export const verifyEmail = async (token: string) => {
   // Verify the email
   await prisma.user.update({
     where: {
-      id: user.id
+      id: user.id,
     },
     data: {
       isEmailVerified: true,
-      emailVerificationToken: null
-    }
+      emailVerificationToken: null,
+    },
   });
 
   // Add the token to blacklist to prevent reuse
   await prisma.blacklistedToken.create({
     data: {
       token,
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-    }
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    },
   });
 
   // Create profile for JOB_SEEKER only
@@ -297,7 +325,7 @@ export const verifyEmail = async (token: string) => {
   }
 
   return { message: 'Email verified successfully. You can now log in.' };
-}
+};
 
 export const resendVerificationEmail = async (email: string) => {
   if (!email) {
@@ -322,15 +350,18 @@ export const resendVerificationEmail = async (email: string) => {
     where: { id: user.id },
     data: {
       emailVerificationToken: verificationToken,
-      updatedAt: new Date() // Update the timestamp
-    }
+      updatedAt: new Date(), // Update the timestamp
+    },
   });
 
   // Send the verification email with the new token
   await sendVerificationEmail(email, verificationToken);
 
-  return { message: 'Verification email has been resent successfully. Please check your inbox.' };
-}
+  return {
+    message:
+      'Verification email has been resent successfully. Please check your inbox.',
+  };
+};
 
 export const requestPasswordReset = async (email: string) => {
   if (!email) {
@@ -350,8 +381,8 @@ export const requestPasswordReset = async (email: string) => {
     where: { id: user.id },
     data: {
       resetPasswordToken: resetToken,
-      resetPasswordExpiry: resetTokenExpiry
-    }
+      resetPasswordExpiry: resetTokenExpiry,
+    },
   });
 
   const resetLink = `${FRONTEND_URL}/reset-password/${resetToken}`;
@@ -359,11 +390,11 @@ export const requestPasswordReset = async (email: string) => {
   await sendEmailService({
     email,
     link: resetLink,
-    type: 'resetPassword'
-  })
+    type: 'resetPassword',
+  });
 
   return { message: 'Password reset email sent successfully' };
-}
+};
 
 export const resetPassword = async (token: string, newPassword: string) => {
   if (!token || !newPassword) {
@@ -374,9 +405,9 @@ export const resetPassword = async (token: string, newPassword: string) => {
     where: {
       resetPasswordToken: token,
       resetPasswordExpiry: {
-        gt: new Date()
-      }
-    }
+        gt: new Date(),
+      },
+    },
   });
 
   if (!user) {
@@ -390,17 +421,17 @@ export const resetPassword = async (token: string, newPassword: string) => {
     data: {
       passwordHash: hashedPassword,
       resetPasswordToken: null,
-      resetPasswordExpiry: null
-    }
+      resetPasswordExpiry: null,
+    },
   });
 
   // Blacklist the token to prevent reuse
   await prisma.blacklistedToken.create({
     data: {
       token,
-      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-    }
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+    },
   });
 
   return { message: 'Password reset successful' };
-}
+};

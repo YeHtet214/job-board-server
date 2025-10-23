@@ -248,15 +248,15 @@ enum NotiStatus {
 }
 
 model Notification {
-  id        String     @id @default(uuid())
-  userId    String
-  type      NotiType
-  payload   Json
-  status    NotiStatus @default(PENDING)
-  createdAt DateTime   @default(now())
+  id         String     @id @default(uuid())
+  receiverId String?
+  type       NotiType
+  payload    Json
+  status     NotiStatus @default(PENDING)
+  createdAt  DateTime   @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [receiverId], references: [id], onDelete: Cascade)
 
-  @@index([userId, status])
+  @@index([receiverId, status])
   @@index([createdAt])
 }

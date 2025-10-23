@@ -5,8 +5,8 @@ import { RequestWithUser } from '../types/users.js';
 import { JWT_SECRET } from '../config/env.config.js';
 import prisma from '../lib/prismaClient.js';
 
-export const verifyToken = (token: string): Promise<any> => {
-  const decoded = jwt.decode(token as string);
+export const verifyToken = (token: string) => {
+  const decoded = jwt.decode(token);
 
   if (typeof decoded === 'object' && decoded !== null) {
     if (

@@ -1,6 +1,6 @@
-import { Message, NotiType } from '@prisma/client';
+import { Message, Notification, NotiType } from '@prisma/client';
 import prisma from '../lib/prismaClient';
-import { Conversation, CreateMessagePayload } from '../types/messaging';
+import { Conversation, CreateMessagePayload, NotificationPayload, OfflineNotificationPayload } from '../types/messaging';
 
 // Real Time Socket use function - handler on user send message
 
@@ -93,17 +93,6 @@ export async function markConversationRead(
   });
 }
 
-export async function createNotification(
-  userId: string,
-  type: NotiType,
-  payload: any,
-) {
-  return prisma.notification.create({
-    data: { userId, type, payload },
-  });
-}
-
-
-export async function countUnreadNotifications(userId: string) {
-  return prisma.notification.count({ where: { userId, status: 'DELIVERED' } });
+export async function countUnreadNotifications(receiverId: string) {
+  return prisma.notification.count({ where: { receiverId, status: 'DELIVERED' } });
 }
