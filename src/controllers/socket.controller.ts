@@ -1,18 +1,19 @@
 import {
   createDirectConversationWithMessage,
   createNotification,
+  CreateOfflineNotificationProp,
   getOfflineNotifications,
 } from '@/services/socket.service';
 import { SocketDataType } from '../config/socket.config';
 import { Server, Socket } from 'socket.io';
 import {
   DirectMessageNotification,
+  RealTimeNoti,
   SendMessagePayload,
 } from '@/types/messaging';
 import { AuthenticatedUser } from '@/types/users';
-import { Message, NotiType } from '@prisma/client';
+import { Message, Notification, NotiType } from '@prisma/client';
 import { io } from '..';
-import { CreateNotificationProp } from '@/services/messaging.service';
 
 export function computeDirectKey(userA: string, userB: string) {
   const sorted = [userA, userB].sort();
@@ -137,6 +138,11 @@ interface NotifyMessageReceiveProps {
   callback: (res: any) => void;
 }
 
+/**
+ * Notify a receiver of a new message by sending a notification event to their personal room (online/offline).
+ * If the receiver is online, ensure each of their sockets joins the conversation room.
+ * If the receiver is offline, persist a notification for later.
+ */
 export const notifyMessageReceiveController = async ({
   message,
   receiverId,
@@ -145,8 +151,14 @@ export const notifyMessageReceiveController = async ({
   callback,
 }: NotifyMessageReceiveProps) => {
   try {
-    const { conversationId: convId, senderId } = message;
+    const { conversationId: convId } = message;
     const receiverSockets = userSockets.get(receiverId);
+    const realTimeNoti: RealTimeNoti = {
+      type: 'Realtime_Message' as NotiType,
+      senderName,
+      snippet: message.body.slice(0, 100),
+      createdAt: message.createdAt,
+    };
 
     if (receiverSockets && receiverSockets.size > 0) {
       // Receiver is online: ensure each socket joins the conversation (server-driven)
@@ -155,13 +167,12 @@ export const notifyMessageReceiveController = async ({
       }
     } else {
       // Receiver offline: persist a notification for later
-      const data: CreateNotificationProp = {
+      const data: CreateOfflineNotificationProp = {
         receiverId,
         type: 'New_Message' as NotiType,
         payload: {
           conversationId: convId,
-          messageId: message.id,
-          snippet: message.body.slice(0, 200),
+          snippet: message.body.slice(0, 100),
           senderName,
         },
       };
@@ -169,19 +180,8 @@ export const notifyMessageReceiveController = async ({
       await createNotification(data);
     }
 
-    const directMessageNotiPayload: DirectMessageNotification = {
-      type: 'New_Message',
-      conversationId: convId,
-      message: {
-        id: message.id,
-        senderId: message.senderId,
-        body: message.body.slice(0, 200),
-        createdAt: message.createdAt,
-      },
-    };
-
     // Send a notification event to receiver's personal room
-    io.to(`${receiverId}`).emit('notification', directMessageNotiPayload);
+    io.to(`${receiverId}`).emit('notification', realTimeNoti);
 
     callback({ ok: true, messageId: message.id, conversationId: convId });
   } catch (err: any) {
@@ -194,9 +194,9 @@ export const dispatchNotifications = async (socket: Socket) => {
   try {
     const pendingNotis = await getOfflineNotifications(socket.data.user.userId);
 
-    console.log("Get notifications: ", pendingNotis);
+    console.log('Get notifications: ', pendingNotis);
 
-    socket.emit('notification:dispatch', { notis: pendingNotis });
+    socket.emit('notification:dispatch', pendingNotis);
 
     return pendingNotis;
   } catch (err: any) {

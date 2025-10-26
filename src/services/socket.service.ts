@@ -64,18 +64,17 @@ export async function createDirectConversationWithMessage({
   }
 }
 
-export interface CreateNotificationProp {
+export interface CreateOfflineNotificationProp {
   receiverId: string;
   type: NotiType;
   payload: {
     conversationId: string;
-    messageId: string;
     snippet: string;
     senderName: string;
   };
 }
 
-export async function createNotification({ receiverId, type, payload }: CreateNotificationProp): Promise<Notification> {
+export async function createNotification({ receiverId, type, payload }: CreateOfflineNotificationProp): Promise<Notification> {
   return await prisma.notification.create({
     data: {
       receiverId,
@@ -85,11 +84,12 @@ export async function createNotification({ receiverId, type, payload }: CreateNo
   })
 }
 
-export const getOfflineNotifications = async (receiverId: string): Promise<Notification[]> => {
+export const getOfflineNotifications = async (receiverId: string): Promise<Omit<Notification, 'receiverId'>[]> => {
   return await prisma.notification.findMany({
     where: {
       receiverId,
       status: 'PENDING',
-    }
+    },
+    omit: { receiverId: true }
   })
 };

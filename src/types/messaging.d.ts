@@ -1,4 +1,4 @@
-import { Notification, NotiType } from '@prisma/client';
+import { Notification, NotiType, User } from '@prisma/client';
 
 export type Conversation = {
   id: string;
@@ -32,24 +32,21 @@ export type Participant = {
   conversationId: string;
   joinedAt: Date;
   lastReadAt: Date | null;
+  user: User;
 };
-
-// export type Message = {
-//   id: string;
-//   conversationId: string;
-//   senderId: string;
-//   body: string;
-//   meta?: any;
-//   createdAt: Date | null;
-//   deliveredAt: Date | null;
-//   readAt: Date | null;
-// };
 
 export interface SendMessagePayload {
   conversationId: string;
   receiverId: string;
   body: string;
   meta?: any;
+}
+
+export interface RealTimeNoti {
+  type: NotiType extends <T extends string>(type: T) => T ? T : NotiType;
+  senderName: string;
+  snippet: string;
+  createdAt: Date;
 }
 
 export interface CreateMessagePayload extends SendMessagePayload {

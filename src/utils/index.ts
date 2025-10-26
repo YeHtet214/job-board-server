@@ -25,7 +25,7 @@ export const normalizedConversations = (
               p.user.companies.length > 0 &&
               p.user.companies[0].name
                 ? p.user.companies[0].name
-                : p.user.firstName + p.user.lastName,
+                : `${p.user.firstName} ${p.user.lastName}`,
             avatar:
               p.user.companies && p.user.companies.length > 0 && p.user.companies[0].logo ? 
                 p.user.companies[0].logo : 
