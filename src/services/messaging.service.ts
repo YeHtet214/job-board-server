@@ -1,12 +1,19 @@
 import { Message, Notification, NotiType } from '@prisma/client';
 import prisma from '../lib/prismaClient';
-import { Conversation, CreateMessagePayload, NotificationPayload, OfflineNotificationPayload } from '../types/messaging';
+import { Conversation, CreateMessagePayload } from '../types/messaging';
 
 // Real Time Socket use function - handler on user send message
 
 export async function createMessage(
   payload: CreateMessagePayload,
 ): Promise<Message> {
+  console.log("create message payload: ", payload)
+  const exisitngConv = await prisma.conversation.findUnique({
+    where: {
+      id: payload.conversationId,
+    },
+  })
+  
   return await prisma.message.create({
     data: {
       conversationId: payload.conversationId,
@@ -96,3 +103,12 @@ export async function markConversationRead(
 export async function countUnreadNotifications(receiverId: string) {
   return prisma.notification.count({ where: { receiverId, status: 'DELIVERED' } });
 }
+
+export const getOwnerIdByCompanyId = async (companyId: string) => {
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { ownerId: true },
+  });
+
+  return company?.ownerId;
+};
