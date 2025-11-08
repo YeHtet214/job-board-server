@@ -38,7 +38,7 @@ export const normalizedConversations = (
         
       }).filter(Boolean)[0],
       updatedAt: c.updatedAt,
-      messages: c.messages,
+      messages: c.messages?.sort((m1, m2) => m1.createdAt.getTime() - m2.createdAt.getTime()),
       lastMessage: c.messages?.[c.messages.length - 1],
       createdAt: c.messages?.[0]?.createdAt || undefined,
       unreadCount: c.messages?.filter((m) => !!m.readAt).length,

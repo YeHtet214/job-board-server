@@ -7,12 +7,7 @@ import { Conversation, CreateMessagePayload } from '../types/messaging';
 export async function createMessage(
   payload: CreateMessagePayload,
 ): Promise<Message> {
-  console.log("create message payload: ", payload)
-  const exisitngConv = await prisma.conversation.findUnique({
-    where: {
-      id: payload.conversationId,
-    },
-  })
+
   
   return await prisma.message.create({
     data: {

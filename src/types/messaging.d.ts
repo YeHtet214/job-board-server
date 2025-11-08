@@ -20,7 +20,7 @@ export type NormalizedConversation = {
     avatar?: string | null;
   } | null;
   updatedAt?: Date;
-  mesages?: any[];
+  messages?: any[];
   lastMessage?: any;
   createdAt?: Date;
   unreadCount?: number;

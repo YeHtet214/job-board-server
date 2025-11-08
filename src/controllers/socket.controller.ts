@@ -90,6 +90,8 @@ export const messageSendController = async ({
     // Compute the direct key for 2 participants
     const directKey: string = computeDirectKey(senderId, receiverId);
 
+    console.log("computed direct key", directKey);
+
     // If conversationId not provided, compute or get/create direct conversation
     const newMessage: Message | null =
       await createDirectConversationWithMessage({
