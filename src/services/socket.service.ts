@@ -25,6 +25,8 @@ export async function createDirectConversationWithMessage({
       include: { participants: true },
     });
 
+    console.log("Existing Conversation in createDirectConversation: ", existingConversation)
+
     // If the conversation already exsists, just create the message and return
     if (existingConversation) {
       return await createMessage({ ...payload, conversationId: existingConversation.id, senderId });
