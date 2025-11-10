@@ -11,13 +11,14 @@ import {
 import prisma from '../lib/prismaClient.js';
 import {
   dispatchNotifications,
+  handleNotiStatusUpdate,
   handleOnConnection,
   handleOnDisconnect,
   messageSendController,
   notifyMessageReceiveController,
 } from '@/controllers/socket.controller.js';
-import { SendMessagePayload } from '@/types/messaging.js';
-import { Message } from '@prisma/client';
+import { NotiStatusUpdate, SendMessagePayload } from '@/types/messaging.js';
+import { Message, NotiStatus } from '@prisma/client';
 import { AuthenticatedUser } from '@/types/users.js';
 
 export type SocketDataType = Map<string, Set<string>> & {
@@ -58,16 +59,14 @@ export function initSocketServer(httpServer: HTTPServer) {
   io.on('connection', async (socket: Socket) => {
     const user: AuthenticatedUser = socket.data.user;
 
-    handleOnConnection(socket, io, user, userSockets);
+    handleOnConnection(socket, io, user, userSockets, socketToUser);
 
-    console.log('User: ', user);
-
-    socket.on('updateNotiStatus', async (notisIds: string[]) => {
-      console.log('Noti ids to update', notisIds);
+    socket.on('notification:update', async (notis: NotiStatusUpdate) => {
+      handleNotiStatusUpdate(notis)
     });
 
     // --- Send message flow ---
-    socket.on(
+    socket.on(  
       'chat:send',
       async (payload: SendMessagePayload, callback: (res: any) => void) => {
         try {

@@ -2,9 +2,10 @@ import prisma from '../lib/prismaClient';
 import {
   Conversation,
   CreateMessagePayload,
+  NotiStatusUpdate,
   SendMessagePayload,
 } from '@/types/messaging';
-import { Message, Notification, NotiType } from '@prisma/client';
+import { Message, Notification, NotiStatus, NotiType } from '@prisma/client';
 import { createMessage, getOwnerIdByCompanyId } from './messaging.service';
 import { get } from 'http';
 
@@ -24,8 +25,6 @@ export async function createDirectConversationWithMessage({
       where: { directKey },
       include: { participants: true },
     });
-
-    console.log("Existing Conversation in createDirectConversation: ", existingConversation)
 
     // If the conversation already exsists, just create the message and return
     if (existingConversation) {
@@ -121,8 +120,25 @@ export const getOfflineNotifications = async (
   return await prisma.notification.findMany({
     where: {
       receiverId,
-      status: 'PENDING',
+      status: {
+        in: [NotiStatus.PENDING, NotiStatus.DELIVERED],
+      },
     },
     omit: { receiverId: true },
   });
 };
+
+export const updateNotificationStatus = async (notis: NotiStatusUpdate) => {
+  return await prisma.notification.updateMany({
+    where: {
+      id: {
+        in: notis.ids.map(id => id),
+      },
+    },
+    data: {
+      status: {
+        set: notis.status,
+      },
+    },
+  });
+}

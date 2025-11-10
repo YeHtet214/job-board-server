@@ -49,6 +49,11 @@ export interface RealTimeNoti {
   createdAt: Date;
 }
 
+export interface NotiStatusUpdate {
+  ids: string[];
+  status: NotiStatus;
+}
+
 export interface CreateMessagePayload extends SendMessagePayload {
   senderId: string;
 }

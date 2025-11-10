@@ -4,10 +4,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const auth_middleware_js_1 = __importDefault(require("@/middleware/auth.middleware.js"));
-const application_controller_js_1 = require("@/controllers/application.controller.js");
-const application_validation_js_1 = require("@/middleware/validation/application.validation.js");
-const mediaUploadMulter_js_1 = require("@/utils/mediaUploadMulter.js");
+const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middleware.js"));
+const application_controller_js_1 = require("../controllers/application.controller.js");
+const application_validation_js_1 = require("../middleware/validation/application.validation.js");
+const mediaUploadMulter_js_1 = require("../utils/mediaUploadMulter.js");
 const applicationRouter = (0, express_1.Router)();
 applicationRouter.use(auth_middleware_js_1.default);
 applicationRouter.get('/users/:userId', application_controller_js_1.getAllApplicationsByUserId);

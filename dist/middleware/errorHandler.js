@@ -29,7 +29,7 @@ exports.NotFoundError = NotFoundError;
  * UnauthorizedError - Used for authentication failures (401)
  */
 class UnauthorizedError extends Error {
-    constructor(message, data) {
+    constructor(message = "Unauthorized", data) {
         super(message);
         this.data = data;
         this.status = 401;

@@ -3,16 +3,18 @@ import {
   createNotification,
   CreateOfflineNotificationProp,
   getOfflineNotifications,
+  updateNotificationStatus,
 } from '@/services/socket.service';
 import { SocketDataType } from '../config/socket.config';
 import { Server, Socket } from 'socket.io';
 import {
   DirectMessageNotification,
+  NotiStatusUpdate,
   RealTimeNoti,
   SendMessagePayload,
 } from '@/types/messaging';
 import { AuthenticatedUser } from '@/types/users';
-import { Message, Notification, NotiType } from '@prisma/client';
+import { Message, Notification, NotiStatus, NotiType } from '@prisma/client';
 import { io } from '..';
 
 export function computeDirectKey(userA: string, userB: string) {
@@ -25,10 +27,14 @@ export const handleOnConnection = (
   io: Server,
   user: AuthenticatedUser,
   userSockets: SocketDataType,
+  socketToUser: Map<string, string>,
 ) => {
   const userSocketSet = userSockets.get(user.userId) || new Set<string>();
   userSocketSet.add(socket.id); // Add new socket ID to the set [unique IDs]
   userSockets.set(user.userId, userSocketSet);
+
+  // Map socket ID to user ID for proper disconnect handling
+  socketToUser.set(socket.id, user.userId);
 
   io.emit('presence:update', { userId: user.userId, status: 'online' });
   socket.join(user.userId); // Join own room with userId for notifications
@@ -194,15 +200,27 @@ export const notifyMessageReceiveController = async ({
 
 export const dispatchNotifications = async (socket: Socket) => {
   try {
-    const pendingNotis = await getOfflineNotifications(socket.data.user.userId);
+    const unreadNotis = await getOfflineNotifications(socket.data.user.userId);
 
-    console.log('Get notifications: ', pendingNotis);
+    console.log('Get notifications: ', unreadNotis);
 
-    socket.emit('notification:dispatch', pendingNotis);
+    socket.emit('notification:dispatch', unreadNotis);
 
-    return pendingNotis;
+    return unreadNotis;
   } catch (err: any) {
     console.error('dispatchNotifications error:', err);
     return [];
   }
 };
+
+export const handleNotiStatusUpdate = async (notis: NotiStatusUpdate) => {
+  try {
+    const updated = await updateNotificationStatus(notis);
+
+    console.log("NotiStatus Update result: ", updated)
+    return updated
+
+  } catch (err) {
+    console.log("NotiStatus Update error: ", err)
+  }
+}

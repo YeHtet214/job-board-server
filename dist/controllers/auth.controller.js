@@ -35,6 +35,7 @@ exports.signUp = signUp;
 const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
+        console.log("Sign in email & password: ", email, password);
         const { user, accessToken, refreshToken } = yield (0, auth_service_js_1.userSignIn)(email, password);
         res.status(200).json({
             success: true,

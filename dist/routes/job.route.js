@@ -4,11 +4,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const job_controller_js_1 = require("@/controllers/job.controller.js");
-const role_middleware_js_1 = require("@/middleware/role.middleware.js");
-const auth_middleware_js_1 = __importDefault(require("@/middleware/auth.middleware.js"));
-const index_js_1 = require("@/middleware/validation/index.js");
-const application_controller_js_1 = require("@/controllers/application.controller.js");
+const job_controller_js_1 = require("../controllers/job.controller.js");
+const role_middleware_js_1 = require("../middleware/role.middleware.js");
+const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middleware.js"));
+const index_js_1 = require("../middleware/validation/index.js");
+const application_controller_js_1 = require("../controllers/application.controller.js");
 const jobRouter = (0, express_1.Router)();
 // Public routes - anyone can view jobs
 jobRouter.get('/', index_js_1.jobValidation.getAll, job_controller_js_1.getAllJobs);
