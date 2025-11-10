@@ -19,7 +19,6 @@ const getSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0
         const userId = req.user.userId;
         console.log("User id in getSavedJobsHanlder: ", userId);
         const savedJobs = yield (0, saved_job_service_js_1.getSavedJobs)(userId);
-        console.log("Saved Jobs: ", savedJobs);
         res.status(200).json({
             success: true,
             message: 'Successfully fetched saved jobs',

@@ -24,8 +24,9 @@ const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('Email in checkUserExists: ', email);
     const user = yield prismaClient_1.default.user.findUnique({
-        where: { email }
+        where: { email },
     });
     return user;
 });
@@ -38,9 +39,13 @@ const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* (
  * @param email the email of the user
  * @returns an object containing the access token and refresh token
  */
-const generateTokens = (userId, email) => {
-    const accessToken = jsonwebtoken_1.default.sign({ userId, email }, env_config_1.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    const refreshToken = jsonwebtoken_1.default.sign({ userId, email }, env_config_1.REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+const generateTokens = (userId, email, userName) => {
+    const accessToken = jsonwebtoken_1.default.sign({ userId, email, userName }, env_config_1.JWT_SECRET, {
+        expiresIn: ACCESS_TOKEN_EXPIRY,
+    });
+    const refreshToken = jsonwebtoken_1.default.sign({ userId, email, userName }, env_config_1.REFRESH_TOKEN_SECRET, {
+        expiresIn: REFRESH_TOKEN_EXPIRY,
+    });
     return { accessToken, refreshToken };
 };
 exports.generateTokens = generateTokens;
@@ -50,8 +55,8 @@ const storeRefreshToken = (userId, refreshToken) => __awaiter(void 0, void 0, vo
         data: {
             token: refreshToken,
             userId,
-            expiresAt
-        }
+            expiresAt,
+        },
     });
 });
 exports.storeRefreshToken = storeRefreshToken;
@@ -60,7 +65,7 @@ const sendVerificationEmail = (email, token) => __awaiter(void 0, void 0, void 0
     yield (0, emailService_config_1.default)({
         email,
         link: verificationLink,
-        type: 'verify'
+        type: 'verify',
     });
 });
 const userSignUp = (firstName, lastName, email, password, role) => __awaiter(void 0, void 0, void 0, function* () {
@@ -81,11 +86,12 @@ const userSignUp = (firstName, lastName, email, password, role) => __awaiter(voi
             email,
             passwordHash: hashedPassword,
             role,
-            emailVerificationToken: verificationToken
-        }
+            emailVerificationToken: verificationToken,
+        },
     });
     yield sendVerificationEmail(email, verificationToken);
-    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, user.email);
+    const userName = `${firstName} ${lastName}`;
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, user.email, userName);
     yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         accessToken,
@@ -96,8 +102,8 @@ const userSignUp = (firstName, lastName, email, password, role) => __awaiter(voi
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-            isEmailVerified: user.isEmailVerified
-        }
+            isEmailVerified: user.isEmailVerified,
+        },
     };
 });
 exports.userSignUp = userSignUp;
@@ -117,7 +123,8 @@ const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, functi
     if (!user.isEmailVerified) {
         throw new errorHandler_1.UnauthorizedError('Please verify your email before signing in');
     }
-    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, email);
+    const userName = `${user.firstName} ${user.lastName}`;
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, email, userName);
     yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         user: {
@@ -126,10 +133,10 @@ const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, functi
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-            isEmailVerified: user.isEmailVerified
+            isEmailVerified: user.isEmailVerified,
         },
         accessToken,
-        refreshToken
+        refreshToken,
     };
 });
 exports.userSignIn = userSignIn;
@@ -142,9 +149,9 @@ const refreshAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, f
         where: {
             token: refreshToken,
             expiresAt: {
-                gt: new Date()
-            }
-        }
+                gt: new Date(),
+            },
+        },
     });
     if (!storedToken) {
         throw new errorHandler_1.UnauthorizedError('Invalid or expired refresh token');
@@ -174,15 +181,15 @@ const userLogout = (token) => __awaiter(void 0, void 0, void 0, function* () {
         // Delete all refresh tokens for this user (effectively logging them out everywhere)
         yield prismaClient_1.default.refreshToken.deleteMany({
             where: {
-                userId: decoded.userId
-            }
+                userId: decoded.userId,
+            },
         });
         // Add token to blacklist to prevent reuse
         yield prismaClient_1.default.blacklistedToken.create({
             data: {
                 token,
-                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
-            }
+                expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+            },
         });
         return { message: 'Logged out successfully' };
     }
@@ -202,7 +209,7 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     }
     // First check if token is already in blacklist (previously used)
     const blacklistedToken = yield prismaClient_1.default.blacklistedToken.findFirst({
-        where: { token }
+        where: { token },
     });
     // If token is blacklisted, it means it was already used for verification
     if (blacklistedToken) {
@@ -211,8 +218,8 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     // Find user with this verification token
     const user = yield prismaClient_1.default.user.findFirst({
         where: {
-            emailVerificationToken: token
-        }
+            emailVerificationToken: token,
+        },
     });
     if (!user) {
         throw new errorHandler_1.BadRequestError('Invalid verification token');
@@ -224,19 +231,19 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify the email
     yield prismaClient_1.default.user.update({
         where: {
-            id: user.id
+            id: user.id,
         },
         data: {
             isEmailVerified: true,
-            emailVerificationToken: null
-        }
+            emailVerificationToken: null,
+        },
     });
     // Add the token to blacklist to prevent reuse
     yield prismaClient_1.default.blacklistedToken.create({
         data: {
             token,
-            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-        }
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+        },
     });
     // Create profile for JOB_SEEKER only
     if (user.role === 'JOBSEEKER') {
@@ -273,12 +280,14 @@ const resendVerificationEmail = (email) => __awaiter(void 0, void 0, void 0, fun
         where: { id: user.id },
         data: {
             emailVerificationToken: verificationToken,
-            updatedAt: new Date() // Update the timestamp
-        }
+            updatedAt: new Date(), // Update the timestamp
+        },
     });
     // Send the verification email with the new token
     yield sendVerificationEmail(email, verificationToken);
-    return { message: 'Verification email has been resent successfully. Please check your inbox.' };
+    return {
+        message: 'Verification email has been resent successfully. Please check your inbox.',
+    };
 });
 exports.resendVerificationEmail = resendVerificationEmail;
 const requestPasswordReset = (email) => __awaiter(void 0, void 0, void 0, function* () {
@@ -295,14 +304,14 @@ const requestPasswordReset = (email) => __awaiter(void 0, void 0, void 0, functi
         where: { id: user.id },
         data: {
             resetPasswordToken: resetToken,
-            resetPasswordExpiry: resetTokenExpiry
-        }
+            resetPasswordExpiry: resetTokenExpiry,
+        },
     });
     const resetLink = `${env_config_1.FRONTEND_URL}/reset-password/${resetToken}`;
     yield (0, emailService_config_1.default)({
         email,
         link: resetLink,
-        type: 'resetPassword'
+        type: 'resetPassword',
     });
     return { message: 'Password reset email sent successfully' };
 });
@@ -315,9 +324,9 @@ const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, 
         where: {
             resetPasswordToken: token,
             resetPasswordExpiry: {
-                gt: new Date()
-            }
-        }
+                gt: new Date(),
+            },
+        },
     });
     if (!user) {
         throw new errorHandler_1.BadRequestError('Invalid or expired reset token');
@@ -328,15 +337,15 @@ const resetPassword = (token, newPassword) => __awaiter(void 0, void 0, void 0, 
         data: {
             passwordHash: hashedPassword,
             resetPasswordToken: null,
-            resetPasswordExpiry: null
-        }
+            resetPasswordExpiry: null,
+        },
     });
     // Blacklist the token to prevent reuse
     yield prismaClient_1.default.blacklistedToken.create({
         data: {
             token,
-            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-        }
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
+        },
     });
     return { message: 'Password reset successful' };
 });

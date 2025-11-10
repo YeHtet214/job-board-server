@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const saved_job_controller_js_1 = require("@/controllers/saved-job.controller.js");
-const role_middleware_js_1 = require("@/middleware/role.middleware.js");
-const auth_middleware_js_1 = __importDefault(require("@/middleware/auth.middleware.js"));
+const saved_job_controller_js_1 = require("../controllers/saved-job.controller.js");
+const role_middleware_js_1 = require("../middleware/role.middleware.js");
+const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middleware.js"));
 const savedJobRouter = (0, express_1.Router)();
 // All routes require authentication and job seeker role
 savedJobRouter.use(auth_middleware_js_1.default);

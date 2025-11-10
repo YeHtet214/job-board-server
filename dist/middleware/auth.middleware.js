@@ -14,19 +14,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const errorHandler_js_1 = require("@/middleware/errorHandler.js");
-const env_config_js_1 = require("@/config/env.config.js");
-const prismaClient_js_1 = __importDefault(require("@/lib/prismaClient.js"));
+const errorHandler_js_1 = require("./errorHandler.js");
+const env_config_js_1 = require("../config/env.config.js");
+const prismaClient_js_1 = __importDefault(require("../lib/prismaClient.js"));
 const verifyToken = (token) => {
     const decoded = jsonwebtoken_1.default.decode(token);
     if (typeof decoded === 'object' && decoded !== null) {
-        if (!decoded || (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {
-            throw new errorHandler_js_1.UnauthorizedError("Token has expired");
+        if (!decoded ||
+            (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {
+            throw new errorHandler_js_1.UnauthorizedError('Token has expired');
         }
     }
-    // Verify token with the secret
-    const secret = env_config_js_1.JWT_SECRET;
-    const user = jsonwebtoken_1.default.verify(token, secret);
+    const user = jsonwebtoken_1.default.verify(token, env_config_js_1.JWT_SECRET);
     return Promise.resolve(user);
 };
 exports.verifyToken = verifyToken;
@@ -35,14 +34,14 @@ const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function
     try {
         const token = (_a = req.headers['authorization']) === null || _a === void 0 ? void 0 : _a.split(' ')[1];
         if (!token) {
-            throw new errorHandler_js_1.BadRequestError("Authentication token is required");
+            throw new errorHandler_js_1.BadRequestError('Authentication token is required');
         }
         // Check if token is in blacklist
         const isBlacklistedToken = yield prismaClient_js_1.default.blacklistedToken.findFirst({
-            where: { token }
+            where: { token },
         });
         if (isBlacklistedToken) {
-            throw new errorHandler_js_1.UnauthorizedError("Token has been revoked");
+            throw new errorHandler_js_1.UnauthorizedError('Token has been revoked');
         }
         try {
             const user = yield (0, exports.verifyToken)(token);
@@ -50,7 +49,7 @@ const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function
             next();
         }
         catch (jwtError) {
-            throw new errorHandler_js_1.UnauthorizedError("Invalid authentication token");
+            throw new errorHandler_js_1.UnauthorizedError('Invalid authentication token');
         }
     }
     catch (error) {

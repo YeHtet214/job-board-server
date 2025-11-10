@@ -4,9 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const company_controller_js_1 = require("@/controllers/company.controller.js");
-const auth_middleware_js_1 = __importDefault(require("@/middleware/auth.middleware.js"));
-const role_middleware_js_1 = require("@/middleware/role.middleware.js");
+const company_controller_js_1 = require("../controllers/company.controller.js");
+const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middleware.js"));
+const role_middleware_js_1 = require("../middleware/role.middleware.js");
 const companyRouter = (0, express_1.Router)();
 // Public route - anyone can view company details
 companyRouter.get('/', company_controller_js_1.getAllCompanies);

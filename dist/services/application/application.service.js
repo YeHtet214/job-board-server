@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteExistingApplication = exports.updateApplicationById = exports.postNewApplication = exports.fetchApplicationById = exports.fetchAllApplicationsByJobId = exports.fetchAllApplicationsByUserId = void 0;
-const prismaClient_js_1 = __importDefault(require("@/lib/prismaClient.js"));
+const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
 const fetchAllApplicationsByUserId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const applications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
