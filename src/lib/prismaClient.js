@@ -1,9 +1,11 @@
+import { DATABASE_URL } from "@/config/env.config";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({
   datasources: {
     db: {
-      url: process.env.DATABASE_URL
+      // url: DATABASE_URL || 'postgresql://JobBoard_owner:npg_bi6JclUBxu7H@ep-fragrant-cell-a84kg3ny-pooler.eastus2.azure.neon.tech/JobBoard?sslmode=require'
+      url: DATABASE_URL
     }
   },
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],

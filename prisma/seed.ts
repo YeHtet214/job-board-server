@@ -162,8 +162,6 @@ async function main() {
     },
   });
 
-  console.log('Created companies');
-
   // Create jobs
   const jobs = await prisma.job.createMany({
     data: [

@@ -10,10 +10,15 @@ if (!process.env.REFRESH_TOKEN_SECRET) {
   throw new Error('REFRESH_TOKEN_SECRET is required');
 }
 
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL is required');
+}
+
 if (!process.env.SMTP_HOST || !process.env.SMTP_PORT || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
   throw new Error('SMTP configuration is incomplete. Please check your environment variables.');
 }
 
+export const DATABASE_URL = process.env.DATABASE_URL
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 export const FRONTEND_URL = process.env.FRONTEND_URL;
