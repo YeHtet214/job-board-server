@@ -9,11 +9,12 @@ import {
 } from '../controllers/company.controller.js';
 import authorize from '../middleware/auth.middleware.js';
 import { employerOnly } from '../middleware/role.middleware.js';
+import { companyValidation } from '@/middleware/validation/company.validation.js';
 
 const companyRouter = Router();
 
 // Public route - anyone can view company details
-companyRouter.get('/', getAllCompanies as RequestHandler);
+companyRouter.get('/', companyValidation.getAll, getAllCompanies as RequestHandler);
 // Important: Route order matters - specific routes before parameterized routes
 // @ts-ignore - The authorize middleware adds the user property to the request
 companyRouter.get('/my-company', authorize, getCurrentCompany);

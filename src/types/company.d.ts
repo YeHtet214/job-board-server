@@ -24,3 +24,11 @@ export interface CompanyResponse {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface CompaniesSearchQuery {
+  searchTerm?: string;
+  page: number;
+  limit?: number;
+  industry?: string;
+  size?: string;
+}
