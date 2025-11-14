@@ -11,13 +11,28 @@ import {
 import { ForbiddenError } from '../middleware/errorHandler.js';
 import { matchedData } from 'express-validator';
 import { mediaUploadToCloudinary } from '../services/uploadCloud.service.js';
-import { CreateCompanyDto } from '../types/company.js';
+import { CompaniesSearchQuery, CreateCompanyDto } from '../types/company.js';
 
 export const getAllCompanies = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const companies = await fetchAllCompanies();
+    const { searchTerm, page = 1, limit = 10, industry, size } = req.query;
+    
+    const queryParams: CompaniesSearchQuery = {
+      searchTerm: searchTerm as string,
+      page: Number(page),
+      limit: limit ? Number(limit) : 10,
+      industry: industry as string,
+      size: size as string,
+    };
+    
+    const result = await fetchAllCompanies(queryParams);
 
-    return res.status(200).json({ success: true, message: 'Companies fetched successfully', data: companies });
+    return res.status(200).json({ 
+      success: true, 
+      message: 'Companies fetched successfully', 
+      data: result.companies,
+      pagination: result.pagination
+    });
   } catch (error) {
     next(error);
   }
