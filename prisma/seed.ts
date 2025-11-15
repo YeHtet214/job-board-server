@@ -1,415 +1,544 @@
-import { PrismaClient, UserRole, JobType, ApplicationStatus } from '@prisma/client';
-import { hash } from 'bcrypt';
+import { PrismaClient, Prisma } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('Starting seed...');
+// ----------------------------- Utilities -----------------------------
+const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = <T,>(arr: T[]): T => arr[randInt(0, arr.length - 1)];
+const pickManyUnique = <T,>(arr: T[], count: number): T[] => {
+  const set = new Set<T>();
+  while (set.size < Math.min(count, arr.length)) {
+    set.add(pick(arr));
+  }
+  return Array.from(set);
+};
+const daysFromNow = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d;
+};
+const daysAgo = (days: number) => {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
+};
 
-  // Clear existing data (optional - be careful in production!)
-  await prisma.blacklistedToken.deleteMany();
-  await prisma.refreshToken.deleteMany();
+// ----------------------------- Seed Config -----------------------------
+// Companies: 60 (between 50-80 as requested). Jobs: 50 minimum as requested.
+const EMPLOYER_COUNT = 60;
+const JOBSEEKER_COUNT = 120;
+const JOB_COUNT = 50;
+
+const MIN_APPLICATIONS_PER_JOB = 2;
+const MAX_APPLICATIONS_PER_JOB = 6;
+
+const MIN_SAVES_PER_JOB = 1;
+const MAX_SAVES_PER_JOB = 5;
+
+const MIN_VIEWS_PER_JOB = 5;
+const MAX_VIEWS_PER_JOB = 20;
+
+const CONVERSATION_COUNT = 40;
+
+// ----------------------------- Data Pools -----------------------------
+const firstNames = [
+  'Alex','Sam','Jamie','Taylor','Jordan','Casey','Riley','Avery','Cameron','Morgan',
+  'Quinn','Charlie','Drew','Elliot','Harper','Logan','Emerson','Peyton','Sage','Skyler',
+  'Kai','Rowan','Reese','Finley','Dakota'
+];
+const lastNames = [
+  'Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez',
+  'Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin'
+];
+
+const locations = [
+  'San Francisco, USA','New York, USA','London, UK','Berlin, Germany','Singapore','Sydney, Australia',
+  'Toronto, Canada','Remote','Tokyo, Japan','Paris, France','Bangalore, India','Dublin, Ireland'
+];
+
+const companyNamePrefixes = [
+  'Acme','Nova','Quantum','Vertex','Pioneer','Nimbus','Apex','Summit','Atlas','Orbit','Aurora','Fusion','Titan','Vanguard'
+];
+const companyNameSuffixes = [
+  'Tech','Solutions','Labs','Systems','Networks','Dynamics','Industries','Studios','Works','Software','Holdings'
+];
+
+const companySizes = ['Startup_1_10','Small_11_50','Medium_51_200','Large_201_500','Enterprise_500_plus'];
+
+const skillPool = [
+  'JavaScript','TypeScript','Node.js','React','Angular','Vue','Express','NestJS','Prisma','PostgreSQL','MongoDB',
+  'Docker','Kubernetes','AWS','GCP','Azure','Redis','RabbitMQ','GraphQL','REST','CI/CD','Jest','Mocha','Cypress',
+  'HTML','CSS','Tailwind','Sass','Next.js','Python','Django','Flask','Go','Rust','Java','Spring','C#','.NET'
+];
+
+const jobTitles = [
+  'Software Engineer','Backend Engineer','Frontend Engineer','Full-Stack Developer','DevOps Engineer','Data Engineer',
+  'QA Engineer','SRE','Product Manager','Mobile Developer','Cloud Engineer','AI Engineer','ML Engineer'
+];
+
+ // Enum values provided as strings to avoid direct dependency on client enum types
+const industries: string[] = [
+  'Technology',
+  'Healthcare',
+  'Finance',
+  'Education',
+  'Manufacturing',
+  'Retail',
+  'Hospitality',
+  'Media',
+  'Transportation',
+  'Construction',
+];
+
+type JobTypeLiteral = 'FULL_TIME' | 'PART_TIME' | 'CONTRACT' | 'INTERNSHIP' | 'REMOTE';
+const jobTypes: JobTypeLiteral[] = [
+  'FULL_TIME',
+  'PART_TIME',
+  'CONTRACT',
+  'INTERNSHIP',
+  'REMOTE',
+];
+
+const experienceLevels = ['Junior', 'Mid', 'Senior', 'Lead'];
+
+// ----------------------------- Builders -----------------------------
+function randomName() {
+  return {
+    firstName: pick(firstNames),
+    lastName: pick(lastNames),
+  };
+}
+
+function randomCompanyName(i?: number) {
+  const name = `${pick(companyNamePrefixes)} ${pick(companyNameSuffixes)}`;
+  return i ? `${name} ${i}` : name;
+}
+
+function randomBio(role: 'EMPLOYER' | 'JOBSEEKER') {
+  if (role === 'EMPLOYER') {
+    return 'Experienced professional managing teams and driving product vision.';
+  }
+  return 'Passionate developer focused on building scalable, high-quality software.';
+}
+
+function makeEducation(): Prisma.InputJsonValue {
+  const startYear = randInt(2008, 2018);
+  const endYear = startYear + randInt(2, 5);
+  const degrees = ['BSc Computer Science', 'BEng Software Engineering', 'BSc Information Systems', 'MSc Computer Science'];
+  return [
+    {
+      school: 'University of Technology',
+      degree: pick(degrees),
+      startYear,
+      endYear,
+    },
+  ];
+}
+
+function makeExperience(): Prisma.InputJsonValue {
+  const start = randInt(2016, 2022);
+  const end = start + randInt(1, 4);
+  return [
+    {
+      company: randomCompanyName(),
+      title: pick(jobTitles),
+      start: `${start}-0${randInt(1, 9)}`,
+      end: `${end}-0${randInt(1, 9)}`,
+      responsibilities: [
+        'Delivered high-quality features in an agile environment',
+        'Collaborated with cross-functional teams',
+        'Improved performance and reliability',
+      ],
+    },
+  ];
+}
+
+function randomWebsite(companyName: string) {
+  const slug = companyName.toLowerCase().replace(/\s+/g, '');
+  return `https://www.${slug}.com`;
+}
+
+function randomSalary(type: JobTypeLiteral) {
+  // Simple ranges per type, in USD
+  switch (type) {
+    case 'INTERNSHIP':
+      return { min: 1500, max: 3000 };
+    case 'PART_TIME':
+      return { min: 20000, max: 45000 };
+    case 'CONTRACT':
+      return { min: 60000, max: 110000 };
+    case 'REMOTE':
+      return { min: 50000, max: 130000 };
+    case 'FULL_TIME':
+    default:
+      return { min: 60000, max: 150000 };
+  }
+}
+
+function randomEmail(prefix: string, index: number) {
+  return `${prefix}.${index}@example.com`;
+}
+
+// ----------------------------- Main Seed -----------------------------
+async function clearDatabase() {
+  // Delete child tables before parents to avoid FK issues
   await prisma.notification.deleteMany();
   await prisma.message.deleteMany();
   await prisma.conversationParticipant.deleteMany();
   await prisma.conversation.deleteMany();
+
   await prisma.jobView.deleteMany();
   await prisma.savedJob.deleteMany();
   await prisma.jobApplication.deleteMany();
+
+  await prisma.refreshToken.deleteMany();
   await prisma.job.deleteMany();
   await prisma.company.deleteMany();
   await prisma.profile.deleteMany();
+
+  await prisma.blacklistedToken.deleteMany();
   await prisma.user.deleteMany();
+}
 
-  // Create users
-  const employer1 = await prisma.user.create({
-    data: {
-      email: 'employer@techcorp.com',
-      passwordHash: await hash('password123', 12),
-      firstName: 'John',
-      lastName: 'Smith',
-      role: UserRole.EMPLOYER,
-      phone: '+1234567890',
-      isEmailVerified: true,
-    },
-  });
+async function seedUsers() {
+  const employers: any[] = [];
+  const seekers: any[] = [];
+  const password = await bcrypt.hash("user123", 10);
 
-  const employer2 = await prisma.user.create({
-    data: {
-      email: 'recruiter@startup.io',
-      passwordHash: await hash('password123', 12),
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      role: UserRole.EMPLOYER,
-      phone: '+0987654321',
-      isEmailVerified: true,
-    },
-  });
-
-  const jobSeeker1 = await prisma.user.create({
-    data: {
-      email: 'alice.dev@email.com',
-      passwordHash: await hash('password123', 12),
-      firstName: 'Alice',
-      lastName: 'Johnson',
-      role: UserRole.JOBSEEKER,
-      phone: '+1122334455',
-      isEmailVerified: true,
-    },
-  });
-
-  const jobSeeker2 = await prisma.user.create({
-    data: {
-      email: 'bob.engineer@email.com',
-      passwordHash: await hash('password123', 12),
-      firstName: 'Bob',
-      lastName: 'Wilson',
-      role: UserRole.JOBSEEKER,
-      phone: '+5566778899',
-      isEmailVerified: true,
-    },
-  });
-
-  console.log('Created users');
-
-  // Create profiles for job seekers
-  await prisma.profile.create({
-    data: {
-      userId: jobSeeker1.id,
-      bio: 'Passionate full-stack developer with 3+ years of experience in modern web technologies. Love building scalable applications and learning new technologies.',
-      skills: ['JavaScript', 'TypeScript', 'React', 'Node.js', 'PostgreSQL', 'AWS'],
-      education: [
-        {
-          degree: 'Bachelor of Computer Science',
-          school: 'University of Technology',
-          year: '2020',
-          field: 'Computer Science'
-        }
-      ],
-      experience: [
-        {
-          title: 'Full Stack Developer',
-          company: 'Tech Solutions Inc',
-          startDate: '2021-01-01',
-          endDate: '2023-12-31',
-          current: false,
-          description: 'Developed and maintained web applications using React and Node.js'
-        }
-      ],
-      resumeUrl: 'https://example.com/resumes/alice-johnson.pdf',
-      linkedInUrl: 'https://linkedin.com/in/alicejohnson',
-      githubUrl: 'https://github.com/alicejohnson',
-      portfolioUrl: 'https://alicejohnson.dev',
-    },
-  });
-
-  await prisma.profile.create({
-    data: {
-      userId: jobSeeker2.id,
-      bio: 'Backend engineer specializing in distributed systems and microservices. Experienced with Go, Python, and cloud infrastructure.',
-      skills: ['Go', 'Python', 'Docker', 'Kubernetes', 'gRPC', 'Redis', 'PostgreSQL'],
-      education: [
-        {
-          degree: 'Master of Software Engineering',
-          school: 'Tech Institute',
-          year: '2019',
-          field: 'Software Engineering'
-        }
-      ],
-      experience: [
-        {
-          title: 'Backend Engineer',
-          company: 'ScaleUp Tech',
-          startDate: '2019-06-01',
-          endDate: null,
-          current: true,
-          description: 'Building scalable microservices architecture for high-traffic applications'
-        }
-      ],
-      linkedInUrl: 'https://linkedin.com/in/bobwilson',
-      githubUrl: 'https://github.com/bobwilson',
-    },
-  });
-
-  console.log('Created profiles');
-
-  // Create companies
-  const company1 = await prisma.company.create({
-    data: {
-      ownerId: employer1.id,
-      name: 'TechCorp Inc',
-      description: 'Leading technology company focused on innovative software solutions. We build products that make a difference.',
-      logo: 'https://example.com/logos/techcorp.png',
-      website: 'https://techcorp.com',
-      location: 'San Francisco, CA',
-      industry: 'Software Development',
-      foundedYear: '2015',
-      size: '500-1000',
-    },
-  });
-
-  const company2 = await prisma.company.create({
-    data: {
-      ownerId: employer2.id,
-      name: 'StartupXYZ',
-      description: 'Fast-growing startup revolutionizing the e-commerce space with AI-powered solutions.',
-      logo: 'https://example.com/logos/startupxyz.png',
-      website: 'https://startupxyz.com',
-      location: 'Austin, TX',
-      industry: 'E-commerce & AI',
-      foundedYear: '2020',
-      size: '50-100',
-    },
-  });
-
-  // Create jobs
-  const jobs = await prisma.job.createMany({
-    data: [
-      {
-        postedById: employer1.id,
-        companyId: company1.id,
-        title: 'Senior Full Stack Developer',
-        description: 'We are looking for an experienced Full Stack Developer to join our dynamic team. You will be responsible for developing and maintaining web applications using modern technologies.',
-        location: 'San Francisco, CA',
-        type: JobType.FULL_TIME,
-        salaryMin: 120000,
-        salaryMax: 160000,
-        requiredSkills: ['JavaScript', 'React', 'Node.js', 'TypeScript', 'PostgreSQL'],
-        experienceLevel: 'Senior',
-        expiresAt: new Date('2024-12-31'),
+  for (let i = 1; i <= EMPLOYER_COUNT; i++) {
+    const { firstName, lastName } = randomName();
+    const email = randomEmail('employer', i);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        passwordHash: password,
+        role: 'EMPLOYER',
+        phone: `+1-555-01${String(i).padStart(2, '0')}`,
+        isEmailVerified: Math.random() > 0.5,
       },
-      {
-        postedById: employer1.id,
-        companyId: company1.id,
-        title: 'Frontend Developer',
-        description: 'Join our frontend team to build beautiful and responsive user interfaces. Experience with modern JavaScript frameworks required.',
-        location: 'Remote',
-        type: JobType.REMOTE,
-        salaryMin: 90000,
-        salaryMax: 120000,
-        requiredSkills: ['JavaScript', 'React', 'CSS', 'HTML5', 'Redux'],
-        experienceLevel: 'Mid-level',
-        expiresAt: new Date('2024-11-30'),
-      },
-      {
-        postedById: employer2.id,
-        companyId: company2.id,
-        title: 'Backend Engineer - Go',
-        description: 'Looking for a backend engineer with Go experience to help scale our microservices architecture. Experience with distributed systems is a plus.',
-        location: 'Austin, TX',
-        type: JobType.FULL_TIME,
-        salaryMin: 110000,
-        salaryMax: 140000,
-        requiredSkills: ['Go', 'Docker', 'Kubernetes', 'PostgreSQL', 'gRPC'],
-        experienceLevel: 'Mid-level',
-        expiresAt: new Date('2024-10-31'),
-      },
-      {
-        postedById: employer2.id,
-        companyId: company2.id,
-        title: 'DevOps Engineer',
-        description: 'Seeking a DevOps engineer to manage our cloud infrastructure and CI/CD pipelines. AWS experience required.',
-        location: 'Remote',
-        type: JobType.CONTRACT,
-        salaryMin: 80000,
-        salaryMax: 100000,
-        requiredSkills: ['AWS', 'Docker', 'Kubernetes', 'Terraform', 'CI/CD'],
-        experienceLevel: 'Mid-level',
-        expiresAt: new Date('2024-09-30'),
-      },
-      {
-        postedById: employer1.id,
-        companyId: company1.id,
-        title: 'Software Engineering Intern',
-        description: 'Summer internship program for aspiring software engineers. Learn from experienced developers and work on real projects.',
-        location: 'San Francisco, CA',
-        type: JobType.INTERNSHIP,
-        salaryMin: 25000,
-        salaryMax: 30000,
-        requiredSkills: ['Python', 'JavaScript', 'Basic Algorithms'],
-        experienceLevel: 'Intern',
-        expiresAt: new Date('2024-08-31'),
-      },
-    ],
-  });
+    });
+    employers.push(user);
 
-  const createdJobs = await prisma.job.findMany();
-  console.log('Created jobs');
+    await prisma.profile.create({
+      data: {
+        userId: user.id,
+        bio: randomBio('EMPLOYER'),
+        skills: pickManyUnique(skillPool, randInt(3, 8)),
+        education: makeEducation(),
+        experience: makeExperience(),
+        profileImageURL: null,
+        linkedInUrl: `https://www.linkedin.com/in/${user.firstName.toLowerCase()}-${user.lastName.toLowerCase()}`,
+        githubUrl: null,
+        portfolioUrl: null,
+        resumeUrl: null,
+      },
+    });
+  }
 
-  // Create job applications
-  await prisma.jobApplication.createMany({
-    data: [
-      {
-        jobId: createdJobs[0].id,
-        applicantId: jobSeeker1.id,
-        resumeUrl: 'https://example.com/resumes/alice-johnson.pdf',
-        coverLetter: 'I am excited to apply for the Senior Full Stack Developer position. My experience with React and Node.js aligns perfectly with your requirements.',
-        acceptTerms: true,
-        status: ApplicationStatus.PENDING,
+  for (let i = 1; i <= JOBSEEKER_COUNT; i++) {
+    const { firstName, lastName } = randomName();
+    const email = randomEmail('seeker', i);
+    const user = await prisma.user.create({
+      data: {
+        email,
+        firstName,
+        lastName,
+        passwordHash: password,
+        role: 'JOBSEEKER',
+        phone: `+1-555-02${String(i).padStart(2, '0')}`,
+        isEmailVerified: Math.random() > 0.5,
       },
-      {
-        jobId: createdJobs[2].id,
-        applicantId: jobSeeker1.id,
-        resumeUrl: 'https://example.com/resumes/alice-johnson.pdf',
-        coverLetter: 'While my primary experience is with JavaScript/TypeScript, I have been learning Go and would love the opportunity to work with your backend team.',
-        acceptTerms: true,
-        status: ApplicationStatus.INTERVIEW,
-      },
-      {
-        jobId: createdJobs[2].id,
-        applicantId: jobSeeker2.id,
-        resumeUrl: 'https://example.com/resumes/bob-wilson.pdf',
-        coverLetter: 'I have extensive experience with Go and microservices architecture. I believe I can contribute significantly to your backend systems.',
-        acceptTerms: true,
-        status: ApplicationStatus.ACCEPTED,
-      },
-      {
-        jobId: createdJobs[1].id,
-        applicantId: jobSeeker2.id,
-        resumeUrl: 'https://example.com/resumes/bob-wilson.pdf',
-        coverLetter: 'Interested in the Frontend Developer position to expand my skills beyond backend development.',
-        acceptTerms: true,
-        status: ApplicationStatus.REJECTED,
-      },
-    ],
-  });
+    });
+    seekers.push(user);
 
-  console.log('Created job applications');
+    await prisma.profile.create({
+      data: {
+        userId: user.id,
+        bio: randomBio('JOBSEEKER'),
+        skills: pickManyUnique(skillPool, randInt(4, 10)),
+        education: makeEducation(),
+        experience: makeExperience(),
+        profileImageURL: null,
+        linkedInUrl: `https://www.linkedin.com/in/${user.firstName.toLowerCase()}-${user.lastName.toLowerCase()}`,
+        githubUrl: `https://github.com/${user.firstName.toLowerCase()}-${user.lastName.toLowerCase()}`,
+        portfolioUrl: Math.random() > 0.4 ? `https://portfolio.${user.firstName.toLowerCase()}${user.lastName.toLowerCase()}.dev` : null,
+        resumeUrl: Math.random() > 0.3 ? `https://resumes.example.com/${user.id}.pdf` : null,
+      },
+    });
+  }
 
-  // Create saved jobs
-  await prisma.savedJob.createMany({
-    data: [
-      {
-        jobId: createdJobs[0].id,
-        userId: jobSeeker1.id,
-      },
-      {
-        jobId: createdJobs[3].id,
-        userId: jobSeeker1.id,
-      },
-      {
-        jobId: createdJobs[1].id,
-        userId: jobSeeker2.id,
-      },
-    ],
-  });
+  return { employers, seekers };
+}
 
-  console.log('Created saved jobs');
+async function seedCompanies(employers: any[]) {
+  const companies: any[] = [];
+  for (let i = 0; i < employers.length; i++) {
+    const owner = employers[i];
+    const name = randomCompanyName(i + 1);
+    const company = await prisma.company.create({
+      data: {
+        ownerId: owner.id,
+        name,
+        description: `We are ${name}, focused on innovation and excellence across ${pick(industries)} solutions.`,
+        logo: null,
+        website: randomWebsite(name),
+        location: pick(locations),
+        industry: pick(industries) as any,
+        foundedYear: String(randInt(1985, 2022)),
+        size: pick(companySizes) as any,
+      },
+    });
+    companies.push(company);
+  }
+  return companies;
+}
 
-  // Create job views
-  await prisma.jobView.createMany({
-    data: [
-      {
-        jobId: createdJobs[0].id,
-        userId: jobSeeker1.id,
-      },
-      {
-        jobId: createdJobs[0].id,
-        userId: jobSeeker2.id,
-      },
-      {
-        jobId: createdJobs[1].id,
-        userId: jobSeeker1.id,
-      },
-      {
-        jobId: createdJobs[2].id,
-        userId: jobSeeker1.id,
-      },
-      {
-        jobId: createdJobs[2].id,
-        userId: jobSeeker2.id,
-      },
-    ],
-  });
+function randomJobDescription(title: string, companyName: string) {
+  return `${companyName} is seeking a ${title} to join our team. The ideal candidate has strong communication, collaboration, and technical skills. Responsibilities include delivering features, writing tests, and improving reliability.`;
+}
 
-  console.log('Created job views');
+async function seedJobs(companies: any[]) {
+  const jobs: any[] = [];
+  for (let i = 1; i <= JOB_COUNT; i++) {
+    const company = pick(companies);
+    const postedById = company.ownerId;
 
-  // Create conversation and messages
-  const conversation = await prisma.conversation.create({
-    data: {
-      isDirect: true,
-      directKey: `${employer2.id}_${jobSeeker2.id}`,
-      participants: {
-        create: [
-          { userId: employer2.id },
-          { userId: jobSeeker2.id },
-        ],
-      },
-    },
-  });
+    const type: JobTypeLiteral = pick(jobTypes);
+    const { min, max } = randomSalary(type);
+    const salaryMin = randInt(min, Math.floor((min + max) / 2));
+    const salaryMax = randInt(salaryMin + 1000, max);
 
-  await prisma.message.createMany({
-    data: [
-      {
-        conversationId: conversation.id,
-        senderId: employer2.id,
-        body: 'Hi Bob! Thanks for applying to our Backend Engineer position. Are you available for a quick chat this week?',
-        deliveredAt: new Date(),
-        readAt: new Date(),
+    const title = pick(jobTitles);
+    const job = await prisma.job.create({
+      data: {
+        postedById,
+        companyId: company.id,
+        title,
+        description: randomJobDescription(title, company.name),
+        location: Math.random() > 0.15 ? pick(locations) : null,
+        type: type as any,
+        salaryMin,
+        salaryMax,
+        requiredSkills: pickManyUnique(skillPool, randInt(3, 7)),
+        experienceLevel: pick(experienceLevels),
+        isActive: Math.random() > 0.1,
+        expiresAt: Math.random() > 0.3 ? daysFromNow(randInt(15, 120)) : null,
       },
-      {
-        conversationId: conversation.id,
-        senderId: jobSeeker2.id,
-        body: 'Hi Sarah! Yes, I\'m available. Looking forward to learning more about the role.',
-        deliveredAt: new Date(),
-        readAt: new Date(),
-      },
-      {
-        conversationId: conversation.id,
-        senderId: employer2.id,
-        body: 'Great! How about Wednesday at 2 PM PST?',
-        deliveredAt: new Date(),
-      },
-    ],
-  });
+    });
 
-  console.log('Created conversation and messages');
+    jobs.push(job);
+  }
+  return jobs;
+}
 
-  // Create notifications
-  await prisma.notification.createMany({
-    data: [
-      {
-        receiverId: jobSeeker1.id,
-        type: 'Application_Status_Update',
-        status: 'PENDING',
-        payload: {
-          message: 'Your application status has been updated',
-          applicationId: createdJobs[2].id,
-          newStatus: 'INTERVIEW',
+async function seedApplicationsSavesViews(jobs: any[], seekers: any[]) {
+  // Applications
+  let applicationCount = 0;
+  for (const job of jobs) {
+    const applicants = pickManyUnique(seekers, randInt(MIN_APPLICATIONS_PER_JOB, MAX_APPLICATIONS_PER_JOB));
+    for (const applicant of applicants) {
+      await prisma.jobApplication.create({
+        data: {
+          jobId: job.id,
+          applicantId: applicant.id,
+          resumeUrl: Math.random() > 0.3 ? `https://resumes.example.com/${applicant.id}.pdf` : null,
+          acceptTerms: true,
+          additionalInfo: Math.random() > 0.6 ? 'Open to relocation and remote opportunities.' : null,
+          coverLetter: Math.random() > 0.6 ? 'I am excited to apply for this position as my skills match the requirements closely.' : null,
+          status: pick(['PENDING', 'INTERVIEW', 'REJECTED', 'ACCEPTED']) as any,
         },
-      },
-      {
-        receiverId: jobSeeker2.id,
-        type: 'New_Message',
-        status: 'PENDING',
-        payload: {
-          message: 'You have a new message from Sarah Johnson',
-          conversationId: conversation.id,
-          senderName: 'Sarah Johnson',
-        },
-      },
-      {
-        receiverId: jobSeeker1.id,
-        type: 'New_Message',
-        status:  'PENDING',
-        payload: {
-          message: 'New jobs matching your skills',
-          jobIds: [createdJobs[3].id, createdJobs[4].id],
-        },
-      },
-    ],
-  });
+      });
+      applicationCount++;
 
-  console.log('Created notifications');
+      // Notification to employer about job application
+      await prisma.notification.create({
+        data: {
+          receiverId: job.postedById,
+          type: 'Job_Application',
+          payload: {
+            jobId: job.id,
+            applicantId: applicant.id,
+            message: 'New job application received.',
+          } as unknown as Prisma.InputJsonValue,
+          status: 'PENDING',
+        },
+      });
+    }
+  }
 
-  console.log('Seed completed successfully!');
+  // Saved jobs
+  let savedCount = 0;
+  for (const job of jobs) {
+    const savers = pickManyUnique(seekers, randInt(MIN_SAVES_PER_JOB, MAX_SAVES_PER_JOB));
+    for (const saver of savers) {
+      await prisma.savedJob.create({
+        data: {
+          jobId: job.id,
+          userId: saver.id,
+        },
+      });
+      savedCount++;
+    }
+  }
+
+  // Job views
+  let viewCount = 0;
+  for (const job of jobs) {
+    const viewers = pickManyUnique(seekers, randInt(MIN_VIEWS_PER_JOB, MAX_VIEWS_PER_JOB));
+    for (const viewer of viewers) {
+      await prisma.jobView.create({
+        data: {
+          jobId: job.id,
+          userId: viewer.id,
+          createdAt: daysAgo(randInt(0, 60)),
+        },
+      });
+      viewCount++;
+    }
+  }
+
+  return { applicationCount, savedCount, viewCount };
+}
+
+async function seedMessagingAndNotifications(employers: any[], seekers: any[]) {
+  const conversations: any[] = [];
+  const directKeys = new Set<string>();
+  let messagesCreated = 0;
+  let notificationsCreated = 0;
+
+  for (let i = 0; i < CONVERSATION_COUNT; i++) {
+    let a = pick(seekers);
+    let b = pick(employers);
+    let directKey = [a.id, b.id].sort().join(':');
+
+    // try to keep direct pairs unique
+    let tries = 0;
+    while (directKeys.has(directKey) && tries < 5) {
+      a = pick(seekers);
+      b = pick(employers);
+      directKey = [a.id, b.id].sort().join(':');
+      tries++;
+    }
+    if (directKeys.has(directKey)) {
+      continue;
+    }
+    directKeys.add(directKey);
+
+    const conv = await prisma.conversation.create({
+      data: {
+        isDirect: true,
+        directKey,
+      },
+    });
+    conversations.push(conv);
+
+    await prisma.conversationParticipant.createMany({
+      data: [
+        { conversationId: conv.id, userId: a.id },
+        { conversationId: conv.id, userId: b.id },
+      ],
+    });
+
+    const msgCount = randInt(1, 4);
+    for (let m = 0; m < msgCount; m++) {
+      const sender = Math.random() > 0.5 ? a : b;
+      const receiver = sender.id === a.id ? b : a;
+      const body =
+        sender.id === a.id
+          ? m === 0
+            ? 'Hello, I am interested in your opening.'
+            : 'Can we discuss the role further?'
+          : m === 0
+          ? 'Hello! Thanks for reaching out.'
+          : 'Sure, let’s schedule a call.';
+
+      const message = await prisma.message.create({
+        data: {
+          conversationId: conv.id,
+          senderId: sender.id,
+          body,
+          createdAt: daysAgo(randInt(0, 20)),
+          meta: Math.random() > 0.9 ? ({ attachments: [] } as Prisma.InputJsonValue) : Prisma.JsonNull,
+        },
+      });
+      messagesCreated++;
+
+      await prisma.notification.create({
+        data: {
+          receiverId: receiver.id,
+          type: 'New_Message',
+          payload: {
+            conversationId: conv.id,
+            messageId: message.id,
+            from: sender.id,
+          } as unknown as Prisma.InputJsonValue,
+          status: 'PENDING',
+        },
+      });
+      notificationsCreated++;
+    }
+  }
+
+  return { conversationsCreated: conversations.length, messagesCreated, notificationsCreated };
+}
+
+async function main() {
+  console.log('Clearing database...');
+  await clearDatabase();
+
+  console.log(`Seeding users: ${EMPLOYER_COUNT} employers, ${JOBSEEKER_COUNT} seekers...`);
+  const { employers, seekers } = await seedUsers();
+
+  console.log(`Seeding companies for employers (${employers.length})...`);
+  const companies = await seedCompanies(employers);
+
+  console.log(`Seeding jobs (${JOB_COUNT})...`);
+  const jobs = await seedJobs(companies);
+
+  console.log('Seeding applications, saved jobs, and views...');
+  const { applicationCount, savedCount, viewCount } = await seedApplicationsSavesViews(jobs, seekers);
+
+  console.log('Seeding messaging and notifications...');
+  const { conversationsCreated, messagesCreated, notificationsCreated } = await seedMessagingAndNotifications(employers, seekers);
+
+  const summary = {
+    counts: {
+      users: await prisma.user.count(),
+      profiles: await prisma.profile.count(),
+      employers: employers.length,
+      jobseekers: seekers.length,
+      companies: await prisma.company.count(),
+      jobs: await prisma.job.count(),
+      applications: await prisma.jobApplication.count(),
+      savedJobs: await prisma.savedJob.count(),
+      jobViews: await prisma.jobView.count(),
+      conversations: await prisma.conversation.count(),
+      messages: await prisma.message.count(),
+      notifications: await prisma.notification.count(),
+    },
+    seeded: {
+      applications: applicationCount,
+      savedJobs: savedCount,
+      jobViews: viewCount,
+      conversations: conversationsCreated,
+      messages: messagesCreated,
+      notifications: notificationsCreated,
+    },
+  };
+
+  console.log('Seed summary:\n', JSON.stringify(summary));
 }
 
 main()
   .catch((e) => {
-    console.error('Error during seed:', e);
-    process.exit(1);
+    console.error('Seed error:', e);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
+    // Ensure process exits for Prisma seed
+    process.exit();
   });
