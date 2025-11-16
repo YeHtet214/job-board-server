@@ -12,17 +12,18 @@ import { ForbiddenError } from '../middleware/errorHandler.js';
 import { matchedData } from 'express-validator';
 import { mediaUploadToCloudinary } from '../services/uploadCloud.service.js';
 import { CompaniesSearchQuery, CreateCompanyDto } from '../types/company.js';
+import { CompanySize, Industry } from '@prisma/client';
 
 export const getAllCompanies = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { searchTerm, page = 1, limit = 10, industry, size } = req.query;
-    
+    const { searchTerm, page = 1, limit = 10, industry, companySize } = req.query;
+
     const queryParams: CompaniesSearchQuery = {
       searchTerm: searchTerm as string,
       page: Number(page),
       limit: limit ? Number(limit) : 10,
-      industry: industry as string,
-      size: size as string,
+      industry: industry as Industry,
+      size: companySize as CompanySize,
     };
     
     const result = await fetchAllCompanies(queryParams);

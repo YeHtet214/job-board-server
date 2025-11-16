@@ -1,3 +1,4 @@
+import { query } from 'express-validator';
 import { RequestHandler, Router } from 'express';
 import {
   getCompanyById,
