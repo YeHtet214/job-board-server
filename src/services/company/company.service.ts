@@ -1,3 +1,4 @@
+import { equal } from 'assert';
 import prisma from '../../lib/prismaClient.js';
 import {
   BadRequestError,
@@ -9,12 +10,36 @@ import {
   CreateCompanyDto,
   UpdateCompanyDto,
 } from '../../types/company.js';
+import { CompanySize, Industry } from '@prisma/client';
+
+// Map request values to Prisma enum values
+const industryMap: Record<string, Industry> = {
+  'technology': Industry.Technology,
+  'healthcare': Industry.Healthcare,
+  'finance': Industry.Finance,
+  'education': Industry.Education,
+  'manufacturing': Industry.Manufacturing,
+  'retail': Industry.Retail,
+  'hospitality': Industry.Hospitality,
+  'media': Industry.Media,
+  'transportation': Industry.Transportation,
+  'construction': Industry.Construction,
+};
+
+// Map request values (display format) to Prisma enum values
+const sizeMap: Record<string, CompanySize> = {
+  '1-10': CompanySize.Startup_1_10,
+  '11-50': CompanySize.Small_11_50,
+  '51-200': CompanySize.Medium_51_200,
+  '201-500': CompanySize.Large_201_500,
+  '500+': CompanySize.Enterprise_500_plus,
+};
 
 export const fetchAllCompanies = async (query: CompaniesSearchQuery) => {
   const { searchTerm, industry, size, page, limit = 10 } = query;
-  
+
   const whereClause: any = {};
-  
+
   // Build OR conditions for searchTerm if provided
   if (searchTerm) {
     whereClause.OR = [
@@ -38,26 +63,26 @@ export const fetchAllCompanies = async (query: CompaniesSearchQuery) => {
       },
     ];
   }
-  
-  // Add industry filter if provided
-  if (industry) {
-    whereClause.industry = {
-      contains: industry,
-      mode: 'insensitive',
-    };
+
+  // Map industry from request format to Prisma enum
+  if (industry && typeof industry === 'string') {
+    const mappedIndustry = industryMap[industry.toLowerCase()];
+    if (mappedIndustry) {
+      whereClause.industry = mappedIndustry;
+    }
   }
-  
-  // Add size filter if provided
-  if (size) {
-    whereClause.size = {
-      contains: size,
-      mode: 'insensitive',
-    };
+
+  // Map size from request format to Prisma enum
+  if (size && typeof size === 'string') {
+    const mappedSize = sizeMap[size];
+    if (mappedSize) {
+      whereClause.size = mappedSize;
+    }
   }
-  
+
   // Calculate pagination
   const skip = (page - 1) * limit;
-  
+
   const companies = await prisma.company.findMany({
     where: whereClause,
     skip: skip,
@@ -66,12 +91,12 @@ export const fetchAllCompanies = async (query: CompaniesSearchQuery) => {
       createdAt: 'desc',
     },
   });
-  
+
   // Get total count for pagination
   const total = await prisma.company.count({
     where: whereClause,
   });
-  
+
   return {
     companies,
     pagination: {
@@ -124,8 +149,23 @@ export const createNewCompany = async (companyData: CreateCompanyDto) => {
     throw new ConflictError('Employer already has a company profile');
   }
 
+  // Map industry and size from string to enum
+  const mappedIndustry = industryMap[companyData.industry.toLowerCase()];
+  if (!mappedIndustry) {
+    throw new BadRequestError('Invalid industry value');
+  }
+
+  const mappedSize = companyData.size ? sizeMap[companyData.size] : undefined;
+  if (companyData.size && !mappedSize) {
+    throw new BadRequestError('Invalid size value');
+  }
+
   const company = await prisma.company.create({
-    data: companyData,
+    data: {
+      ...companyData,
+      industry: mappedIndustry,
+      size: mappedSize,
+    },
   });
   return company;
 };
@@ -141,9 +181,31 @@ export const updateExistingCompany = async (
   // First check if company exists
   await getExistingCompany(id);
 
+  // Map industry and size if provided
+  const updateData: any = { ...data };
+  
+  if (data.industry) {
+    const mappedIndustry = industryMap[data.industry.toLowerCase()];
+    if (!mappedIndustry) {
+      throw new BadRequestError('Invalid industry value');
+    }
+    updateData.industry = mappedIndustry;
+  }
+
+  if (data.size) {
+    const mappedSize = sizeMap[data.size];
+    if (!mappedSize) {
+      throw new BadRequestError('Invalid size value');
+    }
+    updateData.size = mappedSize;
+  }
+
+  // Remove ownerId from update data as it shouldn't be updated
+  delete updateData.ownerId;
+
   const company = await prisma.company.update({
     where: { id },
-    data,
+    data: updateData,
   });
   return company;
 };

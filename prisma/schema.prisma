@@ -69,14 +69,35 @@ model Company {
   logo        String?
   website     String?
   location    String
-  industry    String
+  industry    Industry
   foundedYear String
-  size        String?
+  size        CompanySize?
   jobs        Job[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([ownerId])
+}
+
+enum Industry {
+  Technology
+  Healthcare
+  Finance
+  Education
+  Manufacturing
+  Retail
+  Hospitality
+  Media
+  Transportation
+  Construction
+}
+
+enum CompanySize {
+  Startup_1_10 @map("1-10")
+  Small_11_50 @map("11-50")
+  Medium_51_200 @map("51-200")
+  Large_201_500 @map("201-500")
+  Enterprise_500_plus @map("500+")
 }
 
 model Job {
