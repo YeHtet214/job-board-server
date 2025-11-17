@@ -1,3 +1,5 @@
+import { CompanySize, Industry } from "@prisma/client";
+
 export interface CreateCompanyDto {
   name: string;
   description: string;
@@ -29,6 +31,6 @@ export interface CompaniesSearchQuery {
   searchTerm?: string;
   page: number;
   limit?: number;
-  industry?: string;
-  size?: string;
+  industry?: Industry;
+  size?: CompanySize;
 }
