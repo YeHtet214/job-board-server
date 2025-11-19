@@ -93,17 +93,16 @@ export const fetchAllCompanies = async (query: CompaniesSearchQuery) => {
   });
 
   // Get total count for pagination
-  const total = await prisma.company.count({
+  const totalCount = await prisma.company.count({
     where: whereClause,
   });
 
   return {
     companies,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
+    meta: {
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+      currentPage: page,
     },
   };
 };
