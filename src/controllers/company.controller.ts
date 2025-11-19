@@ -32,7 +32,7 @@ export const getAllCompanies = async (req: Request, res: Response, next: NextFun
       success: true, 
       message: 'Companies fetched successfully', 
       data: result.companies,
-      pagination: result.pagination
+      meta: result.meta
     });
   } catch (error) {
     next(error);
