@@ -36,7 +36,7 @@ export const getAllJobs = async (
     const searchParams: JobSearchParams = {
       keyword: keyword as string,
       location: location as string,
-      jobTypes: jobTypes as JobType[],
+      jobTypes: Array.isArray(jobTypes) ? jobTypes as JobType[] : Array(jobTypes) as JobType[],
       experienceLevel: experienceLevel as string,
       page: page ? parseInt(page as string, 10) : 1,
       limit: limit ? parseInt(limit as string, 10) : 10,
@@ -47,6 +47,7 @@ export const getAllJobs = async (
 
     // Fetch jobs with search parameters
     const result = await fetchAllJobs(searchParams);
+    console.log("returned jobs; ", result.jobs.map(job => job.type))
 
     res.status(200).json({
       success: true,
