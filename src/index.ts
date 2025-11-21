@@ -5,8 +5,9 @@ import passport from 'passport';
 import session from 'express-session';
 import { rateLimit } from 'express-rate-limit';
 import bodyParser from 'body-parser';
+import swaggerUi from 'swagger-ui-express'
 
-// Import your routers
+// Import routers
 import authRouter from './routes/auth.route.js';
 import profileRouter from './routes/profile.route.js';
 import companyRouter from './routes/company.route.js';
@@ -23,6 +24,7 @@ import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
 // import { app, httpServer, io } from './config/socket.config.js';
 import { initSocketServer } from './config/socket.config.js';
 import MessagingRouter from "./routes/message.route.js";
+import swaggerSpec from "./config/swagger.config.js";
 
 const app = express();
 const port = process.env.PORT || 3000;  
@@ -74,7 +76,14 @@ app.use('/api/jobs', jobRouter);
 app.use('/api/applications', applicationRouter);
 app.use('/api/dashboard', dashboardRouter);
 app.use('/api/saved-jobs', savedJobRouter);
-app.use('/api/conversations', MessagingRouter)
+app.use('/api/conversations', MessagingRouter);
+
+// Swagger documentation
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
 
 app.use(errorHandler);
 

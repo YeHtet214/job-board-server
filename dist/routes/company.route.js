@@ -7,9 +7,10 @@ const express_1 = require("express");
 const company_controller_js_1 = require("../controllers/company.controller.js");
 const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middleware.js"));
 const role_middleware_js_1 = require("../middleware/role.middleware.js");
+const company_validation_js_1 = require("@/middleware/validation/company.validation.js");
 const companyRouter = (0, express_1.Router)();
 // Public route - anyone can view company details
-companyRouter.get('/', company_controller_js_1.getAllCompanies);
+companyRouter.get('/', company_validation_js_1.companyValidation.getAll, company_controller_js_1.getAllCompanies);
 // Important: Route order matters - specific routes before parameterized routes
 // @ts-ignore - The authorize middleware adds the user property to the request
 companyRouter.get('/my-company', auth_middleware_js_1.default, company_controller_js_1.getCurrentCompany);

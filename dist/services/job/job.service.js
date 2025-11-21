@@ -18,8 +18,9 @@ const errorHandler_js_1 = require("../../middleware/errorHandler.js");
 const user_service_js_1 = require("../../services/user/user.service.js");
 // Basic data access functions
 const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () {
-    const { keyword = '', location = '', jobTypes = [], experienceLevel = '', page = 1, limit = 10, sortBy = 'date_desc' // Default to newest first
+    const { keyword = '', location = '', jobTypes = [], experienceLevel = '', page = 1, limit = 10, sortBy = 'date_desc', // Default to newest first
      } = params || {};
+    console.log('job types received: ', params);
     // Calculate pagination
     const skip = (page - 1) * limit;
     const filters = Object.assign(Object.assign(Object.assign(Object.assign({ isActive: true }, (keyword && {
@@ -29,7 +30,7 @@ const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () 
         ],
     })), (location && {
         location: { contains: location, mode: 'insensitive' },
-    })), (jobTypes.length > 0 && {
+    })), (jobTypes !== undefined && jobTypes.length > 0 && {
         type: { in: jobTypes },
     })), (experienceLevel && {
         experienceLevel,
@@ -58,7 +59,7 @@ const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () 
     // Fetch jobs with pagination, sorting, and filtering
     const jobs = yield prismaClient_js_1.default.job.findMany({
         where: filters,
-        orderBy: orderBy,
+        orderBy,
         skip,
         take: limit,
         include: {
@@ -67,23 +68,24 @@ const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () 
                     name: true,
                     logo: true,
                     industry: true,
-                }
+                },
             },
             postedBy: {
                 select: {
                     firstName: true,
                     lastName: true,
                     email: true,
-                }
-            }
-        }
+                },
+            },
+        },
     });
-    // Return in the format expected by the frontend
     return {
         jobs,
-        totalPages,
-        totalCount,
-        currentPage: page
+        meta: {
+            totalPages,
+            totalCount,
+            currentPage: page,
+        },
     };
 });
 exports.fetchAllJobs = fetchAllJobs;
@@ -99,16 +101,16 @@ const fetchJobById = (id) => __awaiter(void 0, void 0, void 0, function* () {
                     name: true,
                     logo: true,
                     industry: true,
-                }
+                },
             },
             postedBy: {
                 select: {
                     firstName: true,
                     lastName: true,
                     email: true,
-                }
-            }
-        }
+                },
+            },
+        },
     });
     if (!job) {
         throw new errorHandler_js_1.NotFoundError('Job not found');
@@ -120,7 +122,7 @@ const fetchJobsByCompanyId = (companyId, params) => __awaiter(void 0, void 0, vo
     if (!companyId) {
         throw new errorHandler_js_1.BadRequestError('Company ID is required');
     }
-    const { page = 1, limit = 10, sortBy = 'date_desc' // Default to newest first
+    const { page = 1, limit = 10, sortBy = 'date_desc', // Default to newest first
      } = params || {};
     // Calculate pagination
     const skip = (page - 1) * limit;
@@ -163,22 +165,22 @@ const fetchJobsByCompanyId = (companyId, params) => __awaiter(void 0, void 0, vo
                     name: true,
                     logo: true,
                     industry: true,
-                }
+                },
             },
             postedBy: {
                 select: {
                     firstName: true,
                     lastName: true,
                     email: true,
-                }
-            }
-        }
+                },
+            },
+        },
     });
     return {
         jobs,
         totalPages,
         totalCount,
-        currentPage: page
+        currentPage: page,
     };
 });
 exports.fetchJobsByCompanyId = fetchJobsByCompanyId;
@@ -202,15 +204,15 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
             where: {
                 title: {
                     contains: term,
-                    mode: 'insensitive'
+                    mode: 'insensitive',
                 },
-                isActive: true
+                isActive: true,
             },
             select: {
                 title: true,
             },
             distinct: ['title'],
-            take: limit
+            take: limit,
         });
         keywordSuggestions = titleMatches.map((jobTitle) => jobTitle.title);
         // If we need more suggestions, search in required skills
@@ -218,19 +220,21 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
             const skillsMatches = yield prismaClient_js_1.default.job.findMany({
                 where: {
                     requiredSkills: {
-                        has: term // This assumes requiredSkills is an array
+                        has: term, // This assumes requiredSkills is an array
                     },
-                    isActive: true
+                    isActive: true,
                 },
                 select: {
-                    requiredSkills: true
+                    requiredSkills: true,
                 },
-                take: limit - keywordSuggestions.length
+                take: limit - keywordSuggestions.length,
             });
             // Extract skills that match the term
-            const skillSuggestions = skillsMatches.flatMap((matches) => matches.requiredSkills.filter(skill => skill.toLowerCase().includes(term.toLowerCase())));
+            const skillSuggestions = skillsMatches.flatMap((matches) => matches.requiredSkills.filter((skill) => skill.toLowerCase().includes(term.toLowerCase())));
             // Add unique skills to suggestions
-            keywordSuggestions = [...new Set([...keywordSuggestions, ...skillSuggestions])];
+            keywordSuggestions = [
+                ...new Set([...keywordSuggestions, ...skillSuggestions]),
+            ];
         }
     }
     // Get location suggestions
@@ -239,19 +243,19 @@ const getSearchSuggestions = (term_1, ...args_1) => __awaiter(void 0, [term_1, .
             where: {
                 location: {
                     contains: term,
-                    mode: 'insensitive'
+                    mode: 'insensitive',
                 },
-                isActive: true
+                isActive: true,
             },
             select: {
-                location: true
+                location: true,
             },
             distinct: ['location'],
-            take: limit
+            take: limit,
         });
         locationSuggestions = locationMatches
             .map((location) => location.location)
-            .filter(location => location !== null && location !== '');
+            .filter((location) => location !== null && location !== '');
     }
     // Combine and limit results
     let suggestions;
@@ -273,7 +277,11 @@ exports.getSearchSuggestions = getSearchSuggestions;
  */
 const createJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
     // Validate required fields
-    if (!jobData.title || !jobData.description || !jobData.companyId || !jobData.type || !jobData.postedById) {
+    if (!jobData.title ||
+        !jobData.description ||
+        !jobData.companyId ||
+        !jobData.type ||
+        !jobData.postedById) {
         throw new errorHandler_js_1.BadRequestError('Missing required job fields');
     }
     // Validate job type
@@ -281,16 +289,18 @@ const createJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
         throw new errorHandler_js_1.BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
     }
     // Validate salary if provided
-    if (jobData.salaryMin && jobData.salaryMax && Number(jobData.salaryMin) > Number(jobData.salaryMax)) {
+    if (jobData.salaryMin &&
+        jobData.salaryMax &&
+        Number(jobData.salaryMin) > Number(jobData.salaryMax)) {
         throw new errorHandler_js_1.BadRequestError('Minimum salary cannot be greater than maximum salary');
     }
     // Fetch the user's company
     const userCompany = yield prismaClient_js_1.default.company.findFirst({
         where: { ownerId: jobData.postedById },
-        select: { id: true }
+        select: { id: true },
     });
     if (!userCompany) {
-        throw new errorHandler_js_1.BadRequestError("You need to create a company before posting a job");
+        throw new errorHandler_js_1.BadRequestError('You need to create a company before posting a job');
     }
     // Process and transform the job data
     const processedData = {
@@ -302,9 +312,11 @@ const createJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
         type: jobData.type,
         salaryMin: jobData.salaryMin ? Number(jobData.salaryMin) : undefined,
         salaryMax: jobData.salaryMax ? Number(jobData.salaryMax) : undefined,
-        requiredSkills: Array.isArray(jobData.requiredSkills) ? jobData.requiredSkills : [],
+        requiredSkills: Array.isArray(jobData.requiredSkills)
+            ? jobData.requiredSkills
+            : [],
         experienceLevel: jobData.experienceLevel,
-        expiresAt: jobData.expiresAt
+        expiresAt: jobData.expiresAt,
     };
     // Create the job in the database
     return createNewJob(processedData);
@@ -326,10 +338,11 @@ const updateJob = (jobId, updateData, userId) => __awaiter(void 0, void 0, void 
     const userRole = (_a = (yield (0, user_service_js_1.fetchUserById)(userId))) === null || _a === void 0 ? void 0 : _a.role;
     // Verify ownership
     if (existingJob.postedById !== userId || userRole !== 'EMPLOYER') {
-        throw new errorHandler_js_1.ForbiddenError('You don\'t have permission to update this job');
+        throw new errorHandler_js_1.ForbiddenError("You don't have permission to update this job");
     }
     // Validate job type if provided
-    if (updateData.type && !['FULL_TIME', 'PART_TIME', 'CONTRACT'].includes(updateData.type)) {
+    if (updateData.type &&
+        !['FULL_TIME', 'PART_TIME', 'CONTRACT'].includes(updateData.type)) {
         throw new errorHandler_js_1.BadRequestError('Invalid job type. Must be one of: FULL_TIME, PART_TIME, CONTRACT');
     }
     // Process and transform the update data
@@ -369,7 +382,7 @@ exports.updateJob = updateJob;
  */
 const createNewJob = (jobData) => __awaiter(void 0, void 0, void 0, function* () {
     const job = yield prismaClient_js_1.default.job.create({
-        data: Object.assign(Object.assign({}, jobData), { expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : undefined })
+        data: Object.assign(Object.assign({}, jobData), { expiresAt: jobData.expiresAt ? new Date(jobData.expiresAt) : undefined }),
     });
     return job;
 });
@@ -381,7 +394,7 @@ const updateExistingJob = (id, data) => __awaiter(void 0, void 0, void 0, functi
     // Update the job
     const updatedJob = yield prismaClient_js_1.default.job.update({
         where: { id },
-        data: Object.assign(Object.assign({}, data), { expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined })
+        data: Object.assign(Object.assign({}, data), { expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined }),
     });
     return updatedJob;
 });
@@ -396,7 +409,7 @@ const deleteExistingJob = (id, userId) => __awaiter(void 0, void 0, void 0, func
     const existingJob = yield (0, exports.fetchJobById)(id);
     const userRole = (_a = (yield (0, user_service_js_1.fetchUserById)(userId))) === null || _a === void 0 ? void 0 : _a.role;
     if (existingJob.postedById !== userId || userRole !== 'EMPLOYER') {
-        throw new errorHandler_js_1.ForbiddenError('You don\'t have permission to delete this job');
+        throw new errorHandler_js_1.ForbiddenError("You don't have permission to delete this job");
     }
     return prismaClient_js_1.default.job.delete({ where: { id } });
 });

@@ -1,2 +1,0 @@
-- [x] Fix socket disconnection handling by adding socketToUser mapping in handleOnConnection
-- [ ] Verify that offline notifications are persisted for disconnected users

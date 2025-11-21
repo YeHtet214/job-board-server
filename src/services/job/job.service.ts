@@ -32,8 +32,6 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
     sortBy = 'date_desc', // Default to newest first
   } = params || {};
 
-  console.log('job types received: ', jobTypes)
-
   // Calculate pagination
   const skip = (page - 1) * limit;
 
@@ -48,7 +46,7 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
     ...(location && {
       location: { contains: location, mode: 'insensitive' },
     }),
-    ...(jobTypes.length > 0 && {
+    ...(jobTypes !== undefined && jobTypes.length > 0 && {
       type: { in: jobTypes },
     }),
     ...(experienceLevel && {

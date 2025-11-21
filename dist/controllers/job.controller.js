@@ -20,23 +20,25 @@ const errorHandler_js_1 = require("../middleware/errorHandler.js");
 const getAllJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Extract search parameters from query
-        const { keyword, location, jobTypes, experienceLevel, page, limit, sortBy } = req.query;
+        const { keyword, location, jobTypes, experienceLevel, page, limit, sortBy, } = req.query;
+        console.log("Query jobTypes incoming: ", jobTypes);
         // Parse and prepare search params
         const searchParams = {
             keyword: keyword,
             location: location,
-            jobTypes: jobTypes,
+            jobTypes: jobTypes ? (Array.isArray(jobTypes) ? jobTypes : Array(jobTypes)) : [],
             experienceLevel: experienceLevel,
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 10,
-            sortBy: sortBy
+            sortBy: sortBy,
         };
         // Fetch jobs with search parameters
-        const jobsData = yield (0, job_service_js_1.fetchAllJobs)(searchParams);
+        const result = yield (0, job_service_js_1.fetchAllJobs)(searchParams);
         res.status(200).json({
             success: true,
-            message: "Jobs fetched successfully",
-            data: jobsData
+            message: 'Jobs fetched successfully',
+            data: result.jobs,
+            meta: result.meta,
         });
     }
     catch (error) {
@@ -50,8 +52,8 @@ const getJobById = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
         const job = yield (0, job_service_js_1.fetchJobById)(id);
         res.status(200).json({
             success: true,
-            message: "Job fetched successfully",
-            data: job
+            message: 'Job fetched successfully',
+            data: job,
         });
     }
     catch (error) {
@@ -68,13 +70,13 @@ const getJobsByCompanyId = (req, res, next) => __awaiter(void 0, void 0, void 0,
         const searchParams = {
             page: page ? parseInt(page, 10) : 1,
             limit: limit ? parseInt(limit, 10) : 10,
-            sortBy: sortBy
+            sortBy: sortBy,
         };
         const jobsData = yield (0, job_service_js_1.fetchJobsByCompanyId)(companyId, searchParams);
         res.status(200).json({
             success: true,
-            message: "Jobs fetched successfully",
-            data: jobsData
+            message: 'Jobs fetched successfully',
+            data: jobsData,
         });
     }
     catch (error) {
@@ -86,13 +88,13 @@ const getSearchSuggestionsHandler = (req, res, next) => __awaiter(void 0, void 0
     try {
         const { term, type, limit } = req.query;
         if (!term) {
-            throw new errorHandler_js_1.BadRequestError("Search term is required");
+            throw new errorHandler_js_1.BadRequestError('Search term is required');
         }
         const suggestions = yield (0, job_service_js_1.getSearchSuggestions)(term, type || 'all', limit ? parseInt(limit, 10) : 5);
         res.status(200).json({
             success: true,
-            message: "Search suggestions fetched successfully",
-            data: suggestions
+            message: 'Search suggestions fetched successfully',
+            data: suggestions,
         });
     }
     catch (error) {
@@ -107,17 +109,17 @@ const createJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         // Fetch the user's company
         const company = yield prismaClient_js_1.default.company.findFirst({
             where: { ownerId: userId },
-            select: { id: true }
+            select: { id: true },
         });
         if (!company) {
-            throw new errorHandler_js_1.BadRequestError("You need to create a company before posting a job");
+            throw new errorHandler_js_1.BadRequestError('You need to create a company before posting a job');
         }
         // Pass request body, user ID, and company ID to the service
         const newJob = yield (0, job_service_js_1.createJob)(Object.assign(Object.assign({}, req.body), { postedById: userId, companyId: company.id }));
         res.status(201).json({
             success: true,
-            message: "Job created successfully",
-            data: newJob
+            message: 'Job created successfully',
+            data: newJob,
         });
     }
     catch (error) {
@@ -132,8 +134,8 @@ const updateJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const updatedJob = yield (0, job_service_js_1.updateJob)(jobId, req.body, req.user.userId);
         res.status(200).json({
             success: true,
-            message: "Job updated successfully",
-            data: updatedJob
+            message: 'Job updated successfully',
+            data: updatedJob,
         });
     }
     catch (error) {
@@ -147,8 +149,8 @@ const deleteJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, f
         const deletedJob = yield (0, job_service_js_1.deleteExistingJob)(id, req.user.userId);
         res.status(200).json({
             success: true,
-            message: "Job deleted successfully",
-            data: deletedJob
+            message: 'Job deleted successfully',
+            data: deletedJob,
         });
     }
     catch (error) {

@@ -69,6 +69,12 @@ app.use('/api/applications', application_route_js_1.default);
 app.use('/api/dashboard', dashboard_routes_js_1.default);
 app.use('/api/saved-jobs', saved_job_route_js_1.default);
 app.use('/api/conversations', message_route_js_1.default);
+// Swagger documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.get('/api-docs.json', (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    res.send(swaggerSpec);
+});
 app.use(error_middleware_js_1.default);
 // Start the server
 httpServer.listen(port, () => {

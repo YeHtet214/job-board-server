@@ -32,22 +32,20 @@ export const getAllJobs = async (
       sortBy,
     } = req.query;
 
+    console.log("Query jobTypes incoming: ", jobTypes)
+
     // Parse and prepare search params
     const searchParams: JobSearchParams = {
       keyword: keyword as string,
       location: location as string,
-      jobTypes: Array.isArray(jobTypes) ? jobTypes as JobType[] : Array(jobTypes) as JobType[],
+      jobTypes: jobTypes ? (Array.isArray(jobTypes) ? jobTypes as JobType[] : Array(jobTypes) as JobType[]) : [],      
       experienceLevel: experienceLevel as string,
       page: page ? parseInt(page as string, 10) : 1,
       limit: limit ? parseInt(limit as string, 10) : 10,
       sortBy: sortBy as string,
-    };
-
-    console.log("Job types check in controller: ", searchParams)
-
+    }
     // Fetch jobs with search parameters
     const result = await fetchAllJobs(searchParams);
-    console.log("returned jobs; ", result.jobs.map(job => job.type))
 
     res.status(200).json({
       success: true,

@@ -16,8 +16,21 @@ const express_validator_1 = require("express-validator");
 const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
 const getAllCompanies = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const companies = yield (0, company_service_js_1.fetchAllCompanies)();
-        return res.status(200).json({ success: true, message: 'Companies fetched successfully', data: companies });
+        const { searchTerm, page = 1, limit = 10, industry, companySize } = req.query;
+        const queryParams = {
+            searchTerm: searchTerm,
+            page: Number(page),
+            limit: limit ? Number(limit) : 10,
+            industry: industry,
+            size: companySize,
+        };
+        const result = yield (0, company_service_js_1.fetchAllCompanies)(queryParams);
+        return res.status(200).json({
+            success: true,
+            message: 'Companies fetched successfully',
+            data: result.companies,
+            meta: result.meta
+        });
     }
     catch (error) {
         next(error);
