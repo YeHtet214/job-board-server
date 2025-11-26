@@ -111,7 +111,6 @@ export const uploadProfileImage = async (req: RequestWithUser, res: Response, ne
             });
         }
 
-        console.log("Profile image uploaded:", req.file);
         const file = req.file;
         const userId = req.user.userId;
         

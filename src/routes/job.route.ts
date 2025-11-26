@@ -36,24 +36,23 @@ jobRouter.use(employerOnly as RequestHandler);
 jobRouter.get(
   '/:id/applications',
   applicationValidation.getByJobId,
-  applicationValidation.getByJobId,
   getAllApplicationsByJobId as RequestHandler,
 );
 jobRouter.post(
   '/',
-  applicationValidation.getByJobId,
+  applicationValidation.create,
   jobValidation.create,
   createJobHandler as RequestHandler,
 );
 jobRouter.put(
   '/:id',
-  applicationValidation.getByJobId,
+  applicationValidation.update,
   jobValidation.update,
   updateJobHandler as RequestHandler,
 );
 jobRouter.delete(
   '/:id',
-  applicationValidation.getByJobId,
+  applicationValidation.delete,
   jobValidation.delete,
   deleteJobHandler as RequestHandler,
 );

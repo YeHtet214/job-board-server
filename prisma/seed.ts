@@ -100,7 +100,7 @@ const jobTypes: JobTypeLiteral[] = [
   'REMOTE',
 ];
 
-const experienceLevels = ['Junior', 'Mid', 'Senior', 'Lead'];
+const experienceLevels = ['Entry', 'Mid', 'Senior', 'Executive'];
 
 // ----------------------------- Builders -----------------------------
 function randomName() {

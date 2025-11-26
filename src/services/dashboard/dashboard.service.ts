@@ -233,8 +233,6 @@ interface JobReponseWithCount extends JobResponse {
     app.status === 'INTERVIEW'
   ).length;
 
-  console.log("Company: ", company);
-
   // Format the data according to frontend expectations
   return {
     stats: {

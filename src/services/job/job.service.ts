@@ -21,7 +21,7 @@ export interface JobSearchParams {
 }
 
 // Basic data access functions
-export const fetchAllJobs = async (params?: JobSearchParams) => {
+export const fetchAllJobs = async (params: JobSearchParams) => {
   const {
     keyword = '',
     location = '',
@@ -30,7 +30,7 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
     page = 1,
     limit = 10,
     sortBy = 'date_desc', // Default to newest first
-  } = params || {};
+  } = params;
 
   // Calculate pagination
   const skip = (page - 1) * limit;
@@ -50,7 +50,7 @@ export const fetchAllJobs = async (params?: JobSearchParams) => {
       type: { in: jobTypes },
     }),
     ...(experienceLevel && {
-      experienceLevel,
+      experienceLevel : experienceLevel === "Any" ? '' : experienceLevel,
     }),
   };
 

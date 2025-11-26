@@ -5,7 +5,7 @@ import { body, param } from 'express-validator';
  */
 export const authValidation = {
   // Validation for user signup
-  signup: [
+  signUp: [
     body('firstName')
       .notEmpty().withMessage('First name is required')
       .isString().withMessage('First name must be a string')
@@ -33,7 +33,7 @@ export const authValidation = {
   ],
   
   // Validation for user signin
-  signin: [
+  signIn: [
     body('email')
       .notEmpty().withMessage('Email is required')
       .isEmail().withMessage('Email must be valid')
@@ -41,14 +41,6 @@ export const authValidation = {
       .trim(),
     body('password')
       .notEmpty().withMessage('Password is required')
-      .trim()
-  ],
-  
-  // Validation for token refresh
-  refresh: [
-    body('refreshToken')
-      .notEmpty().withMessage('Refresh token is required')
-      .isString().withMessage('Refresh token must be a string')
       .trim()
   ],
   

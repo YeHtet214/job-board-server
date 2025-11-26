@@ -1,6 +1,6 @@
 import prisma from '../lib/prismaClient';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import crypto from 'crypto';
 import { UserRole } from '../types/users';
 import {
@@ -179,7 +179,7 @@ export const userSignIn = async (email: string, password: string) => {
   };
 };
 
-export const refreshAccessToken = async (refreshToken: string) => {
+export const refreshTokenService = async (refreshToken: string) => {
   if (!refreshToken) {
     throw new BadRequestError('Refresh token is required');
   }
@@ -200,14 +200,12 @@ export const refreshAccessToken = async (refreshToken: string) => {
 
   try {
     // Verify the refresh token
-    const decoded = jwt.verify(
-      refreshToken,
-      REFRESH_TOKEN_SECRET as string,
-    ) as { userId: string };
+    const decoded = jwt.verify( refreshToken, REFRESH_TOKEN_SECRET);
+    const { userId, email, userName } = decoded as JwtPayload
 
     // Generate new access token
     const accessToken = jwt.sign(
-      { userId: decoded.userId },
+      { userId, email, userName },
       JWT_SECRET as string,
       { expiresIn: ACCESS_TOKEN_EXPIRY },
     );

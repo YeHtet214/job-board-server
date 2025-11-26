@@ -4,13 +4,14 @@ import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, 
 import authorize from "../middleware/auth.middleware.js";
 import { generateTokens, storeRefreshToken } from "../services/auth.service.js";
 import { FRONTEND_URL } from "../config/env.config.js";
+import { authValidation } from "@/middleware/validation";
 
 const authRouter = Router();
 
-authRouter.post('/signup', signUp);
-authRouter.post('/signin', signIn);
+authRouter.post('/signup', authValidation.signUp, signUp);
+authRouter.post('/signin', authValidation.signIn, signIn);
 authRouter.post('/refresh-token', refresh);
-authRouter.get('/verify-email/:token', verifyEmailToken);
+authRouter.get('/verify-email/:token', authValidation.verifyEmail, verifyEmailToken);
 authRouter.post('/logout', authorize as RequestHandler, logout as RequestHandler);
 authRouter.post('/resend-verification', resendVerification);
 authRouter.post('/forgot-password', forgotPassword);
@@ -32,7 +33,7 @@ authRouter.get('/google/callback', passport.authenticate('google', {
             }
 
             // Generate tokens
-            const { accessToken, refreshToken } = generateTokens(user.id, user.email);
+            const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.userName);
 
             // Store refresh token in database
             await storeRefreshToken(user.id, refreshToken);

@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import cors from 'cors';
 import passport from 'passport';
 import session from 'express-session';
+import cookieParser from 'cookie-parser';
 import { rateLimit } from 'express-rate-limit';
 import bodyParser from 'body-parser';
 import swaggerUi from 'swagger-ui-express'
@@ -33,6 +34,7 @@ const io = initSocketServer(httpServer);
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(cookieParser());
 app.use(
   cors({
     origin: FRONTEND_URL,

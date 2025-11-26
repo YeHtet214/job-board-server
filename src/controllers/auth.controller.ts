@@ -1,20 +1,25 @@
-import { NextFunction, Request, Response } from 'express';
+import { CookieOptions, NextFunction, Request, Response } from 'express';
 import {
   userSignIn,
   userSignUp,
-  refreshAccessToken,
   verifyEmail,
   userLogout,
   resendVerificationEmail,
   requestPasswordReset,
   resetPassword,
+  refreshTokenService,
 } from '../services/auth.service.js';
 import { RequestWithUser } from '../types/users.js';
-import {
-  BadRequestError,
-  ForbiddenError,
-  UnauthorizedError,
-} from '../middleware/errorHandler.js';
+import { UnauthorizedError } from '@/middleware/errorHandler.js';
+
+// Cookie configuration
+const REFRESH_TOKEN_COOKIE_CONFIG: CookieOptions = {
+  httpOnly: true,
+  //secure: process.env.NODE_ENV === 'production', // HTTPS in production
+  secure: true,
+  sameSite: 'none',
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+};
 
 /**
  * Handles user sign-up.
@@ -39,11 +44,15 @@ export const signUp = async (
       role,
     );
 
+    if (!refreshToken) throw new UnauthorizedError('Invalid credentials');
+
+    res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
+
     res.status(201).json({
       success: true,
       message:
         'Successfully signed up. Please check your email for verification.',
-      data: { accessToken, refreshToken, user },
+      data: { user, accessToken },
     });
   } catch (error) {
     next(error);
@@ -58,17 +67,19 @@ export const signIn = async (
   try {
     const { email, password } = req.body;
 
-    console.log("Sign in email & password: ", email, password);
-
     const { user, accessToken, refreshToken } = await userSignIn(
       email,
       password,
     );
 
+    if (!refreshToken) throw new UnauthorizedError('Invalid credentials');
+
+    res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
+
     res.status(200).json({
       success: true,
       message: 'Successfully signed in',
-      data: { user, accessToken, refreshToken },
+      data: { user, accessToken },
     });
   } catch (error) {
     next(error);
@@ -81,9 +92,12 @@ export const refresh = async (
   next: NextFunction,
 ) => {
   try {
-    const { refreshToken } = req.body;
+    console.log("req cookies: ", req.cookies)
+    const refreshToken  = req.cookies.refreshToken;
 
-    const { accessToken } = await refreshAccessToken(refreshToken);
+    console.log("Refresh token from cookie: ", refreshToken)
+
+    const { accessToken } = await refreshTokenService(refreshToken);
 
     res.status(200).json({
       success: true,

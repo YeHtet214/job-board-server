@@ -32,8 +32,6 @@ export const getAllJobs = async (
       sortBy,
     } = req.query;
 
-    console.log("Query jobTypes incoming: ", jobTypes)
-
     // Parse and prepare search params
     const searchParams: JobSearchParams = {
       keyword: keyword as string,
@@ -44,7 +42,7 @@ export const getAllJobs = async (
       limit: limit ? parseInt(limit as string, 10) : 10,
       sortBy: sortBy as string,
     }
-    // Fetch jobs with search parameters
+    
     const result = await fetchAllJobs(searchParams);
 
     res.status(200).json({

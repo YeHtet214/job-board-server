@@ -17,8 +17,6 @@ export const getJobSeekerDashboard = async (req: RequestWithUser, res: Response,
     const userId = req.user.userId;
     const dashboardData = await fetchJobSeekerDashboardData(userId);
 
-    console.log("jobseeker dashboard data:", dashboardData);
-
     res.status(200).json({
       success: true,
       message: "Job seeker dashboard data fetched successfully",
