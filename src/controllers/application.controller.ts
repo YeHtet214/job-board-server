@@ -11,6 +11,7 @@ import {
 } from "../services/application/application.service.js";
 import { matchedData } from "express-validator";
 import { resumeUploadToFirebase } from "../services/uploadCloud.service.js";
+import { NotiType } from "@prisma/client";
 
 export const getAllApplicationsByUserId = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
@@ -75,7 +76,22 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
         const resumeURL = await resumeUploadToFirebase(file, userId);
         const applicantId = req.user.userId;
 
-        const application = await postNewApplication({ ...validatedData, resumeUrl: resumeURL, applicantId } as createApplicationDto);
+        const { application, job } = await postNewApplication({ ...validatedData, resumeUrl: resumeURL, applicantId } as createApplicationDto, req.user);
+
+        // Emit real-time notification via Socket.IO to employer
+        const io = req.app.get('io');
+        if (io && application && job) {
+            const employerId = job.postedById;
+
+            // Emit to employer's personal room
+            io.to(employerId).emit('notification:application', {
+                type: NotiType.Job_Application,
+                applicationId: application.id,
+                jobId: application.jobId,
+                applicantName: `${req.user.firstName} ${req.user.lastName}`,
+                createdAt: application.createdAt,
+            });
+        }
 
         res.status(201).json({
             success: true,
@@ -101,7 +117,23 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
             status: validatedData.status
         }
 
-        const application = await updateApplicationById({ ...applicationData, applicantId } as updateApplicationDto);
+        const { application, statusChanged, job } = await updateApplicationById({ ...applicationData, applicantId } as updateApplicationDto);
+
+        // Emit real-time notification if status changed
+        if (statusChanged) {
+            const io = req.app.get('io');
+            if (io && application) {
+                // Emit to applicant's personal room
+                io.to(application.applicantId).emit('notification:application', {
+                    type: NotiType.Application_Status_Update,
+                    applicationId: application.id,
+                    jobId: application.jobId,
+                    status: application.status,
+                    snippet: `The job applied for ${job.title} is ${application.status}`,
+                    createdAt: new Date(),
+                });
+            }
+        }
 
         res.status(200).json({
             success: true,

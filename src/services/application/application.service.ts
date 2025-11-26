@@ -1,6 +1,7 @@
 import prisma from "../../lib/prismaClient.js"
 import { CustomError } from "../../types/error.js";
 import { createApplicationDto, updateApplicationDto } from "../../types/applicaton.js";
+import { notifyEmployerOfApplication, notifyApplicantOfStatusUpdate } from '../socket.service.js';
 
 export const fetchAllApplicationsByUserId = async (userId: string) => {
     const applications = await prisma.jobApplication.findMany({
@@ -47,10 +48,8 @@ export const fetchApplicationById = async (id: string) => {
     return application;
 }
 
-export const postNewApplication = async (applicationData: createApplicationDto) => {
+export const postNewApplication = async (applicationData: createApplicationDto, user: any) => {
     // Check if job exists
-    console.log(applicationData)
-    console.log("Job ID: ", applicationData.jobId)
     const job = await prisma.job.findUnique({
         where: { id: applicationData.jobId }
     });
@@ -69,18 +68,12 @@ export const postNewApplication = async (applicationData: createApplicationDto) 
         }
     });
 
-    console.log("Existing Application: ", applicationData.applicantId)
-
     if (existingApplication) {
         const error = new Error('You have already applied for this job') as CustomError;
         error.status = 400;
         throw error;
     }
 
-    console.log("Job: ", job)
-    console.log("Application Data: ", applicationData)
-
-    // Create new application
     const newApplication = await prisma.jobApplication.create({
         data: {
             jobId: applicationData.jobId,
@@ -93,15 +86,31 @@ export const postNewApplication = async (applicationData: createApplicationDto) 
         }
     });
 
-    console.log("New Application: ", newApplication)
 
-    return newApplication;
+    // Notify employer of new application
+    try {
+        if (job && user) {
+            await notifyEmployerOfApplication({
+                applicationId: newApplication.id,
+                jobId: newApplication.jobId,
+                jobTitle: job.title,
+                applicantId: newApplication.applicantId,
+                applicantName: `${user.firstName} ${user.lastName}`,
+                employerId: job.postedById,
+            });
+        }
+    } catch (err) {
+        console.error('Failed to create notification for employer:', err);
+    }
+
+    return { application: newApplication, job };
 }
 
 export const updateApplicationById = async (applicationData: updateApplicationDto) => {
     // Check if application exists
     const application = await prisma.jobApplication.findUnique({
-        where: { id: applicationData.id }
+        where: { id: applicationData.id },
+        include: { job: { include: { company: true } } }
     });
 
     if (!application) {
@@ -109,6 +118,8 @@ export const updateApplicationById = async (applicationData: updateApplicationDt
         error.status = 404;
         throw error;
     }
+
+    const statusChanged = applicationData.status && applicationData.status !== application.status;
 
     // Update application
     const updatedApplication = await prisma.jobApplication.update({
@@ -120,7 +131,23 @@ export const updateApplicationById = async (applicationData: updateApplicationDt
         }
     });
 
-    return updatedApplication;
+    // Notify applicant if status changed
+    if (statusChanged) {
+        try {
+            await notifyApplicantOfStatusUpdate({
+                applicationId: updatedApplication.id,
+                jobId: updatedApplication.jobId,
+                jobTitle: application.job.title,
+                companyName: application.job.company.name,
+                applicantId: updatedApplication.applicantId,
+                newStatus: updatedApplication.status,
+            });
+        } catch (err) {
+            console.error('Failed to create notification for applicant:', err);
+        }
+    }
+
+    return { application: updatedApplication, statusChanged, job: application.job };
 }
 
 export const deleteExistingApplication = async (id: string) => {

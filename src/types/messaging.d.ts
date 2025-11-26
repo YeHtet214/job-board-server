@@ -44,9 +44,31 @@ export interface SendMessagePayload {
 
 export interface RealTimeNoti {
   type: NotiType extends <T extends string>(type: T) => T ? T : NotiType;
-  senderName: string;
-  snippet: string;
+  senderName?: string;
+  snippet?: string;
+  applicationId?: string;
+  jobId?: string;
+  jobTitle?: string;
+  applicantName?: string;
+  companyName?: string;
+  status?: string;
   createdAt: Date;
+}
+
+export interface JobApplicationNotificationPayload {
+  applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  applicantName: string;
+  applicantId: string;
+}
+
+export interface ApplicationStatusUpdatePayload {
+  applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  companyName: string;
+  status: string;
 }
 
 export interface NotiStatusUpdate {

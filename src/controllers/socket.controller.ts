@@ -215,10 +215,7 @@ export const dispatchNotifications = async (socket: Socket) => {
 
 export const handleNotiStatusUpdate = async (notis: NotiStatusUpdate) => {
   try {
-    const updated = await updateNotificationStatus(notis);
-
-    console.log("NotiStatus Update result: ", updated)
-    return updated
+    return await updateNotificationStatus(notis);
 
   } catch (err) {
     console.log("NotiStatus Update error: ", err)

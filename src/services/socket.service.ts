@@ -142,3 +142,71 @@ export const updateNotificationStatus = async (notis: NotiStatusUpdate) => {
     },
   });
 }
+
+/**
+ * Notify employer when a job seeker applies for their job posting
+ */
+export const notifyEmployerOfApplication = async ({
+  applicationId,
+  jobId,
+  jobTitle,
+  applicantId,
+  applicantName,
+  employerId,
+}: {
+  applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  applicantId: string;
+  applicantName: string;
+  employerId: string;
+}): Promise<Notification> => {
+  // Create notification for employer
+  return await prisma.notification.create({
+    data: {
+      receiverId: employerId,
+      type: NotiType.Job_Application,
+      payload: {
+        applicationId,
+        jobId,
+        jobTitle,
+        applicantName,
+        applicantId,
+      },
+    },
+  });
+};
+
+/**
+ * Notify job seeker when their application status is updated
+ */
+export const notifyApplicantOfStatusUpdate = async ({
+  applicationId,
+  jobId,
+  jobTitle,
+  companyName,
+  applicantId,
+  newStatus,
+}: {
+  applicationId: string;
+  jobId: string;
+  jobTitle: string;
+  companyName: string;
+  applicantId: string;
+  newStatus: string;
+}): Promise<Notification> => {
+  // Create notification for applicant
+  return await prisma.notification.create({
+    data: {
+      receiverId: applicantId,
+      type: NotiType.Application_Status_Update,
+      payload: {
+        applicationId,
+        jobId,
+        jobTitle,
+        companyName,
+        status: newStatus,
+      },
+    },
+  });
+};
