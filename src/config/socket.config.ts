@@ -62,6 +62,7 @@ export function initSocketServer(httpServer: HTTPServer) {
     handleOnConnection(socket, io, user, userSockets, socketToUser);
 
     socket.on('notification:update', async (notis: NotiStatusUpdate) => {
+      console.log("Notification updated: ", notis)
       handleNotiStatusUpdate(notis)
     });
 

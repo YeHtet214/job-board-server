@@ -42,7 +42,6 @@ app.use(
   }),
 );
 
-// Initialize rate limiter
 const limiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 15 minutes
   limit: 1000, // limit each IP to 100 requests per windowMs
@@ -89,7 +88,6 @@ app.get('/docs.json', (req, res) => {
 
 app.use(errorHandler);
 
-// Start the server
 httpServer.listen(port, () => {
   console.log(
     `Server is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`,

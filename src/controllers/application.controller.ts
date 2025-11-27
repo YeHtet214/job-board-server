@@ -69,7 +69,6 @@ export const getApplicationById = async (req: RequestWithUser, res: Response, ne
 
 export const createNewApplication = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
-        // Get validated data
         const validatedData = matchedData(req, { locations: ['params', 'body'] });
         const file = req.file;
         const userId = req.user.userId;
@@ -88,6 +87,8 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
                 type: NotiType.Job_Application,
                 applicationId: application.id,
                 jobId: application.jobId,
+                title: 'Got New Application',
+                snippet: `${req.user.firstName} ${req.user.lastName} applied for ${job.title}`,
                 applicantName: `${req.user.firstName} ${req.user.lastName}`,
                 createdAt: application.createdAt,
             });
@@ -129,6 +130,7 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
                     applicationId: application.id,
                     jobId: application.jobId,
                     status: application.status,
+                    title: 'Your application status has been updated',
                     snippet: `The job applied for ${job.title} is ${application.status}`,
                     createdAt: new Date(),
                 });
