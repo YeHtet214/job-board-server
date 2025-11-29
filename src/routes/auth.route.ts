@@ -28,15 +28,15 @@ authRouter.get('/google/callback', passport.authenticate('google', {
             // User will be available from passport
             const user = req.user;
 
-            if (!user || !user.id) {
+            if (!user || !user.userId) {
                 return res.redirect(`${FRONTEND_URL}/login?error=authentication_failed`);
             }
 
             // Generate tokens
-            const { accessToken, refreshToken } = generateTokens(user.id, user.email, user.userName);
+            const { accessToken, refreshToken } = generateTokens(user.userId, user.email, "JOBSEEKER", user.userName);
 
             // Store refresh token in database
-            await storeRefreshToken(user.id, refreshToken);
+            await storeRefreshToken(user.userId, refreshToken);
 
             // Redirect to frontend with tokens
             res.redirect(`${FRONTEND_URL}/oauth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);

@@ -49,7 +49,14 @@ const errorHandler = (err: any, req: Request, res: Response, next: NextFunction)
       error.status = 500;
     }
 
-    res.status(err.status || 500).json({ 
+    // Handle Prisma database connection errors
+    if (err.message && err.message.includes("Can't reach database server")) {
+      const message = 'Database connection failed. Please check your network.';
+      error = new Error(message) as CustomError;
+      error.status = 503; // Service Unavailable
+    }
+
+    res.status(error.status || 500).json({ 
       message: error.message || 'Internal server error',
       data: err.data
     });

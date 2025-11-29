@@ -20,6 +20,41 @@ export const getProfile = async (req: RequestWithUser, res: Response, next: Next
     }
 }
 
+export const getProfileById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+    try {
+        const { seekerId } = req.params;
+        const requestingUser = req.user;
+
+        // only employers should view other profiles
+        // Seekers should use /me to view their own profile
+        if (requestingUser.role !== 'EMPLOYER') {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to view this profile"
+            });
+        }
+
+        const profile = await fetchProfile(seekerId);
+
+        console.log("profile", profile);
+
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: "Profile not found"
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Profile fetched successfully",
+            data: profile
+        });
+    } catch (error) {
+        next(error);
+    }
+}
+
 export const createProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
         const file = req.file;

@@ -139,9 +139,6 @@ export const isJobSaved = async (jobId: string, userId: string) => {
 
 /**
  * Check if multiple jobs are saved by the user in a single query
- * @param jobIds Array of job IDs to check
- * @param userId The user ID
- * @returns Object mapping job IDs to their saved status
  */
 export const areJobsSaved = async (jobIds: string[], userId: string) => {
   if (!userId) {
@@ -169,11 +166,15 @@ export const areJobsSaved = async (jobIds: string[], userId: string) => {
     }
   });
 
+  console.log("Saved jobs from savedJob service: ", savedJobs);
+
   // Create a map for quick lookup
   const savedJobsMap = savedJobs.reduce((map: Record<string, string>, savedJob: { jobId: string; id: string }) => {
     map[savedJob.jobId] = savedJob.id;
     return map;
-  }, {} as Record<string, string>);
+  }, {});
+
+  console.log("Saved jobs mapped: ", savedJobsMap);
 
   // Create the result object with isSaved status for each job ID
   const result: Record<string, { isSaved: boolean, savedJobId: string | null }> = {};
@@ -184,6 +185,8 @@ export const areJobsSaved = async (jobIds: string[], userId: string) => {
       savedJobId: savedJobsMap[jobId] || null
     };
   });
+
+  console.log("Result: ", result);
 
   return result;
 };

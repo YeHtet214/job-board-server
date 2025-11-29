@@ -13,7 +13,7 @@ export interface AuthenticatedUser {
   userId: string;
   email: string;
   userName: string;
-  [key: string]: any;
+  role: UserRole;
 }
 
 // Extend the Express namespace to include our custom user type

@@ -22,7 +22,6 @@ const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 const checkUserExists = async (email: string) => {
-  console.log('Email in checkUserExists: ', email);
   const user = await prisma.user.findUnique({
     where: { email },
   });
@@ -30,25 +29,17 @@ const checkUserExists = async (email: string) => {
   return user;
 };
 
-/**
- * Generates an access token and refresh token for a given user ID and email.
- * Access token is used to authenticate user for a short period of time.
- * Refresh token is used to generate a new access token once the existing one expires.
- *
- * @param userId the ID of the user
- * @param email the email of the user
- * @returns an object containing the access token and refresh token
- */
 export const generateTokens = (
   userId: string,
   email: string,
+  role: UserRole,
   userName: string,
 ) => {
-  const accessToken = jwt.sign({ userId, email, userName }, JWT_SECRET, {
+  const accessToken = jwt.sign({ userId, email, role, userName }, JWT_SECRET, {
     expiresIn: ACCESS_TOKEN_EXPIRY,
   });
 
-  const refreshToken = jwt.sign({ userId, email, userName }, REFRESH_TOKEN_SECRET, {
+  const refreshToken = jwt.sign({ userId, email, role, userName }, REFRESH_TOKEN_SECRET, {
     expiresIn: REFRESH_TOKEN_EXPIRY,
   });
 
@@ -117,6 +108,7 @@ export const userSignUp = async (
   const { accessToken, refreshToken } = generateTokens(
     user.id,
     user.email,
+    user.role,
     userName,
   );
   await storeRefreshToken(user.id, refreshToken);
@@ -161,6 +153,7 @@ export const userSignIn = async (email: string, password: string) => {
   const { accessToken, refreshToken } = generateTokens(
     user.id,
     email,
+    user.role,
     userName,
   );
   await storeRefreshToken(user.id, refreshToken);
@@ -200,13 +193,13 @@ export const refreshTokenService = async (refreshToken: string) => {
 
   try {
     // Verify the refresh token
-    const decoded = jwt.verify( refreshToken, REFRESH_TOKEN_SECRET);
-    const { userId, email, userName } = decoded as JwtPayload
+    const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
+    const { userId, email, userName, role } = decoded as JwtPayload;
 
     // Generate new access token
     const accessToken = jwt.sign(
-      { userId, email, userName },
-      JWT_SECRET as string,
+      { userId, email, userName, role },
+      JWT_SECRET,
       { expiresIn: ACCESS_TOKEN_EXPIRY },
     );
 
@@ -311,14 +304,17 @@ export const verifyEmail = async (token: string) => {
   // Create profile for JOB_SEEKER only
   if (user.role === 'JOBSEEKER') {
     try {
-      // Create a job seeker profile
-      await prisma.$executeRaw`
-        INSERT INTO "JobSeekerProfile" ("userId", "createdAt", "updatedAt")
-        VALUES (${user.id}, NOW(), NOW())
-      `;
+      await prisma.profile.create({
+        data: {
+          userId: user.id,
+          bio: '',
+          skills: [],
+          education: [],
+          experience: [],
+        },
+      });
     } catch (error) {
       console.error('Error creating job seeker profile:', error);
-      // Don't throw here, as email verification succeeded
     }
   }
 

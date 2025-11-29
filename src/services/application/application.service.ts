@@ -36,7 +36,10 @@ export const fetchAllApplicationsByJobId = async (jobId: string) => {
 export const fetchApplicationById = async (id: string) => {
     const application = await prisma.jobApplication.findUnique({
         where: { id },
-        include: { job: { include: { company: true } } }
+        include: {
+            job: { include: { company: true } },
+            applicant: { select: { firstName: true, lastName: true } }
+        }
     });
 
     if (!application) {

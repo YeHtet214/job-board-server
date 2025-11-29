@@ -7,13 +7,7 @@ import { recordJobView } from '../../services/job/job-view.service.js';
 import { JobResponse } from '../../types/job.js';
 import { applicationResponse } from '../../types/applicaton.js';
 
-/**
- * Fetches job seeker dashboard data for a specific user
- * @param userId The ID of the job seeker
- * @returns Dashboard data including stats, applications, saved jobs and activity
- */
 export const fetchJobSeekerDashboardData = async (userId: string) => {
-  // Verify user exists and is a job seeker
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true }
@@ -102,11 +96,6 @@ export const fetchJobSeekerDashboardData = async (userId: string) => {
   };
 };
 
-/**
- * Withdraws a job application
- * @param applicationId The application ID to withdraw
- * @param userId The user ID
- */
 export const withdrawApplicationForUser = async (applicationId: string, userId: string) => {
   const application = await prisma.jobApplication.findUnique({
     where: { id: applicationId },
@@ -126,13 +115,7 @@ export const withdrawApplicationForUser = async (applicationId: string, userId: 
   });
 };
 
-/**
- * Fetches employer dashboard data for a specific user
- * @param userId The ID of the employer
- * @returns Dashboard data including stats, jobs, applications and activity
- */
 export const fetchEmployerDashboardData = async (userId: string) => {
-  // Verify user exists and is an employer
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { role: true }
@@ -271,13 +254,6 @@ interface JobReponseWithCount extends JobResponse {
   };
 };
 
-/**
- * Updates the status of a job application
- * @param applicationId The application ID to update
- * @param status The new status
- * @param userId The user ID (employer)
- * @param notes Optional notes about the status change
- */
 export const updateApplicationStatus = async (
   applicationId: string,
   status: string,
@@ -310,27 +286,19 @@ export const updateApplicationStatus = async (
     throw new UnauthorizedError('Not authorized to update this application');
   }
 
-  // Validate status
   const validStatuses = ['PENDING', 'INTERVIEW', 'ACCEPTED', 'REJECTED'];
   if (!validStatuses.includes(status)) {
     throw new BadRequestError(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
   }
 
-  // Update application status
   return prisma.jobApplication.update({
     where: { id: applicationId },
     data: {
       status: status as any,
-      // If we had a notes field, we'd update it here
     }
   });
 };
 
-/**
- * Records a job view and handles duplicate prevention
- * @param jobId The ID of the job being viewed
- * @param userId The ID of the user viewing the job
- */
 export const recordJobViewActivity = async (jobId: string, userId: string) => {
   return recordJobView(jobId, userId);
 };

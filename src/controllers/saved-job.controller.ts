@@ -9,8 +9,6 @@ export const getSavedJobsHandler = async (req: RequestWithUser, res: Response, n
   try {
     const userId = req.user.userId;
 
-    console.log("User id in getSavedJobsHanlder: ", userId);
-
     const savedJobs = await getSavedJobs(userId);
     res.status(200).json({
       success: true,
@@ -71,11 +69,7 @@ export const isJobSavedHandler = async (req: RequestWithUser, res: Response, nex
     const userId = req.user.userId;
     const { jobId } = req.params;
 
-    console.log("User id in isJobSaved handler: ", userId);
-
     const savedJob = await isJobSaved(jobId, userId);
-
-    console.log("Is job saved result: ", savedJob)
 
     res.status(200).json({ 
       success: true,
@@ -98,11 +92,7 @@ export const batchCheckSavedJobsHandler = async (req: RequestWithUser, res: Resp
     const userId = req.user.userId;
     const { jobIds } = req.body;
 
-    console.log("User id in batch: ", userId)
-
     const savedJobsStatus = await areJobsSaved(jobIds, userId);
-
-    console.log("Saved Jobs Status: ", savedJobsStatus);
 
     res.status(200).json({ 
       success: true,

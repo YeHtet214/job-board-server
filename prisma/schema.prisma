@@ -39,12 +39,12 @@ model User {
 model Profile {
   id              String   @id @default(uuid())
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId          String   @unique // @unique ensures one-to-one relationship
+  userId          String   @unique 
   bio             String
   skills          String[]
   education       Json // Stores Education[] as JSON
   experience      Json // Stores Experience[] as JSON
-  resumeUrl       String? // URL to the user's uploaded resume
+  resumeUrl       String? 
   profileImageURL String?
   linkedInUrl     String?
   githubUrl       String?

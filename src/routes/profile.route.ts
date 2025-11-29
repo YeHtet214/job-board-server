@@ -11,6 +11,7 @@ import {
   createProfile,
   deleteProfile,
   getProfile,
+  getProfileById,
   updateProfile,
   uploadResumeFile,
   uploadProfileImage,
@@ -31,15 +32,15 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
         const parsedField = JSON.parse(req.body[field]);
         req.body[field] = parsedField;
       } catch (e) {
-        // Optionally handle JSON parse error
+        console.log(e)
       }
     }
   });
   next();
 }
 
-// Profile routes
 profileRouter.get('/me', getProfile as RequestHandler);
+profileRouter.get('/:seekerId', getProfileById as RequestHandler);
 // profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
 profileRouter.post(
   '/me',

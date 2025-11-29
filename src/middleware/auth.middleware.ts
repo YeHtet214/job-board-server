@@ -1,12 +1,14 @@
 import { NextFunction, Response } from 'express';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { BadRequestError, UnauthorizedError } from './errorHandler.js';
-import { RequestWithUser } from '../types/users.js';
+import { RequestWithUser, AuthenticatedUser } from '../types/users.js';
 import { JWT_SECRET } from '../config/env.config.js';
 import prisma from '../lib/prismaClient.js';
 
-export const verifyToken = (token: string) => {
+export const verifyToken = (token: string): Promise<AuthenticatedUser> => {
   const decoded = jwt.decode(token);
+
+  console.log("decoded token: ", decoded)
 
   if (typeof decoded === 'object' && decoded !== null) {
     if (
@@ -19,7 +21,19 @@ export const verifyToken = (token: string) => {
 
   const user = jwt.verify(token, JWT_SECRET);
 
-  return Promise.resolve(user);
+  console.log("jwt verified user: ", user)
+
+  if (typeof user === 'string' || !user || typeof user !== 'object') {
+    throw new UnauthorizedError('Invalid token payload');
+  }
+
+  const payload = user as JwtPayload;
+
+  if (!payload.userId || !payload.email || !payload.userName) {
+    throw new UnauthorizedError('Invalid token payload structure');
+  }
+
+  return Promise.resolve(payload as AuthenticatedUser);
 };
 
 const authorize = async (

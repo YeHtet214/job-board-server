@@ -14,7 +14,12 @@ passport.deserializeUser(async (id: string, done) => {
       where: { id }
     });
     if (user) {
-      const authenticatedUser = { userId: user.id, ...user };
+      const authenticatedUser = {
+        userId: user.id,
+        email: user.email,
+        userName: `${user.firstName} ${user.lastName}`.trim(),
+        role: user.role as 'EMPLOYER' | 'JOBSEEKER'
+      };
       done(null, authenticatedUser);
     } else {
       done(null, null);
@@ -53,7 +58,12 @@ passport.use(
           });
         }
 
-        return done(null, { userId: user.id, ...user });
+        return done(null, {
+          userId: user.id,
+          email: user.email,
+          userName: `${user.firstName} ${user.lastName}`.trim(),
+          role: user.role as 'EMPLOYER' | 'JOBSEEKER'
+        });
       } catch (error) {
         return done(error as Error, undefined);
       }

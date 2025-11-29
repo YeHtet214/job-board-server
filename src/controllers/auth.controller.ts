@@ -92,10 +92,7 @@ export const refresh = async (
   next: NextFunction,
 ) => {
   try {
-    console.log("req cookies: ", req.cookies)
     const refreshToken  = req.cookies.refreshToken;
-
-    console.log("Refresh token from cookie: ", refreshToken)
 
     const { accessToken } = await refreshTokenService(refreshToken);
 

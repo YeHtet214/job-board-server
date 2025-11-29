@@ -15,15 +15,31 @@ interface UploadedFile {
 }
 
 export const fetchProfile = async (userId: string) => {
-    const profile = await prisma.profile.findUnique({ where: { userId } });
+    const profile = await prisma.profile.findUnique({
+        where: { userId },
+        include: {
+            user: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    role: true,
+                }
+            }
+        }
+    });
 
     if (profile) {
-        // Convert JSON back to typed arrays when returning
+        const { user, ...profileData } = profile;
         return {
-            ...profile,
-            education: profile.education as unknown as Education[],
-            experience: profile.experience as unknown as Experience[]
-        };
+                ...profileData,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                role: user.role,
+                education: profile.education as unknown as Education[],
+                experience: profile.experience as unknown as Experience[],
+            };
     }
 
     return profile;
@@ -37,7 +53,6 @@ export const createNewProfile = async (profileData: CreateProfileDto) => {
             return updateExistingProfile(profileData.userId, profileData);
         }
 
-        // Create a new profile with properly serialized JSON fields
         const profile = await prisma.profile.create({
             data: {
                 userId: profileData.userId,
