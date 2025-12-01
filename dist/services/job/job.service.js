@@ -19,8 +19,7 @@ const user_service_js_1 = require("../../services/user/user.service.js");
 // Basic data access functions
 const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () {
     const { keyword = '', location = '', jobTypes = [], experienceLevel = '', page = 1, limit = 10, sortBy = 'date_desc', // Default to newest first
-     } = params || {};
-    console.log('job types received: ', params);
+     } = params;
     // Calculate pagination
     const skip = (page - 1) * limit;
     const filters = Object.assign(Object.assign(Object.assign(Object.assign({ isActive: true }, (keyword && {
@@ -33,7 +32,7 @@ const fetchAllJobs = (params) => __awaiter(void 0, void 0, void 0, function* () 
     })), (jobTypes !== undefined && jobTypes.length > 0 && {
         type: { in: jobTypes },
     })), (experienceLevel && {
-        experienceLevel,
+        experienceLevel: experienceLevel === "Any" ? '' : experienceLevel,
     }));
     const orderBy = (() => {
         switch (sortBy) {

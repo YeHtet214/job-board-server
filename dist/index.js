@@ -9,9 +9,11 @@ const http_1 = require("http");
 const cors_1 = __importDefault(require("cors"));
 const passport_1 = __importDefault(require("passport"));
 const express_session_1 = __importDefault(require("express-session"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const express_rate_limit_1 = require("express-rate-limit");
 const body_parser_1 = __importDefault(require("body-parser"));
-// Import your routers
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
+// Import routers
 const auth_route_js_1 = __importDefault(require("./routes/auth.route.js"));
 const profile_route_js_1 = __importDefault(require("./routes/profile.route.js"));
 const company_route_js_1 = __importDefault(require("./routes/company.route.js"));
@@ -27,19 +29,20 @@ const env_config_js_1 = require("./config/env.config.js");
 // import { app, httpServer, io } from './config/socket.config.js';
 const socket_config_js_1 = require("./config/socket.config.js");
 const message_route_js_1 = __importDefault(require("./routes/message.route.js"));
+const swagger_config_js_1 = __importDefault(require("./config/swagger.config.js"));
 const app = (0, express_1.default)();
 exports.app = app;
 const port = process.env.PORT || 3000;
 const httpServer = (0, http_1.createServer)(app);
 const io = (0, socket_config_js_1.initSocketServer)(httpServer);
 exports.io = io;
+app.use((0, cookie_parser_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 app.use((0, cors_1.default)({
     origin: env_config_js_1.FRONTEND_URL,
     credentials: true,
 }));
-// Initialize rate limiter
 const limiter = (0, express_rate_limit_1.rateLimit)({
     windowMs: 5 * 60 * 1000, // 15 minutes
     limit: 1000, // limit each IP to 100 requests per windowMs
@@ -70,13 +73,12 @@ app.use('/api/dashboard', dashboard_routes_js_1.default);
 app.use('/api/saved-jobs', saved_job_route_js_1.default);
 app.use('/api/conversations', message_route_js_1.default);
 // Swagger documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-app.get('/api-docs.json', (req, res) => {
+app.use('/docs', swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swagger_config_js_1.default));
+app.get('/docs.json', (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    res.send(swaggerSpec);
+    res.send(swagger_config_js_1.default);
 });
 app.use(error_middleware_js_1.default);
-// Start the server
 httpServer.listen(port, () => {
     console.log(`Server is running on port ${port} in ${process.env.NODE_ENV || 'development'} mode`);
 });

@@ -5,29 +5,13 @@ import { matchedData } from "express-validator";
 import { CreateProfileDto, UpdateProfileDto } from "../types/profile.js";
 import { resumeUploadToFirebase, mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
 
-export const getProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    try {
-        const userId = req.user.userId;
-        const profile = await fetchProfile(userId);
-
-        res.status(200).json({
-            success: true,
-            message: "Profile fetched successfully",
-            data: profile
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
 export const getProfileById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
         const { seekerId } = req.params;
         const requestingUser = req.user;
 
-        // only employers should view other profiles
-        // Seekers should use /me to view their own profile
-        if (requestingUser.role !== 'EMPLOYER') {
+        // only employers should view other profiles or owner should view their own profile
+        if (requestingUser.role === 'JOBSEEKER' && requestingUser.userId !== seekerId) {
             return res.status(403).json({
                 success: false,
                 message: "You don't have permission to view this profile"
@@ -35,8 +19,6 @@ export const getProfileById = async (req: RequestWithUser, res: Response, next: 
         }
 
         const profile = await fetchProfile(seekerId);
-
-        console.log("profile", profile);
 
         if (!profile) {
             return res.status(404).json({
@@ -115,6 +97,7 @@ export const deleteProfile = async (req: RequestWithUser, res: Response, next: N
 }
 
 export const uploadResumeFile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+
     try {
         if (!req.file) {
             return res.status(400).json({
@@ -138,6 +121,7 @@ export const uploadResumeFile = async (req: RequestWithUser, res: Response, next
 }
 
 export const uploadProfileImage = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+
     try {
         if (!req.file) {
             return res.status(400).json({

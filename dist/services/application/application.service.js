@@ -14,6 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteExistingApplication = exports.updateApplicationById = exports.postNewApplication = exports.fetchApplicationById = exports.fetchAllApplicationsByJobId = exports.fetchAllApplicationsByUserId = void 0;
 const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
+const socket_service_js_1 = require("../socket.service.js");
 const fetchAllApplicationsByUserId = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const applications = yield prismaClient_js_1.default.jobApplication.findMany({
         where: { applicantId: userId },
@@ -43,7 +44,10 @@ exports.fetchAllApplicationsByJobId = fetchAllApplicationsByJobId;
 const fetchApplicationById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const application = yield prismaClient_js_1.default.jobApplication.findUnique({
         where: { id },
-        include: { job: { include: { company: true } } }
+        include: {
+            job: { include: { company: true } },
+            applicant: { select: { firstName: true, lastName: true } }
+        }
     });
     if (!application) {
         const error = new Error('Application not found');
@@ -53,10 +57,8 @@ const fetchApplicationById = (id) => __awaiter(void 0, void 0, void 0, function*
     return application;
 });
 exports.fetchApplicationById = fetchApplicationById;
-const postNewApplication = (applicationData) => __awaiter(void 0, void 0, void 0, function* () {
+const postNewApplication = (applicationData, user) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if job exists
-    console.log(applicationData);
-    console.log("Job ID: ", applicationData.jobId);
     const job = yield prismaClient_js_1.default.job.findUnique({
         where: { id: applicationData.jobId }
     });
@@ -72,15 +74,11 @@ const postNewApplication = (applicationData) => __awaiter(void 0, void 0, void 0
             applicantId: applicationData.applicantId
         }
     });
-    console.log("Existing Application: ", applicationData.applicantId);
     if (existingApplication) {
         const error = new Error('You have already applied for this job');
         error.status = 400;
         throw error;
     }
-    console.log("Job: ", job);
-    console.log("Application Data: ", applicationData);
-    // Create new application
     const newApplication = yield prismaClient_js_1.default.jobApplication.create({
         data: {
             jobId: applicationData.jobId,
@@ -92,20 +90,37 @@ const postNewApplication = (applicationData) => __awaiter(void 0, void 0, void 0
             status: 'PENDING'
         }
     });
-    console.log("New Application: ", newApplication);
-    return newApplication;
+    // Notify employer of new application
+    try {
+        if (job && user) {
+            yield (0, socket_service_js_1.notifyEmployerOfApplication)({
+                applicationId: newApplication.id,
+                jobId: newApplication.jobId,
+                jobTitle: job.title,
+                applicantId: newApplication.applicantId,
+                applicantName: `${user.firstName} ${user.lastName}`,
+                employerId: job.postedById,
+            });
+        }
+    }
+    catch (err) {
+        console.error('Failed to create notification for employer:', err);
+    }
+    return { application: newApplication, job };
 });
 exports.postNewApplication = postNewApplication;
 const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if application exists
     const application = yield prismaClient_js_1.default.jobApplication.findUnique({
-        where: { id: applicationData.id }
+        where: { id: applicationData.id },
+        include: { job: { include: { company: true } } }
     });
     if (!application) {
         const error = new Error('Application not found');
         error.status = 404;
         throw error;
     }
+    const statusChanged = applicationData.status && applicationData.status !== application.status;
     // Update application
     const updatedApplication = yield prismaClient_js_1.default.jobApplication.update({
         where: { id: applicationData.id },
@@ -115,7 +130,23 @@ const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, voi
             status: applicationData.status || application.status,
         }
     });
-    return updatedApplication;
+    // Notify applicant if status changed
+    if (statusChanged) {
+        try {
+            yield (0, socket_service_js_1.notifyApplicantOfStatusUpdate)({
+                applicationId: updatedApplication.id,
+                jobId: updatedApplication.jobId,
+                jobTitle: application.job.title,
+                companyName: application.job.company.name,
+                applicantId: updatedApplication.applicantId,
+                newStatus: updatedApplication.status,
+            });
+        }
+        catch (err) {
+            console.error('Failed to create notification for applicant:', err);
+        }
+    }
+    return { application: updatedApplication, statusChanged, job: application.job };
 });
 exports.updateApplicationById = updateApplicationById;
 const deleteExistingApplication = (id) => __awaiter(void 0, void 0, void 0, function* () {

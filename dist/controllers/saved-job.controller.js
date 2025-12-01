@@ -17,7 +17,6 @@ const saved_job_service_js_1 = require("../services/job/saved-job.service.js");
 const getSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
-        console.log("User id in getSavedJobsHanlder: ", userId);
         const savedJobs = yield (0, saved_job_service_js_1.getSavedJobs)(userId);
         res.status(200).json({
             success: true,
@@ -77,9 +76,7 @@ const isJobSavedHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     try {
         const userId = req.user.userId;
         const { jobId } = req.params;
-        console.log("User id in isJobSaved handler: ", userId);
         const savedJob = yield (0, saved_job_service_js_1.isJobSaved)(jobId, userId);
-        console.log("Is job saved result: ", savedJob);
         res.status(200).json({
             success: true,
             message: 'Job saved status retrieved successfully',
@@ -101,9 +98,7 @@ const batchCheckSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0,
     try {
         const userId = req.user.userId;
         const { jobIds } = req.body;
-        console.log("User id in batch: ", userId);
         const savedJobsStatus = yield (0, saved_job_service_js_1.areJobsSaved)(jobIds, userId);
-        console.log("Saved Jobs Status: ", savedJobsStatus);
         res.status(200).json({
             success: true,
             message: 'Batch job saved status retrieved successfully',

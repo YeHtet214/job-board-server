@@ -21,7 +21,6 @@ const getAllJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     try {
         // Extract search parameters from query
         const { keyword, location, jobTypes, experienceLevel, page, limit, sortBy, } = req.query;
-        console.log("Query jobTypes incoming: ", jobTypes);
         // Parse and prepare search params
         const searchParams = {
             keyword: keyword,
@@ -32,7 +31,6 @@ const getAllJobs = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
             limit: limit ? parseInt(limit, 10) : 10,
             sortBy: sortBy,
         };
-        // Fetch jobs with search parameters
         const result = yield (0, job_service_js_1.fetchAllJobs)(searchParams);
         res.status(200).json({
             success: true,

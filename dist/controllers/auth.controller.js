@@ -11,6 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPasswordHandler = exports.forgotPassword = exports.resendVerification = exports.logout = exports.verifyEmailToken = exports.refresh = exports.signIn = exports.signUp = void 0;
 const auth_service_js_1 = require("../services/auth.service.js");
+const errorHandler_js_1 = require("@/middleware/errorHandler.js");
+// Cookie configuration
+const REFRESH_TOKEN_COOKIE_CONFIG = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 /**
  * Handles user sign-up.
  * @param req - Express request object, expects body with firstName, lastName, email, password, and role.
@@ -21,10 +29,13 @@ const signUp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const { firstName, lastName, email, password, role } = req.body;
         const { accessToken, refreshToken, user } = yield (0, auth_service_js_1.userSignUp)(firstName, lastName, email, password, role);
+        if (!refreshToken)
+            throw new errorHandler_js_1.UnauthorizedError('Invalid credentials');
+        res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
         res.status(201).json({
             success: true,
             message: 'Successfully signed up. Please check your email for verification.',
-            data: { accessToken, refreshToken, user },
+            data: { user, accessToken },
         });
     }
     catch (error) {
@@ -35,12 +46,14 @@ exports.signUp = signUp;
 const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { email, password } = req.body;
-        console.log("Sign in email & password: ", email, password);
         const { user, accessToken, refreshToken } = yield (0, auth_service_js_1.userSignIn)(email, password);
+        if (!refreshToken)
+            throw new errorHandler_js_1.UnauthorizedError('Invalid credentials');
+        res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
         res.status(200).json({
             success: true,
             message: 'Successfully signed in',
-            data: { user, accessToken, refreshToken },
+            data: { user, accessToken },
         });
     }
     catch (error) {
@@ -50,8 +63,8 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
 exports.signIn = signIn;
 const refresh = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { refreshToken } = req.body;
-        const { accessToken } = yield (0, auth_service_js_1.refreshAccessToken)(refreshToken);
+        const refreshToken = req.cookies.refreshToken;
+        const { accessToken } = yield (0, auth_service_js_1.refreshTokenService)(refreshToken);
         res.status(200).json({
             success: true,
             message: 'Access token refreshed successfully',
@@ -83,6 +96,7 @@ const logout = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         // Get token from authorization header
         const token = ((_a = req.headers['authorization']) === null || _a === void 0 ? void 0 : _a.split(' ')[1]) || '';
         const result = yield (0, auth_service_js_1.userLogout)(token);
+        res.clearCookie('refreshToken');
         res.status(200).json({ success: true, message: result.message });
     }
     catch (error) {

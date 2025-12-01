@@ -19,13 +19,7 @@ const activity_service_js_1 = require("../../services/dashboard/activity.service
 const profile_completion_service_js_1 = require("../../services/company/profile-completion.service.js");
 const profile_completion_service_js_2 = require("../../services/company/profile-completion.service.js");
 const job_view_service_js_1 = require("../../services/job/job-view.service.js");
-/**
- * Fetches job seeker dashboard data for a specific user
- * @param userId The ID of the job seeker
- * @returns Dashboard data including stats, applications, saved jobs and activity
- */
 const fetchJobSeekerDashboardData = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    // Verify user exists and is a job seeker
     const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id: userId },
         select: { role: true }
@@ -87,11 +81,6 @@ const fetchJobSeekerDashboardData = (userId) => __awaiter(void 0, void 0, void 0
     };
 });
 exports.fetchJobSeekerDashboardData = fetchJobSeekerDashboardData;
-/**
- * Withdraws a job application
- * @param applicationId The application ID to withdraw
- * @param userId The user ID
- */
 const withdrawApplicationForUser = (applicationId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     const application = yield prismaClient_js_1.default.jobApplication.findUnique({
         where: { id: applicationId },
@@ -108,13 +97,7 @@ const withdrawApplicationForUser = (applicationId, userId) => __awaiter(void 0, 
     });
 });
 exports.withdrawApplicationForUser = withdrawApplicationForUser;
-/**
- * Fetches employer dashboard data for a specific user
- * @param userId The ID of the employer
- * @returns Dashboard data including stats, jobs, applications and activity
- */
 const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    // Verify user exists and is an employer
     const user = yield prismaClient_js_1.default.user.findUnique({
         where: { id: userId },
         select: { role: true }
@@ -191,7 +174,6 @@ const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0,
     const activeJobs = jobs.filter(job => job.isActive && (!job.expiresAt || job.expiresAt > new Date())).length;
     const pendingApplications = applications.filter((app) => app.status === 'PENDING').length;
     const interviewCount = applications.filter((app) => app.status === 'INTERVIEW').length;
-    console.log("Company: ", company);
     // Format the data according to frontend expectations
     return {
         stats: {
@@ -236,13 +218,6 @@ const fetchEmployerDashboardData = (userId) => __awaiter(void 0, void 0, void 0,
     };
 });
 exports.fetchEmployerDashboardData = fetchEmployerDashboardData;
-/**
- * Updates the status of a job application
- * @param applicationId The application ID to update
- * @param status The new status
- * @param userId The user ID (employer)
- * @param notes Optional notes about the status change
- */
 const updateApplicationStatus = (applicationId, status, userId, notes) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify application exists
     const application = yield prismaClient_js_1.default.jobApplication.findUnique({
@@ -267,26 +242,18 @@ const updateApplicationStatus = (applicationId, status, userId, notes) => __awai
     if (application.job.company.ownerId !== userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authorized to update this application');
     }
-    // Validate status
     const validStatuses = ['PENDING', 'INTERVIEW', 'ACCEPTED', 'REJECTED'];
     if (!validStatuses.includes(status)) {
         throw new errorHandler_js_1.BadRequestError(`Invalid status: ${status}. Must be one of: ${validStatuses.join(', ')}`);
     }
-    // Update application status
     return prismaClient_js_1.default.jobApplication.update({
         where: { id: applicationId },
         data: {
             status: status,
-            // If we had a notes field, we'd update it here
         }
     });
 });
 exports.updateApplicationStatus = updateApplicationStatus;
-/**
- * Records a job view and handles duplicate prevention
- * @param jobId The ID of the job being viewed
- * @param userId The ID of the user viewing the job
- */
 const recordJobViewActivity = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     return (0, job_view_service_js_1.recordJobView)(jobId, userId);
 });

@@ -25,7 +25,12 @@ passport_1.default.deserializeUser((id, done) => __awaiter(void 0, void 0, void 
             where: { id }
         });
         if (user) {
-            const authenticatedUser = Object.assign({ userId: user.id }, user);
+            const authenticatedUser = {
+                userId: user.id,
+                email: user.email,
+                userName: `${user.firstName} ${user.lastName}`.trim(),
+                role: user.role
+            };
             done(null, authenticatedUser);
         }
         else {
@@ -61,7 +66,12 @@ passport_1.default.use(new passport_google_oauth20_1.Strategy({
                 }
             });
         }
-        return done(null, Object.assign({ userId: user.id }, user));
+        return done(null, {
+            userId: user.id,
+            email: user.email,
+            userName: `${user.firstName} ${user.lastName}`.trim(),
+            role: user.role
+        });
     }
     catch (error) {
         return done(error, undefined);

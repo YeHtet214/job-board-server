@@ -13,6 +13,7 @@ exports.deleteApplication = exports.updateApplication = exports.createNewApplica
 const application_service_js_1 = require("../services/application/application.service.js");
 const express_validator_1 = require("express-validator");
 const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
+const client_1 = require("@prisma/client");
 const getAllApplicationsByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
@@ -64,13 +65,27 @@ const getApplicationById = (req, res, next) => __awaiter(void 0, void 0, void 0,
 exports.getApplicationById = getApplicationById;
 const createNewApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Get validated data
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
         const file = req.file;
         const userId = req.user.userId;
         const resumeURL = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
         const applicantId = req.user.userId;
-        const application = yield (0, application_service_js_1.postNewApplication)(Object.assign(Object.assign({}, validatedData), { resumeUrl: resumeURL, applicantId }));
+        const { application, job } = yield (0, application_service_js_1.postNewApplication)(Object.assign(Object.assign({}, validatedData), { resumeUrl: resumeURL, applicantId }), req.user);
+        // Emit real-time notification via Socket.IO to employer
+        const io = req.app.get('io');
+        if (io && application && job) {
+            const employerId = job.postedById;
+            // Emit to employer's personal room
+            io.to(employerId).emit('notification:application', {
+                type: client_1.NotiType.Job_Application,
+                applicationId: application.id,
+                jobId: application.jobId,
+                title: 'Got New Application',
+                snippet: `${req.user.userName} applied for ${job.title}`,
+                applicantName: `${req.user.userName}`,
+                createdAt: application.createdAt,
+            });
+        }
         res.status(201).json({
             success: true,
             message: "Application created successfully",
@@ -94,7 +109,23 @@ const updateApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
             coverLetter: validatedData.coverLetter,
             status: validatedData.status
         };
-        const application = yield (0, application_service_js_1.updateApplicationById)(Object.assign(Object.assign({}, applicationData), { applicantId }));
+        const { application, statusChanged, job } = yield (0, application_service_js_1.updateApplicationById)(Object.assign(Object.assign({}, applicationData), { applicantId }));
+        // Emit real-time notification if status changed
+        if (statusChanged) {
+            const io = req.app.get('io');
+            if (io && application) {
+                // Emit to applicant's personal room
+                io.to(application.applicantId).emit('notification:application', {
+                    type: client_1.NotiType.Application_Status_Update,
+                    applicationId: application.id,
+                    jobId: application.jobId,
+                    status: application.status,
+                    title: 'Your application status has been updated',
+                    snippet: `The job applied for ${job.title} is ${application.status}`,
+                    createdAt: new Date(),
+                });
+            }
+        }
         res.status(200).json({
             success: true,
             message: "Application updated successfully",

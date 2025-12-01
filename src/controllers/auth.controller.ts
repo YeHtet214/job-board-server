@@ -15,10 +15,9 @@ import { UnauthorizedError } from '@/middleware/errorHandler.js';
 // Cookie configuration
 const REFRESH_TOKEN_COOKIE_CONFIG: CookieOptions = {
   httpOnly: true,
-  //secure: process.env.NODE_ENV === 'production', // HTTPS in production
-  secure: true,
+  secure: process.env.NODE_ENV === 'production', 
   sameSite: 'none',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
 /**
@@ -135,6 +134,8 @@ export const logout = async (
     const token = req.headers['authorization']?.split(' ')[1] || '';
 
     const result = await userLogout(token);
+
+    res.clearCookie('refreshToken');
     res.status(200).json({ success: true, message: result.message });
   } catch (error) {
     next(error);

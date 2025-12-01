@@ -97,7 +97,7 @@ const jobTypes = [
     'INTERNSHIP',
     'REMOTE',
 ];
-const experienceLevels = ['Junior', 'Mid', 'Senior', 'Lead'];
+const experienceLevels = ['Entry', 'Mid', 'Senior', 'Executive'];
 // ----------------------------- Builders -----------------------------
 function randomName() {
     return {

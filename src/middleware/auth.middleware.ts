@@ -21,8 +21,6 @@ export const verifyToken = (token: string): Promise<AuthenticatedUser> => {
 
   const user = jwt.verify(token, JWT_SECRET);
 
-  console.log("jwt verified user: ", user)
-
   if (typeof user === 'string' || !user || typeof user !== 'object') {
     throw new UnauthorizedError('Invalid token payload');
   }

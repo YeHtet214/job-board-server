@@ -20,7 +20,6 @@ const getJobSeekerDashboard = (req, res, next) => __awaiter(void 0, void 0, void
     try {
         const userId = req.user.userId;
         const dashboardData = yield (0, dashboard_service_js_1.fetchJobSeekerDashboardData)(userId);
-        console.log("jobseeker dashboard data:", dashboardData);
         res.status(200).json({
             success: true,
             message: "Job seeker dashboard data fetched successfully",

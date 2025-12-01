@@ -21,14 +21,14 @@ function parseProfileFields(req, res, next) {
                 req.body[field] = parsedField;
             }
             catch (e) {
-                // Optionally handle JSON parse error
+                console.log(e);
             }
         }
     });
     next();
 }
-// Profile routes
 profileRouter.get('/me', profile_controller_js_1.getProfile);
+profileRouter.get('/:seekerId', profile_controller_js_1.getProfileById);
 // profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
 profileRouter.post('/me', upload.any(), parseProfileFields, index_js_1.profileValidation.createProfile, index_js_2.validate, profile_controller_js_1.createProfile);
 profileRouter.put('/me', upload.any(), parseProfileFields, index_js_1.profileValidation.updateProfile, index_js_2.validate, profile_controller_js_1.updateProfile);

@@ -12,6 +12,10 @@ export const normalizedConversations = (
   conversations: Conversation[],
   userId: string
 ): NormalizedConversation[] => {
+
+
+  console.log("Conversations in normalized conversations; ", conversations[0].participants[0].user)
+  console.log("Conversations in normalized conversations 2 ", conversations[0].participants[1].user)
   try {
     return conversations.map((c) => ({
       id: c.id,

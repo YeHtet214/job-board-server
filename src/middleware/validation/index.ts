@@ -6,10 +6,6 @@ import { jobValidation } from './job.validation.js';
 import { applicationValidation } from './application.validation.js';
 import { profileValidation } from './profile.validation.js';
 
-/**
- * Middleware to validate request data based on the validation chains
- * @returns Express middleware function
- */
 export const validate = (req: Request, res: Response, next: NextFunction) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) {

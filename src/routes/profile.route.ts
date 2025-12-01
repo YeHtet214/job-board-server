@@ -10,7 +10,6 @@ import authorize from '../middleware/auth.middleware.js';
 import {
   createProfile,
   deleteProfile,
-  getProfile,
   getProfileById,
   updateProfile,
   uploadResumeFile,
@@ -39,7 +38,6 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
   next();
 }
 
-profileRouter.get('/me', getProfile as RequestHandler);
 profileRouter.get('/:seekerId', getProfileById as RequestHandler);
 // profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
 profileRouter.post(
@@ -63,8 +61,6 @@ profileRouter.delete('/me', deleteProfile as RequestHandler);
 // Add resume upload endpoint
 profileRouter.post(
   '/upload-resume',
-  profileValidation.createProfile,
-  validate,
   uploadResume.single('resume'),
   uploadResumeFile as RequestHandler,
 );

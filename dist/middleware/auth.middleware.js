@@ -19,6 +19,7 @@ const env_config_js_1 = require("../config/env.config.js");
 const prismaClient_js_1 = __importDefault(require("../lib/prismaClient.js"));
 const verifyToken = (token) => {
     const decoded = jsonwebtoken_1.default.decode(token);
+    console.log("decoded token: ", decoded);
     if (typeof decoded === 'object' && decoded !== null) {
         if (!decoded ||
             (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {
@@ -26,7 +27,14 @@ const verifyToken = (token) => {
         }
     }
     const user = jsonwebtoken_1.default.verify(token, env_config_js_1.JWT_SECRET);
-    return Promise.resolve(user);
+    if (typeof user === 'string' || !user || typeof user !== 'object') {
+        throw new errorHandler_js_1.UnauthorizedError('Invalid token payload');
+    }
+    const payload = user;
+    if (!payload.userId || !payload.email || !payload.userName) {
+        throw new errorHandler_js_1.UnauthorizedError('Invalid token payload structure');
+    }
+    return Promise.resolve(payload);
 };
 exports.verifyToken = verifyToken;
 const authorize = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {

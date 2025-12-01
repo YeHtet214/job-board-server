@@ -22,7 +22,7 @@ export async function createMessage(
 export async function listUserConversations(
   userId: string,
   limit = 50,
-): Promise<Conversation[]> {
+) {
   return await prisma.conversation.findMany({
     where: {
       participants: {
@@ -48,7 +48,7 @@ export async function listUserConversations(
                 select: { profileImageURL: true },
               },
               companies: {
-                select: { logo: true },
+                select: { logo: true, name: true },
               },
             },
           },

@@ -1,4 +1,4 @@
-import { Notification, NotiType, User } from '@prisma/client';
+import { Notification, NotiType, User, UserRole, Message } from '@prisma/client';
 
 export type Conversation = {
   id: string;
@@ -6,7 +6,7 @@ export type Conversation = {
   directKey?: string | null;
   createdAt?: Date;
   updatedAt?: Date;
-  messages?: Message[];
+  messages?: (Message & { sender?: User })[];
   lastMessage?: Message;
   participants: Participant[];
 };
@@ -26,13 +26,23 @@ export type NormalizedConversation = {
   unreadCount?: number;
 };
 
+export type ConversationUser = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: UserRole;
+  profile: { profileImageURL: string | null } | null;
+  companies: { logo: string | null; name: string }[];
+};
+
 export type Participant = {
   id: string;
   userId: string;
   conversationId: string;
   joinedAt: Date;
   lastReadAt: Date | null;
-  user: User;
+  user: ConversationUser;
 };
 
 export interface SendMessagePayload {

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.requestPasswordReset = exports.resendVerificationEmail = exports.verifyEmail = exports.userLogout = exports.refreshAccessToken = exports.userSignIn = exports.userSignUp = exports.storeRefreshToken = exports.generateTokens = void 0;
+exports.resetPassword = exports.requestPasswordReset = exports.resendVerificationEmail = exports.verifyEmail = exports.userLogout = exports.refreshTokenService = exports.userSignIn = exports.userSignUp = exports.storeRefreshToken = exports.generateTokens = void 0;
 const prismaClient_1 = __importDefault(require("../lib/prismaClient"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -24,26 +24,16 @@ const SALT_ROUNDS = 10;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
 const checkUserExists = (email) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('Email in checkUserExists: ', email);
     const user = yield prismaClient_1.default.user.findUnique({
         where: { email },
     });
     return user;
 });
-/**
- * Generates an access token and refresh token for a given user ID and email.
- * Access token is used to authenticate user for a short period of time.
- * Refresh token is used to generate a new access token once the existing one expires.
- *
- * @param userId the ID of the user
- * @param email the email of the user
- * @returns an object containing the access token and refresh token
- */
-const generateTokens = (userId, email, userName) => {
-    const accessToken = jsonwebtoken_1.default.sign({ userId, email, userName }, env_config_1.JWT_SECRET, {
+const generateTokens = (userId, email, role, userName) => {
+    const accessToken = jsonwebtoken_1.default.sign({ userId, email, role, userName }, env_config_1.JWT_SECRET, {
         expiresIn: ACCESS_TOKEN_EXPIRY,
     });
-    const refreshToken = jsonwebtoken_1.default.sign({ userId, email, userName }, env_config_1.REFRESH_TOKEN_SECRET, {
+    const refreshToken = jsonwebtoken_1.default.sign({ userId, email, role, userName }, env_config_1.REFRESH_TOKEN_SECRET, {
         expiresIn: REFRESH_TOKEN_EXPIRY,
     });
     return { accessToken, refreshToken };
@@ -91,7 +81,7 @@ const userSignUp = (firstName, lastName, email, password, role) => __awaiter(voi
     });
     yield sendVerificationEmail(email, verificationToken);
     const userName = `${firstName} ${lastName}`;
-    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, user.email, userName);
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, user.email, user.role, userName);
     yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         accessToken,
@@ -124,7 +114,7 @@ const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, functi
         throw new errorHandler_1.UnauthorizedError('Please verify your email before signing in');
     }
     const userName = `${user.firstName} ${user.lastName}`;
-    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, email, userName);
+    const { accessToken, refreshToken } = (0, exports.generateTokens)(user.id, email, user.role, userName);
     yield (0, exports.storeRefreshToken)(user.id, refreshToken);
     return {
         user: {
@@ -140,7 +130,7 @@ const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, functi
     };
 });
 exports.userSignIn = userSignIn;
-const refreshAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
+const refreshTokenService = (refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     if (!refreshToken) {
         throw new errorHandler_1.BadRequestError('Refresh token is required');
     }
@@ -159,15 +149,16 @@ const refreshAccessToken = (refreshToken) => __awaiter(void 0, void 0, void 0, f
     try {
         // Verify the refresh token
         const decoded = jsonwebtoken_1.default.verify(refreshToken, env_config_1.REFRESH_TOKEN_SECRET);
+        const { userId, email, userName, role } = decoded;
         // Generate new access token
-        const accessToken = jsonwebtoken_1.default.sign({ userId: decoded.userId }, env_config_1.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+        const accessToken = jsonwebtoken_1.default.sign({ userId, email, userName, role }, env_config_1.JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
         return { accessToken };
     }
     catch (error) {
         throw new errorHandler_1.UnauthorizedError('Invalid refresh token');
     }
 });
-exports.refreshAccessToken = refreshAccessToken;
+exports.refreshTokenService = refreshTokenService;
 const userLogout = (token) => __awaiter(void 0, void 0, void 0, function* () {
     if (!token) {
         throw new errorHandler_1.BadRequestError('Token is required');
@@ -248,15 +239,18 @@ const verifyEmail = (token) => __awaiter(void 0, void 0, void 0, function* () {
     // Create profile for JOB_SEEKER only
     if (user.role === 'JOBSEEKER') {
         try {
-            // Create a job seeker profile
-            yield prismaClient_1.default.$executeRaw `
-        INSERT INTO "JobSeekerProfile" ("userId", "createdAt", "updatedAt")
-        VALUES (${user.id}, NOW(), NOW())
-      `;
+            yield prismaClient_1.default.profile.create({
+                data: {
+                    userId: user.id,
+                    bio: '',
+                    skills: [],
+                    education: [],
+                    experience: [],
+                },
+            });
         }
         catch (error) {
             console.error('Error creating job seeker profile:', error);
-            // Don't throw here, as email verification succeeded
         }
     }
     return { message: 'Email verified successfully. You can now log in.' };

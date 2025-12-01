@@ -137,9 +137,6 @@ const isJobSaved = (jobId, userId) => __awaiter(void 0, void 0, void 0, function
 exports.isJobSaved = isJobSaved;
 /**
  * Check if multiple jobs are saved by the user in a single query
- * @param jobIds Array of job IDs to check
- * @param userId The user ID
- * @returns Object mapping job IDs to their saved status
  */
 const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
@@ -163,11 +160,13 @@ const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, funct
             jobId: true
         }
     });
+    console.log("Saved jobs from savedJob service: ", savedJobs);
     // Create a map for quick lookup
     const savedJobsMap = savedJobs.reduce((map, savedJob) => {
         map[savedJob.jobId] = savedJob.id;
         return map;
     }, {});
+    console.log("Saved jobs mapped: ", savedJobsMap);
     // Create the result object with isSaved status for each job ID
     const result = {};
     uniqueJobIds.forEach(jobId => {
@@ -176,6 +175,7 @@ const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, funct
             savedJobId: savedJobsMap[jobId] || null
         };
     });
+    console.log("Result: ", result);
     return result;
 });
 exports.areJobsSaved = areJobsSaved;

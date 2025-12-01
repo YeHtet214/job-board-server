@@ -18,8 +18,8 @@ jobRouter.get('/:id', index_js_1.jobValidation.getById, job_controller_js_1.getJ
 jobRouter.use(auth_middleware_js_1.default);
 jobRouter.use(role_middleware_js_1.employerOnly);
 // Protected routes - only authenticated employers can create/update/delete jobs
-jobRouter.get('/:id/applications', index_js_1.applicationValidation.getByJobId, index_js_1.applicationValidation.getByJobId, application_controller_js_1.getAllApplicationsByJobId);
-jobRouter.post('/', index_js_1.applicationValidation.getByJobId, index_js_1.jobValidation.create, job_controller_js_1.createJobHandler);
-jobRouter.put('/:id', index_js_1.applicationValidation.getByJobId, index_js_1.jobValidation.update, job_controller_js_1.updateJobHandler);
-jobRouter.delete('/:id', index_js_1.applicationValidation.getByJobId, index_js_1.jobValidation.delete, job_controller_js_1.deleteJobHandler);
+jobRouter.get('/:id/applications', index_js_1.applicationValidation.getByJobId, application_controller_js_1.getAllApplicationsByJobId);
+jobRouter.post('/', index_js_1.applicationValidation.create, index_js_1.jobValidation.create, job_controller_js_1.createJobHandler);
+jobRouter.put('/:id', index_js_1.applicationValidation.update, index_js_1.jobValidation.update, job_controller_js_1.updateJobHandler);
+jobRouter.delete('/:id', index_js_1.applicationValidation.delete, index_js_1.jobValidation.delete, job_controller_js_1.deleteJobHandler);
 exports.default = jobRouter;

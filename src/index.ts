@@ -32,9 +32,9 @@ const port = process.env.PORT || 3000;
 const httpServer = createServer(app);
 const io = initSocketServer(httpServer);
 
+app.use(cookieParser());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cookieParser());
 app.use(
   cors({
     origin: FRONTEND_URL,

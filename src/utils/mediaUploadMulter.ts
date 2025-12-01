@@ -1,9 +1,3 @@
-// import multer from "multer";
-
-// const storage = multer.memoryStorage();
-// export const uploadResume = multer({ storage }).single('resume');
-
-// src/utils/multer.ts
 import multer from "multer";
 
 const storage = multer.memoryStorage();

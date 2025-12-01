@@ -7,7 +7,7 @@ const express_validator_1 = require("express-validator");
  */
 exports.authValidation = {
     // Validation for user signup
-    signup: [
+    signUp: [
         (0, express_validator_1.body)('firstName')
             .notEmpty().withMessage('First name is required')
             .isString().withMessage('First name must be a string')
@@ -34,7 +34,7 @@ exports.authValidation = {
             .trim()
     ],
     // Validation for user signin
-    signin: [
+    signIn: [
         (0, express_validator_1.body)('email')
             .notEmpty().withMessage('Email is required')
             .isEmail().withMessage('Email must be valid')
@@ -42,13 +42,6 @@ exports.authValidation = {
             .trim(),
         (0, express_validator_1.body)('password')
             .notEmpty().withMessage('Password is required')
-            .trim()
-    ],
-    // Validation for token refresh
-    refresh: [
-        (0, express_validator_1.body)('refreshToken')
-            .notEmpty().withMessage('Refresh token is required')
-            .isString().withMessage('Refresh token must be a string')
             .trim()
     ],
     // Validation for email verification

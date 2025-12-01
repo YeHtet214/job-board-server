@@ -1,36 +1,34 @@
 {
   "compilerOptions": {
-    "module": "commonjs", // Use ESNext for ES Modules
-    "target": "es6", // Use ESNext target for modern JS features
+    "module": "commonjs", 
+    "target": "es6", 
     // "moduleResolution": "NodeNext",          // Use Node-style module resolution
-    "esModuleInterop": true, // Enables default import syntax
-    "skipLibCheck": true, // Skips type checking of declaration files
-    "strict": true, // Enable strict mode for type safety
-    "outDir": "./dist", // Compiled files will be placed in the 'dist' folder
+    "esModuleInterop": true, 
+    "skipLibCheck": true, 
+    "strict": true, 
+    "outDir": "./dist", 
     "rootDir": "./src",
     // "resolveJsonModule": true,           // Allows importing JSON files
-    "forceConsistentCasingInFileNames": true, // Ensures consistent file casing
-    "allowJs": true, // Allows JavaScript files to be compiled
+    "forceConsistentCasingInFileNames": true, 
+    "allowJs": true, 
     "allowSyntheticDefaultImports": true,
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
     }
-  }, // Allows default imports from modules with no default export
+  }, 
   "ts-node": {
     "esm": true,
     "experimentalSpecifierResolution": "node"
   },
   "include": [
-    "src/**/*", // Include all files inside the 'src' folder
-    "src/temp.ts", // Also include the main 'index.ts' file
-    "types/**/*", // Include all files inside the 'types' folder
-    "prisma/**/*.ts",
-    "prisma"
+    "src/**/*", 
+    "src/temp.ts", 
+    "types/**/*", 
   ],
   "exclude": [
     "node_modules",
-    "dist" // Exclude the 'node_modules' folder from the compilation
+    "dist" 
   ]
 }

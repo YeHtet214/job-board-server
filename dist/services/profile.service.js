@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -18,10 +29,22 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const crypto_1 = __importDefault(require("crypto"));
 const fetchProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
-    const profile = yield prismaClient_1.default.profile.findUnique({ where: { userId } });
+    const profile = yield prismaClient_1.default.profile.findUnique({
+        where: { userId },
+        include: {
+            user: {
+                select: {
+                    firstName: true,
+                    lastName: true,
+                    email: true,
+                    role: true,
+                }
+            }
+        }
+    });
     if (profile) {
-        // Convert JSON back to typed arrays when returning
-        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
+        const { user } = profile, profileData = __rest(profile, ["user"]);
+        return Object.assign(Object.assign({}, profileData), { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, education: profile.education, experience: profile.experience });
     }
     return profile;
 });
@@ -32,7 +55,6 @@ const createNewProfile = (profileData) => __awaiter(void 0, void 0, void 0, func
         if (existingProfile) {
             return (0, exports.updateExistingProfile)(profileData.userId, profileData);
         }
-        // Create a new profile with properly serialized JSON fields
         const profile = yield prismaClient_1.default.profile.create({
             data: {
                 userId: profileData.userId,

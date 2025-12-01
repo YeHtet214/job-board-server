@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadProfileImage = exports.uploadResumeFile = exports.deleteProfile = exports.updateProfile = exports.createProfile = exports.getProfile = void 0;
+exports.uploadProfileImage = exports.uploadResumeFile = exports.deleteProfile = exports.updateProfile = exports.createProfile = exports.getProfileById = exports.getProfile = void 0;
 const profile_service_js_1 = require("../services/profile.service.js");
 const express_validator_1 = require("express-validator");
 const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
@@ -28,6 +28,37 @@ const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getProfile = getProfile;
+const getProfileById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { seekerId } = req.params;
+        const requestingUser = req.user;
+        // only employers should view other profiles
+        // Seekers should use /me to view their own profile
+        if (requestingUser.role !== 'EMPLOYER') {
+            return res.status(403).json({
+                success: false,
+                message: "You don't have permission to view this profile"
+            });
+        }
+        const profile = yield (0, profile_service_js_1.fetchProfile)(seekerId);
+        console.log("profile", profile);
+        if (!profile) {
+            return res.status(404).json({
+                success: false,
+                message: "Profile not found"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            message: "Profile fetched successfully",
+            data: profile
+        });
+    }
+    catch (error) {
+        next(error);
+    }
+});
+exports.getProfileById = getProfileById;
 const createProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const file = req.file;
@@ -114,7 +145,6 @@ const uploadProfileImage = (req, res, next) => __awaiter(void 0, void 0, void 0,
                 message: "No file uploaded"
             });
         }
-        console.log("Profile image uploaded:", req.file);
         const file = req.file;
         const userId = req.user.userId;
         // Validate file type

@@ -88,8 +88,8 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
                 applicationId: application.id,
                 jobId: application.jobId,
                 title: 'Got New Application',
-                snippet: `${req.user.firstName} ${req.user.lastName} applied for ${job.title}`,
-                applicantName: `${req.user.firstName} ${req.user.lastName}`,
+                snippet: `${req.user.userName} applied for ${job.title}`,
+                applicantName: `${req.user.userName}`,
                 createdAt: application.createdAt,
             });
         }
