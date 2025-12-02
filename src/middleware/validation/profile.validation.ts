@@ -84,6 +84,11 @@ export const profileValidation = {
       .isURL()
       .withMessage('Portfolio URL must be a valid URL')
       .trim(),
+    body('resumeFileId')
+      .optional({ values: 'falsy' })
+      .isString()
+      .withMessage('Resume file ID must be a string')
+      .trim(),
   ],
 
   // Validation for updating a profile - similar to create but all fields are optional

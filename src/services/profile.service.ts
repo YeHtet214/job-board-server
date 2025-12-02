@@ -4,6 +4,8 @@ import path from 'path';
 import crypto from 'crypto';
 import { CreateProfileDto, UpdateProfileDto, Education, Experience } from '../types/profile';
 import { CustomError } from "../types/error";
+import storage from '../config/appwrite.config';
+import { APPWRITE_BUCKET_ID } from '@/config/env.config';
 
 
 // Define a simple file interface that matches the properties we need
@@ -15,6 +17,8 @@ interface UploadedFile {
 }
 
 export const fetchProfile = async (userId: string) => {
+    const resume = await storage.getFileView(APPWRITE_BUCKET_ID, '123456')
+
     const profile = await prisma.profile.findUnique({
         where: { userId },
         include: {
@@ -32,14 +36,15 @@ export const fetchProfile = async (userId: string) => {
     if (profile) {
         const { user, ...profileData } = profile;
         return {
-                ...profileData,
-                firstName: user.firstName,
-                lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                education: profile.education as unknown as Education[],
-                experience: profile.experience as unknown as Experience[],
-            };
+            ...profileData,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            resume,
+            education: profile.education as unknown as Education[],
+            experience: profile.experience as unknown as Experience[],
+        };
     }
 
     return profile;
@@ -60,7 +65,6 @@ export const createNewProfile = async (profileData: CreateProfileDto) => {
                 skills: profileData.skills,
                 education: profileData.education as any,
                 experience: profileData.experience as any,
-                resumeUrl: profileData.resumeUrl,
                 profileImageURL: profileData.profileImageURL,
                 linkedInUrl: profileData.linkedInUrl,
                 githubUrl: profileData.githubUrl,
@@ -93,7 +97,7 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
 
         // Prepare update data with proper handling of JSON fields
         const updateData: any = {};
-        
+
         // Only include fields that are present in the update data
         if (data.bio !== undefined) updateData.bio = data.bio;
         if (data.skills !== undefined) updateData.skills = data.skills;

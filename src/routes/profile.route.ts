@@ -12,12 +12,12 @@ import {
   deleteProfile,
   getProfileById,
   updateProfile,
-  uploadResumeFile,
   uploadProfileImage,
 } from '../controllers/profile.controller.js';
 import { profileValidation } from '../middleware/validation/index.js';
 import { validate } from '../middleware/validation/index.js';
 import { uploadMedia, uploadResume } from '../utils/mediaUploadMulter.js';
+import { viewResume } from '@/controllers/resume.controller.js';
 
 const profileRouter = Router();
 const upload = multer();
@@ -40,6 +40,7 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
 
 profileRouter.get('/:seekerId', getProfileById as RequestHandler);
 // profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
+profileRouter.get('/resumes/:seekerId', validate, viewResume as RequestHandler)
 profileRouter.post(
   '/me',
   upload.any(),
@@ -57,13 +58,6 @@ profileRouter.put(
   updateProfile as RequestHandler,
 );
 profileRouter.delete('/me', deleteProfile as RequestHandler);
-
-// Add resume upload endpoint
-profileRouter.post(
-  '/upload-resume',
-  uploadResume.single('resume'),
-  uploadResumeFile as RequestHandler,
-);
 
 // Add profile image upload endpoint
 profileRouter.post(

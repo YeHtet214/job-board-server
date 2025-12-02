@@ -26,7 +26,6 @@ export interface CreateProfileDto {
   skills: string[];
   education: Education[];
   experience: Experience[];
-  resumeUrl?: string;
   profileImageURL?: string;
   linkedInUrl?: string;
   githubUrl?: string;

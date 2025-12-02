@@ -8,8 +8,6 @@ import prisma from '../lib/prismaClient.js';
 export const verifyToken = (token: string): Promise<AuthenticatedUser> => {
   const decoded = jwt.decode(token);
 
-  console.log("decoded token: ", decoded)
-
   if (typeof decoded === 'object' && decoded !== null) {
     if (
       !decoded ||

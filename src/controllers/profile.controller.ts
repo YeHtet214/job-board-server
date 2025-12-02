@@ -3,7 +3,8 @@ import { createNewProfile, deleteExistingProfile, fetchProfile, updateExistingPr
 import { RequestWithUser } from "../types/users.js";
 import { matchedData } from "express-validator";
 import { CreateProfileDto, UpdateProfileDto } from "../types/profile.js";
-import { resumeUploadToFirebase, mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
+import { resumeUploadToFirebase, mediaUploadToCloudinary, resumeUploadToAppwrite } from "../services/uploadCloud.service.js";
+import { saveResume } from "../services/resume.service.js";
 
 export const getProfileById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
@@ -43,11 +44,11 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
         const userId = req.user.userId;
         const validatedData = matchedData(req, { locations: ['body'] });
         const profileImageURL = await mediaUploadToCloudinary(file);
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
+        // const resumeUrl = await resumeUploadToFirebase(file, userId);
 
         if (validatedData.hasOwnProperty('userId')) delete validatedData.userId;
 
-        const profile = await createNewProfile({ ...validatedData, userId, profileImageURL, resumeUrl } as CreateProfileDto);
+        const profile = await createNewProfile({ ...validatedData, userId, profileImageURL } as CreateProfileDto);
 
         res.status(201).json({
             success: true,
@@ -90,30 +91,6 @@ export const deleteProfile = async (req: RequestWithUser, res: Response, next: N
             success: true,
             message: "Profile deleted successfully",
             data: profile
-        });
-    } catch (error) {
-        next(error);
-    }
-}
-
-export const uploadResumeFile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: "No file uploaded"
-            });
-        }
-
-        const file = req.file;
-        const userId = req.user.userId;
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
-
-        res.status(200).json({
-            success: true,
-            message: "Resume uploaded successfully",
-            data: { url: resumeUrl }
         });
     } catch (error) {
         next(error);

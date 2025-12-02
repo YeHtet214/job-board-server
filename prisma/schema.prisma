@@ -44,8 +44,9 @@ model Profile {
   skills          String[]
   education       Json // Stores Education[] as JSON
   experience      Json // Stores Experience[] as JSON
-  resumeUrl       String? 
   profileImageURL String?
+  resumeFileId    String? @unique
+  resume          Resume? @relation(fields: [resumeFileId], references: [fileId])
   linkedInUrl     String?
   githubUrl       String?
   portfolioUrl    String?
@@ -140,10 +141,11 @@ model JobApplication {
   jobId          String
   applicant      User              @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   applicantId    String
-  resumeUrl      String?
   acceptTerms    Boolean
   additionalInfo String?
   coverLetter    String?
+  resumeFileId   String? @unique
+  resume         Resume? @relation(fields: [resumeFileId], references: [fileId], onDelete: Cascade)
   status         ApplicationStatus @default(PENDING)
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -151,6 +153,17 @@ model JobApplication {
   @@unique([jobId, applicantId])
   @@index([jobId])
   @@index([applicantId])
+}
+
+model Resume {
+  id String @id @default(uuid())
+  fileId String @unique
+  bucketId String
+
+  profile Profile?
+  application JobApplication?
+
+  @@index([fileId])
 }
 
 enum ApplicationStatus {

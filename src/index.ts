@@ -26,6 +26,7 @@ import { FRONTEND_URL, SESSION_SECRET } from './config/env.config.js';
 import { initSocketServer } from './config/socket.config.js';
 import MessagingRouter from "./routes/message.route.js";
 import swaggerSpec from "./config/swagger.config.js";
+import resumeRouter from "./routes/resume.route.js";
 
 const app = express();
 const port = process.env.PORT || 3000;  
@@ -72,6 +73,7 @@ app.set('io', io);
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
 app.use('/api/profiles', profileRouter);
+app.use('/api/resumes', resumeRouter);
 app.use('/api/companies', companyRouter);
 app.use('/api/jobs', jobRouter);
 app.use('/api/applications', applicationRouter);
