@@ -3,7 +3,7 @@ import { createNewProfile, deleteExistingProfile, fetchProfile, updateExistingPr
 import { RequestWithUser } from "../types/users.js";
 import { matchedData } from "express-validator";
 import { CreateProfileDto, UpdateProfileDto } from "../types/profile.js";
-import { resumeUploadToFirebase, mediaUploadToCloudinary, resumeUploadToAppwrite } from "../services/uploadCloud.service.js";
+import { mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
 import { saveResume } from "../services/resume.service.js";
 
 export const getProfileById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
@@ -44,7 +44,6 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
         const userId = req.user.userId;
         const validatedData = matchedData(req, { locations: ['body'] });
         const profileImageURL = await mediaUploadToCloudinary(file);
-        // const resumeUrl = await resumeUploadToFirebase(file, userId);
 
         if (validatedData.hasOwnProperty('userId')) delete validatedData.userId;
 
@@ -68,9 +67,8 @@ export const updateProfile = async (req: RequestWithUser, res: Response, next: N
         const userId = req.user.userId;
         const validatedData = matchedData(req, { locations: ['body'] });
         const profileImageURL = await mediaUploadToCloudinary(file);
-        const resumeUrl = await resumeUploadToFirebase(file, userId);
 
-        const profile = await updateExistingProfile(userId, { ...validatedData, profileImageURL, resumeUrl } as UpdateProfileDto);
+        const profile = await updateExistingProfile(userId, { ...validatedData, profileImageURL } as UpdateProfileDto);
 
         res.status(200).json({
             success: true,

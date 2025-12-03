@@ -5,6 +5,7 @@ import { APPWRITE_BUCKET_ID } from "../config/env.config";
 import { resumeUploadToAppwrite } from "@/services/uploadCloud.service";
 
 export const viewResume = async (req: RequestWithUser, res: Response, next: NextFunction) => {
+  console.log("viewing resume: ", req.params)
   try {
     const { fileId } = req.params;
     const resume = await storage.getFileView(APPWRITE_BUCKET_ID, fileId)

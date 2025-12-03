@@ -66,6 +66,7 @@ export const createNewProfile = async (profileData: CreateProfileDto) => {
                 education: profileData.education as any,
                 experience: profileData.experience as any,
                 profileImageURL: profileData.profileImageURL,
+                resumeFileId: profileData.resumeFileId,
                 linkedInUrl: profileData.linkedInUrl,
                 githubUrl: profileData.githubUrl,
                 portfolioUrl: profileData.portfolioUrl
@@ -95,7 +96,6 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
             throw error;
         }
 
-        // Prepare update data with proper handling of JSON fields
         const updateData: any = {};
 
         // Only include fields that are present in the update data
@@ -103,7 +103,7 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
         if (data.skills !== undefined) updateData.skills = data.skills;
         if (data.education !== undefined) updateData.education = data.education as any;
         if (data.experience !== undefined) updateData.experience = data.experience as any;
-        if (data.resumeUrl !== undefined) updateData.resumeUrl = data.resumeUrl;
+        if (data.resumeFileId !== undefined) updateData.resumeFileId = data.resumeFileId;
         if (data.profileImageURL !== undefined) updateData.profileImageURL = data.profileImageURL;
         if (data.linkedInUrl !== undefined) updateData.linkedInUrl = data.linkedInUrl;
         if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
@@ -115,7 +115,6 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
             data: updateData
         });
 
-        // Convert JSON back to typed arrays when returning
         return {
             ...profile,
             education: profile.education as unknown as Education[],
@@ -204,7 +203,7 @@ export const uploadResume = async (userId: string, file: any): Promise<string> =
         // Update user profile with resume URL
         await prisma.profile.update({
             where: { userId },
-            data: { resumeUrl }
+            data: { res }
         });
 
         return resumeUrl;
