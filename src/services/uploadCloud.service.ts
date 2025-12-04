@@ -1,9 +1,9 @@
 import { InputFile } from "node-appwrite/file";
 import { ID } from "node-appwrite";
-import storage from "../config/appwrite.config.js";
+import { storage, tokens } from "../config/appwrite.config.js";
 import cloudinary from "../config/cloudinary.config.js";
 import { sanitizeName } from "../utils/index.js";
-import { APPWRITE_BUCKET_ID } from "../config/env.config.js";
+import { APPWRITE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from "../config/env.config.js";
 import { saveResume } from "./resume.service.js";
 
 export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
@@ -35,10 +35,15 @@ export const resumeUploadToAppwrite = async (file: Express.Multer.File) => {
       inputFile,
       []
     );
+    
+    const tokenSecret = await tokens.createFileToken({
+      bucketId: APPWRITE_BUCKET_ID,
+      fileId,
+    })
 
-    await saveResume(fileId)
+    await saveResume(fileId, tokenSecret.secret)
 
-    return { fileId };
+    return { fileId, tokenSecret };
   } catch (error) {
     console.log('resume upload error: ', error);
     throw error;

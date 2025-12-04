@@ -70,22 +70,19 @@ export const profileValidation = {
         return true;
       }),
     body('linkedInUrl')
-      .optional({ values: 'falsy' })
+      .optional()
       .isURL()
       .withMessage('LinkedIn URL must be a valid URL')
       .trim(),
     body('githubUrl')
-      .optional({ values: 'falsy' })
       .isURL()
       .withMessage('GitHub URL must be a valid URL')
       .trim(),
     body('portfolioUrl')
-      .optional({ values: 'falsy' })
       .isURL()
       .withMessage('Portfolio URL must be a valid URL')
       .trim(),
     body('resumeFileId')
-      .optional({ values: 'falsy' })
       .isString()
       .withMessage('Resume file ID must be a string')
       .trim(),
@@ -94,12 +91,11 @@ export const profileValidation = {
   // Validation for updating a profile - similar to create but all fields are optional
   updateProfile: [
     body('bio')
-      .optional({ values: 'falsy' })
+      .optional()
       .isString()
       .withMessage('Bio must be a string')
       .trim(),
     body('skills')
-      .optional({ values: 'falsy' })
       .isArray({ min: 1 })
       .withMessage('At least one skill is required')
       .custom((skills: string[] | undefined) => {
@@ -110,7 +106,7 @@ export const profileValidation = {
         return true;
       }),
     body('education')
-      .optional({ values: 'falsy' })
+      .optional()
       .isArray()
       .withMessage('Education must be an array')
       .custom((educationArr: any[] | undefined) => {
@@ -135,7 +131,7 @@ export const profileValidation = {
         return true;
       }),
     body('experience')
-      .optional({ values: 'falsy' })
+      .optional()
       .isArray()
       .withMessage('Experience must be an array')
       .custom((experienceArr: any[] | undefined) => {
@@ -159,5 +155,24 @@ export const profileValidation = {
         }
         return true;
       }),
+    body('linkedInUrl')
+      .optional({ values: 'falsy' })
+      .isURL()
+      .withMessage('LinkedIn URL must be a valid URL')
+      .trim(),
+    body('githubUrl')
+      .isURL()
+      .withMessage('GitHub URL must be a valid URL')
+      .trim(),
+    body('portfolioUrl')
+      .optional({ values: 'falsy' })
+      .isURL()
+      .withMessage('Portfolio URL must be a valid URL')
+      .trim(),
+    body('resumeFileId')
+      .optional({ values: 'falsy' })
+      .isString()
+      .withMessage('Resume file ID must be a string')
+      .trim(),
   ],
 };

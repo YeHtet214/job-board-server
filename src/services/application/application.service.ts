@@ -81,7 +81,7 @@ export const postNewApplication = async (applicationData: createApplicationDto, 
         data: {
             jobId: applicationData.jobId,
             applicantId: applicationData.applicantId,
-            resumeUrl: applicationData.resumeUrl,
+            resumeFileId: applicationData.resumeFileId,
             coverLetter: applicationData.coverLetter,
             additionalInfo: applicationData.additionalInfo,
             acceptTerms: true,

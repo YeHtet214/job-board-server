@@ -159,6 +159,7 @@ model Resume {
   id String @id @default(uuid())
   fileId String @unique
   bucketId String
+  tokenSecret String @default("")
 
   profile Profile?
   application JobApplication?

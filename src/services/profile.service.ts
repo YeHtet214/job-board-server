@@ -4,9 +4,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { CreateProfileDto, UpdateProfileDto, Education, Experience } from '../types/profile';
 import { CustomError } from "../types/error";
-import storage from '../config/appwrite.config';
-import { APPWRITE_BUCKET_ID } from '@/config/env.config';
-
+import { FileURLConstructor } from './resume.service';
 
 // Define a simple file interface that matches the properties we need
 interface UploadedFile {
@@ -17,8 +15,6 @@ interface UploadedFile {
 }
 
 export const fetchProfile = async (userId: string) => {
-    const resume = await storage.getFileView(APPWRITE_BUCKET_ID, '123456')
-
     const profile = await prisma.profile.findUnique({
         where: { userId },
         include: {
@@ -29,9 +25,12 @@ export const fetchProfile = async (userId: string) => {
                     email: true,
                     role: true,
                 }
-            }
+            },
+            resume: true
         }
     });
+
+    const resumeURL = profile?.resume ? FileURLConstructor(profile.resume.fileId, profile.resume.tokenSecret) : null;
 
     if (profile) {
         const { user, ...profileData } = profile;
@@ -41,9 +40,9 @@ export const fetchProfile = async (userId: string) => {
             lastName: user.lastName,
             email: user.email,
             role: user.role,
-            resume,
             education: profile.education as unknown as Education[],
             experience: profile.experience as unknown as Experience[],
+            resumeURL: resumeURL
         };
     }
 
@@ -70,12 +69,18 @@ export const createNewProfile = async (profileData: CreateProfileDto) => {
                 linkedInUrl: profileData.linkedInUrl,
                 githubUrl: profileData.githubUrl,
                 portfolioUrl: profileData.portfolioUrl
+            },
+            include: {
+                resume: true
             }
         });
+
+        const resumeURL = profile?.resume ? FileURLConstructor(profile.resume.fileId, profile.resume.tokenSecret) : null;
 
         // Convert JSON back to typed arrays when returning
         return {
             ...profile,
+            resumeURL,
             education: profile.education as unknown as Education[],
             experience: profile.experience as unknown as Experience[]
         };
@@ -99,24 +104,29 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
         const updateData: any = {};
 
         // Only include fields that are present in the update data
-        if (data.bio !== undefined) updateData.bio = data.bio;
-        if (data.skills !== undefined) updateData.skills = data.skills;
-        if (data.education !== undefined) updateData.education = data.education as any;
-        if (data.experience !== undefined) updateData.experience = data.experience as any;
-        if (data.resumeFileId !== undefined) updateData.resumeFileId = data.resumeFileId;
-        if (data.profileImageURL !== undefined) updateData.profileImageURL = data.profileImageURL;
-        if (data.linkedInUrl !== undefined) updateData.linkedInUrl = data.linkedInUrl;
-        if (data.githubUrl !== undefined) updateData.githubUrl = data.githubUrl;
-        if (data.portfolioUrl !== undefined) updateData.portfolioUrl = data.portfolioUrl;
-
+        if (data.bio) updateData.bio = data.bio;
+        if (data.skills) updateData.skills = data.skills;
+        if (data.education) updateData.education = data.education as any;
+        if (data.experience) updateData.experience = data.experience as any;
+        if (data.resumeFileId) updateData.resumeFileId = data.resumeFileId;
+        if (data.profileImageURL) updateData.profileImageURL = data.profileImageURL;
+        if (data.linkedInUrl) updateData.linkedInUrl = data.linkedInUrl;
+        if (data.githubUrl) updateData.githubUrl = data.githubUrl;
+        if (data.portfolioUrl) updateData.portfolioUrl = data.portfolioUrl;
 
         const profile = await prisma.profile.update({
             where: { userId },
-            data: updateData
+            data: updateData,
+            include: {
+                resume: true
+            }
         });
+
+        const resumeURL = profile?.resumeFileId ? FileURLConstructor(profile.resumeFileId, profile.tokenSecret) : null;
 
         return {
             ...profile,
+            resumeURL,
             education: profile.education as unknown as Education[],
             experience: profile.experience as unknown as Experience[]
         };

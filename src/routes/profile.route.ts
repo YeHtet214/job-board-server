@@ -16,8 +16,7 @@ import {
 } from '../controllers/profile.controller.js';
 import { profileValidation } from '../middleware/validation/index.js';
 import { validate } from '../middleware/validation/index.js';
-import { uploadMedia, uploadResume } from '../utils/mediaUploadMulter.js';
-import { viewResume } from '@/controllers/resume.controller.js';
+import { uploadMedia } from '../utils/mediaUploadMulter.js';
 
 const profileRouter = Router();
 const upload = multer();
@@ -40,7 +39,6 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
 
 profileRouter.get('/:seekerId', getProfileById as RequestHandler);
 // profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
-profileRouter.get('/resumes/:seekerId', validate, viewResume as RequestHandler)
 profileRouter.post(
   '/me',
   upload.any(),

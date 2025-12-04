@@ -5,7 +5,7 @@ type ApplicationStatus = "PENDING" | "INTERVIEW" | "ACCEPTED" | "REJECTED";
 
 export interface createApplicationDto {
     jobId: string;
-    resumeUrl: string;
+    resumeFileId: string;
     coverLetter: string;
     applicantId: string;
     additionalInfo: string;
@@ -13,7 +13,7 @@ export interface createApplicationDto {
 
 export interface updateApplicationDto {
     id: string;
-    resumeUrl?: string;
+    resumeFileId?: string;
     coverLetter?: string;
     status?: ApplicationStatus;
     additionalInfo?: string;
@@ -23,7 +23,8 @@ export interface applicationResponse {
     id: string;
     job: JobResponse;
     applicant: UserResponse;
-    resumeUrl: string;
+    resumeFileId: string;
+    resumeURL: string;
     coverLetter: string;
     status: ApplicationStatus;
     createdAt: Date;

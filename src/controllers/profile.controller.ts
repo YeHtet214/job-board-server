@@ -4,7 +4,6 @@ import { RequestWithUser } from "../types/users.js";
 import { matchedData } from "express-validator";
 import { CreateProfileDto, UpdateProfileDto } from "../types/profile.js";
 import { mediaUploadToCloudinary } from "../services/uploadCloud.service.js";
-import { saveResume } from "../services/resume.service.js";
 
 export const getProfileById = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
@@ -61,9 +60,9 @@ export const createProfile = async (req: RequestWithUser, res: Response, next: N
 }
 
 export const updateProfile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
-    try {
 
-        const file = req.file;
+    try {
+        const file = req.file; // profile image
         const userId = req.user.userId;
         const validatedData = matchedData(req, { locations: ['body'] });
         const profileImageURL = await mediaUploadToCloudinary(file);

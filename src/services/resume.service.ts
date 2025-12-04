@@ -1,5 +1,9 @@
 import prisma from "../lib/prismaClient"
-import { APPWRITE_BUCKET_ID } from "../config/env.config"
+import { APPWRITE_BUCKET_ID, APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID } from "../config/env.config"
+
+export const FileURLConstructor = (fileId: string, tokenSecret: string) => {
+    return `${APPWRITE_ENDPOINT}/storage/buckets/${APPWRITE_BUCKET_ID}/files/${fileId}/view?project=${APPWRITE_PROJECT_ID}&token=${tokenSecret}`
+}
 
 export const ViewResume = async (fileId: string) => {
     try {
@@ -17,12 +21,13 @@ export const ViewResume = async (fileId: string) => {
     }
 }
 
-export const saveResume = async (fileId: string) => {
+export const saveResume = async (fileId: string, tokenSecret: string) => {
     try {
         const resume = await prisma.resume.create({
             data: {
                 fileId,
-                bucketId: APPWRITE_BUCKET_ID
+                bucketId: APPWRITE_BUCKET_ID,
+                tokenSecret
             }
         })
 

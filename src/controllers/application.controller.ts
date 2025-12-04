@@ -10,7 +10,7 @@ import {
     fetchAllApplicationsByUserId
 } from "../services/application/application.service.js";
 import { matchedData } from "express-validator";
-import { resumeUploadToFirebase } from "../services/uploadCloud.service.js";
+import { resumeUploadToAppwrite } from "../services/uploadCloud.service.js";
 import { NotiType } from "@prisma/client";
 
 export const getAllApplicationsByUserId = async (req: RequestWithUser, res: Response, next: NextFunction) => {
@@ -71,11 +71,10 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
     try {
         const validatedData = matchedData(req, { locations: ['params', 'body'] });
         const file = req.file;
-        const userId = req.user.userId;
-        const resumeURL = await resumeUploadToFirebase(file, userId);
+        const { fileId } = await resumeUploadToAppwrite(file);
         const applicantId = req.user.userId;
 
-        const { application, job } = await postNewApplication({ ...validatedData, resumeUrl: resumeURL, applicantId } as createApplicationDto, req.user);
+        const { application, job } = await postNewApplication({ ...validatedData, resumeFileId: fileId, applicantId } as createApplicationDto, req.user);
 
         // Emit real-time notification via Socket.IO to employer
         const io = req.app.get('io');
@@ -108,12 +107,12 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
     try {
         // Get validated data
         const validatedData = matchedData(req, { locations: ['params', 'body'] });
-        const resumeUrl = await resumeUploadToFirebase(req.file, req.user.userId);
+        const { fileId } = await resumeUploadToAppwrite(req.file);
         const applicantId = req.user.userId;
 
         const applicationData: updateApplicationDto = {
             id: validatedData.id,
-            resumeUrl: validatedData.resumeUrl,
+            resumeFileId: fileId,
             coverLetter: validatedData.coverLetter,
             status: validatedData.status
         }

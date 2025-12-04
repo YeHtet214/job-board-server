@@ -43,6 +43,7 @@ export interface ProfileResponse {
   education: Education[];
   experience: Experience[];
   resumeFileId?: string;
+  resumeURL?: string;
   linkedInUrl?: string;
   githubUrl?: string;
   portfolioUrl?: string;
