@@ -5,7 +5,6 @@ import {
   Response,
   Router,
 } from 'express';
-import multer from 'multer';
 import authorize from '../middleware/auth.middleware.js';
 import {
   createProfile,
@@ -16,10 +15,9 @@ import {
 } from '../controllers/profile.controller.js';
 import { profileValidation } from '../middleware/validation/index.js';
 import { validate } from '../middleware/validation/index.js';
-import { uploadMedia } from '../utils/mediaUploadMulter.js';
+import { uploadMedia, uploadResume } from '../utils/mediaUploadMulter.js';
 
 const profileRouter = Router();
-const upload = multer();
 
 profileRouter.use(authorize as RequestHandler);
 
@@ -38,10 +36,9 @@ function parseProfileFields(req: Request, res: Response, next: NextFunction) {
 }
 
 profileRouter.get('/:seekerId', getProfileById as RequestHandler);
-// profileRouter.post('/me',uploadMedia.single('profileImage'), uploadResume.single('resume'), parseProfileFields , profileValidation.createProfile, validate,  createProfile as RequestHandler);
 profileRouter.post(
   '/me',
-  upload.any(),
+  uploadResume.single('resume'),
   parseProfileFields,
   profileValidation.createProfile,
   validate,
@@ -49,7 +46,7 @@ profileRouter.post(
 );
 profileRouter.put(
   '/me',
-  upload.any(),
+  uploadResume.single('resume'),
   parseProfileFields,
   profileValidation.updateProfile,
   validate,

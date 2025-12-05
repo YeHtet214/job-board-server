@@ -12,6 +12,7 @@ import {
 import { matchedData } from "express-validator";
 import { resumeUploadToAppwrite } from "../services/uploadCloud.service.js";
 import { NotiType } from "@prisma/client";
+import { FileURLConstructor } from "@/services/resume.service.js";
 
 export const getAllApplicationsByUserId = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
@@ -75,6 +76,7 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
         const applicantId = req.user.userId;
 
         const { application, job } = await postNewApplication({ ...validatedData, resumeFileId: fileId, applicantId } as createApplicationDto, req.user);
+        const resumeURL = application?.resumeFileId ? FileURLConstructor(application.resumeFileId, application?.resume?.tokenSecret || '') : null;
 
         // Emit real-time notification via Socket.IO to employer
         const io = req.app.get('io');
@@ -96,7 +98,7 @@ export const createNewApplication = async (req: RequestWithUser, res: Response, 
         res.status(201).json({
             success: true,
             message: "Application created successfully",
-            data: application
+            data: { ...application, resumeURL }
         });
     } catch (error) {
         next(error);
@@ -118,6 +120,7 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
         }
 
         const { application, statusChanged, job } = await updateApplicationById({ ...applicationData, applicantId } as updateApplicationDto);
+        const resumeURL = application?.resumeFileId ? FileURLConstructor(application.resumeFileId, application?.resume?.tokenSecret || '') : null;
 
         // Emit real-time notification if status changed
         if (statusChanged) {
@@ -139,7 +142,7 @@ export const updateApplication = async (req: RequestWithUser, res: Response, nex
         res.status(200).json({
             success: true,
             message: "Application updated successfully",
-            data: application
+            data: { ...application, resumeURL }
         });
     } catch (error) {
         next(error);

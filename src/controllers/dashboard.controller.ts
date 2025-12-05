@@ -9,9 +9,6 @@ import {
 import { getCompanyProfileCompletion } from '../services/company/profile-completion.service.js';
 import { deleteExistingJob } from '../services/job/job.service.js';
 
-/**
- * Gets dashboard data for a job seeker
- */
 export const getJobSeekerDashboard = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
@@ -27,9 +24,6 @@ export const getJobSeekerDashboard = async (req: RequestWithUser, res: Response,
   }
 };
 
-/**
- * Gets dashboard data for an employer
- */
 export const getEmployerDashboard = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
@@ -45,9 +39,6 @@ export const getEmployerDashboard = async (req: RequestWithUser, res: Response, 
   }
 };
 
-/**
- * Withdraws a job application for the authenticated user
- */
 export const withdrawApplication = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const applicationId = req.params.id;

@@ -93,6 +93,8 @@ export const refresh = async (
   try {
     const refreshToken  = req.cookies.refreshToken;
 
+
+    console.log("refresh token in cookie: ", refreshToken)
     const { accessToken } = await refreshTokenService(refreshToken);
 
     res.status(200).json({

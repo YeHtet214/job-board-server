@@ -5,12 +5,10 @@ import { body } from 'express-validator';
  */
 
 export const profileValidation = {
-  // Validation for creating a profile
   createProfile: [
     body('bio')
       .notEmpty()
       .withMessage('Bio is required')
-      // .isString().withMessage('Bio must be a string')
       .trim(),
     body('skills')
       .isArray({ min: 1 })

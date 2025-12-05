@@ -51,7 +51,7 @@ export const storeRefreshToken = async (
   refreshToken: string,
 ) => {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-  await prisma.refreshToken.create({
+  const res = await prisma.refreshToken.create({
     data: {
       token: refreshToken,
       userId,

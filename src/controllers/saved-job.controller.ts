@@ -2,9 +2,6 @@ import { NextFunction, Response } from 'express';
 import { getSavedJobs, saveJob, removeSavedJob, isJobSaved, areJobsSaved } from '../services/job/saved-job.service.js';
 import { RequestWithUser } from '../types/users.js';
 
-/**
- * Get all saved jobs for the current user
- */
 export const getSavedJobsHandler = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
@@ -20,18 +17,12 @@ export const getSavedJobsHandler = async (req: RequestWithUser, res: Response, n
   }
 };
 
-/**
- * Save a job for the current user
- */
 export const saveJobHandler = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
     const { jobId } = req.body;
 
-    console.log("user id in save job handler: ", userId);
-
     const result = await saveJob(jobId, userId);
-    console.log("Job saving result: ", result);
     res.status(201).json({
       success: true,
       message: 'Job has been successfully saved',
@@ -42,9 +33,6 @@ export const saveJobHandler = async (req: RequestWithUser, res: Response, next: 
   }
 };
 
-/**
- * Remove a saved job for the current user
- */
 export const removeSavedJobHandler = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
@@ -61,9 +49,6 @@ export const removeSavedJobHandler = async (req: RequestWithUser, res: Response,
   }
 };
 
-/**
- * Check if a job is saved by the current user
- */
 export const isJobSavedHandler = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;
@@ -84,9 +69,6 @@ export const isJobSavedHandler = async (req: RequestWithUser, res: Response, nex
   }
 };
 
-/**
- * Check if multiple jobs are saved by the current user
- */
 export const batchCheckSavedJobsHandler = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   try {
     const userId = req.user.userId;

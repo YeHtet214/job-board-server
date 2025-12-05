@@ -5,8 +5,6 @@ import { fetchUserById, fetchUsers } from '../services/user/user.service.js';
 export const getCurrentUser = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {
         const userId = req.user.userId;
-
-        // Get user data without sensitive information
         const user = await fetchUserById(userId);
 
         if (!user) {
@@ -28,10 +26,8 @@ export const getCurrentUser = async (req: RequestWithUser, res: Response, next: 
 
 export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        // Get all users without sensitive information
         const users = await fetchUsers();
         
-        // Check if users were found
         if (!users || users.length === 0) {
             return res.status(404).json({
                 success: false,

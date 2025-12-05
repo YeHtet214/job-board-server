@@ -86,7 +86,8 @@ export const postNewApplication = async (applicationData: createApplicationDto, 
             additionalInfo: applicationData.additionalInfo,
             acceptTerms: true,
             status: 'PENDING'
-        }
+        },
+        include: { job: { include: { company: true } }, resume: true }
     });
 
 
@@ -106,14 +107,14 @@ export const postNewApplication = async (applicationData: createApplicationDto, 
         console.error('Failed to create notification for employer:', err);
     }
 
-    return { application: newApplication, job };
+    return { application: newApplication, job: newApplication.job };
 }
 
 export const updateApplicationById = async (applicationData: updateApplicationDto) => {
     // Check if application exists
     const application = await prisma.jobApplication.findUnique({
         where: { id: applicationData.id },
-        include: { job: { include: { company: true } } }
+        include: { job: { include: { company: true } }, resume: true }
     });
 
     if (!application) {
@@ -128,10 +129,11 @@ export const updateApplicationById = async (applicationData: updateApplicationDt
     const updatedApplication = await prisma.jobApplication.update({
         where: { id: applicationData.id },
         data: {
-            resumeUrl: applicationData.resumeUrl,
+            resumeFileId: applicationData.resumeFileId,
             coverLetter: applicationData.coverLetter,
             status: applicationData.status || application.status,
-        }
+        },
+        include: { job: { include: { company: true } }, resume: true }
     });
 
     // Notify applicant if status changed
@@ -140,8 +142,8 @@ export const updateApplicationById = async (applicationData: updateApplicationDt
             await notifyApplicantOfStatusUpdate({
                 applicationId: updatedApplication.id,
                 jobId: updatedApplication.jobId,
-                jobTitle: application.job.title,
-                companyName: application.job.company.name,
+                jobTitle: updatedApplication.job.title,
+                companyName: updatedApplication.job.company.name,
                 applicantId: updatedApplication.applicantId,
                 newStatus: updatedApplication.status,
             });
@@ -150,7 +152,7 @@ export const updateApplicationById = async (applicationData: updateApplicationDt
         }
     }
 
-    return { application: updatedApplication, statusChanged, job: application.job };
+    return { application: updatedApplication, statusChanged, job: updatedApplication.job };
 }
 
 export const deleteExistingApplication = async (id: string) => {

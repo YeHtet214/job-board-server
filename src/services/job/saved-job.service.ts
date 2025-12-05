@@ -1,11 +1,6 @@
 import prisma from '../../lib/prismaClient.js';
 import { BadRequestError, NotFoundError, UnauthorizedError } from '../../middleware/errorHandler.js';
 
-/**
- * Gets saved jobs for a user
- * @param userId The user ID
- * @returns Array of saved jobs with details
- */
 export const getSavedJobs = async (userId: string) => {
   if (!userId) {
     throw new UnauthorizedError('Not authenticated');
@@ -35,11 +30,6 @@ export const getSavedJobs = async (userId: string) => {
   });
 };
 
-/**
- * Removes a saved job for a user
- * @param savedJobId The saved job ID to remove
- * @param userId The user ID
- */
 export const removeSavedJob = async (savedJobId: string, userId: string) => {
 
   if (!userId) {
@@ -68,11 +58,6 @@ export const removeSavedJob = async (savedJobId: string, userId: string) => {
   });
 };
 
-/**
- * Saves a job for a user
- * @param jobId The job ID to save
- * @param userId The user ID
- */
 export const saveJob = async (jobId: string, userId: string) => {
 
   if (!userId) {
@@ -114,12 +99,6 @@ export const saveJob = async (jobId: string, userId: string) => {
   });
 };
 
-/**
- * Check if job is saved by the user
- * @param jobId The job ID to check
- * @param userId The user ID
- * @returns The saved job record or null if not saved
- */
 export const isJobSaved = async (jobId: string, userId: string) => {
   if (!userId) {
     throw new UnauthorizedError('Not authenticated');
@@ -166,15 +145,11 @@ export const areJobsSaved = async (jobIds: string[], userId: string) => {
     }
   });
 
-  console.log("Saved jobs from savedJob service: ", savedJobs);
-
   // Create a map for quick lookup
   const savedJobsMap = savedJobs.reduce((map: Record<string, string>, savedJob: { jobId: string; id: string }) => {
     map[savedJob.jobId] = savedJob.id;
     return map;
   }, {});
-
-  console.log("Saved jobs mapped: ", savedJobsMap);
 
   // Create the result object with isSaved status for each job ID
   const result: Record<string, { isSaved: boolean, savedJobId: string | null }> = {};
@@ -185,8 +160,6 @@ export const areJobsSaved = async (jobIds: string[], userId: string) => {
       savedJobId: savedJobsMap[jobId] || null
     };
   });
-
-  console.log("Result: ", result);
 
   return result;
 };

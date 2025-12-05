@@ -122,7 +122,7 @@ export const updateExistingProfile = async (userId: string, data: UpdateProfileD
             }
         });
 
-        const resumeURL = profile?.resumeFileId ? FileURLConstructor(profile.resumeFileId, profile.tokenSecret) : null;
+        const resumeURL = profile?.resumeFileId ? FileURLConstructor(profile.resumeFileId, profile?.resume?.tokenSecret || '') : null;
 
         return {
             ...profile,
@@ -148,78 +148,4 @@ export const deleteExistingProfile = async (userId: string) => {
 
     const profile = await prisma.profile.delete({ where: { userId } });
     return profile;
-}
-
-export const uploadResume = async (userId: string, file: any): Promise<string> => {
-    try {
-        // Check if profile exists
-        const existingProfile = await fetchProfile(userId);
-        if (!existingProfile) {
-            const error = new Error("Profile not found") as CustomError;
-            error.status = 404;
-            throw error;
-        }
-
-        // Validate file
-        if (!file) {
-            const error = new Error("No file provided") as CustomError;
-            error.status = 400;
-            throw error;
-        }
-
-        // Validate file type
-        const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-            const error = new Error("Only PDF and Word documents are allowed") as CustomError;
-            error.status = 400;
-            throw error;
-        }
-
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-        if (file.size > maxSize) {
-            const error = new Error("File size exceeds 5MB limit") as CustomError;
-            error.status = 400;
-            throw error;
-        }
-
-        // Create uploads directory if it doesn't exist
-        const uploadsDir = path.join(__dirname, '../../uploads');
-        const userUploadsDir = path.join(uploadsDir, 'resumes', userId);
-
-        if (!fs.existsSync(uploadsDir)) {
-            fs.mkdirSync(uploadsDir, { recursive: true });
-        }
-
-        if (!fs.existsSync(path.join(uploadsDir, 'resumes'))) {
-            fs.mkdirSync(path.join(uploadsDir, 'resumes'), { recursive: true });
-        }
-
-        if (!fs.existsSync(userUploadsDir)) {
-            fs.mkdirSync(userUploadsDir, { recursive: true });
-        }
-
-        // Generate unique filename using crypto instead of uuid
-        const fileExtension = path.extname(file.originalname);
-        const fileName = `${crypto.randomUUID()}${fileExtension}`;
-        const filePath = path.join(userUploadsDir, fileName);
-
-        // Write file to disk
-        fs.writeFileSync(filePath, file.buffer);
-
-        // Generate URL for the file
-        const resumeUrl = `/uploads/resumes/${userId}/${fileName}`;
-
-        // Update user profile with resume URL
-        await prisma.profile.update({
-            where: { userId },
-            data: { res }
-        });
-
-        return resumeUrl;
-    } catch (error) {
-        const customError = new Error(error instanceof Error ? error.message : 'Failed to upload resume') as CustomError;
-        customError.status = 400;
-        throw customError;
-    }
 }

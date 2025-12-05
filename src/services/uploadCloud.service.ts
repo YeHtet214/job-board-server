@@ -26,6 +26,7 @@ export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
 }
 
 export const resumeUploadToAppwrite = async (file: Express.Multer.File) => {
+  console.log("application update in appwrite submit;", file)
   const inputFile = InputFile.fromBuffer(file.buffer, file.originalname);
 
   try {
