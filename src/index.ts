@@ -1,4 +1,4 @@
-import express from "express";
+import express, { CookieOptions } from "express";
 import { createServer } from 'http';
 import cors from 'cors';
 import passport from 'passport';
@@ -17,6 +17,7 @@ import applicationRouter from './routes/application.route.js';
 import userRouter from './routes/user.route.js';
 import dashboardRouter from './routes/dashboard.routes.js';
 import savedJobRouter from './routes/saved-job.route.js';
+import passwordRouter from './routes/password.route.js';
 import errorHandler from './middleware/error.middleware.js';
 
 // Import Passport config
@@ -32,6 +33,13 @@ const app = express();
 const port = process.env.PORT || 3000;  
 const httpServer = createServer(app);
 const io = initSocketServer(httpServer);
+
+export const REFRESH_TOKEN_COOKIE_CONFIG: CookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'none',
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 app.use(cookieParser());
 app.use(bodyParser.json());
@@ -72,6 +80,7 @@ app.set('io', io);
 // Your existing routes
 app.use('/api/users', userRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/password', passwordRouter);
 app.use('/api/profiles', profileRouter);
 app.use('/api/resumes', resumeRouter);
 app.use('/api/companies', companyRouter);

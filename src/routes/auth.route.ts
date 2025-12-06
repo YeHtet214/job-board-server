@@ -5,6 +5,7 @@ import authorize from "../middleware/auth.middleware.js";
 import { generateTokens, storeRefreshToken } from "../services/auth.service.js";
 import { FRONTEND_URL } from "../config/env.config.js";
 import { authValidation } from "@/middleware/validation";
+import { REFRESH_TOKEN_COOKIE_CONFIG } from "../index.js";
 
 const authRouter = Router();
 
@@ -34,12 +35,13 @@ authRouter.get('/google/callback', passport.authenticate('google', {
 
             // Generate tokens
             const { accessToken, refreshToken } = generateTokens(user.userId, user.email, "JOBSEEKER", user.userName);
+            res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
 
             // Store refresh token in database
             await storeRefreshToken(user.userId, refreshToken);
 
             // Redirect to frontend with tokens
-            res.redirect(`${FRONTEND_URL}/oauth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+            res.redirect(`${FRONTEND_URL}/oauth/callback?accessToken=${accessToken}`);
         } catch (error) {
             console.error('OAuth callback error:', error);
             res.redirect(`${FRONTEND_URL}/login?error=server_error`);

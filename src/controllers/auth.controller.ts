@@ -1,4 +1,4 @@
-import { CookieOptions, NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import {
   userSignIn,
   userSignUp,
@@ -11,21 +11,7 @@ import {
 } from '../services/auth.service.js';
 import { RequestWithUser } from '../types/users.js';
 import { UnauthorizedError } from '@/middleware/errorHandler.js';
-
-// Cookie configuration
-const REFRESH_TOKEN_COOKIE_CONFIG: CookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production', 
-  sameSite: 'none',
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-
-/**
- * Handles user sign-up.
- * @param req - Express request object, expects body with firstName, lastName, email, password, and role.
- * @param res - Express response object.
- * @returns A promise that resolves to sending a JSON response.
- */
+import { REFRESH_TOKEN_COOKIE_CONFIG } from '@/index.js';
 
 export const signUp = async (
   req: Request,

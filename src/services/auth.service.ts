@@ -51,7 +51,7 @@ export const storeRefreshToken = async (
   refreshToken: string,
 ) => {
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-  const res = await prisma.refreshToken.create({
+  return await prisma.refreshToken.create({
     data: {
       token: refreshToken,
       userId,
@@ -135,7 +135,17 @@ export const userSignIn = async (email: string, password: string) => {
 
   const user = await checkUserExists(email);
 
-  if (!user || !user.passwordHash) {
+  if (!user) {
+    throw new UnauthorizedError('Invalid credentials');
+  }
+
+  // Check if user registered via OAuth (Google, etc.) and hasn't set a password
+  if (!user.passwordHash) {
+    if (user.googleId) {
+      throw new UnauthorizedError(
+        'This account was created using Google Sign-In. Please login with Google or set a password in your account settings.',
+      );
+    }
     throw new UnauthorizedError('Invalid credentials');
   }
 
