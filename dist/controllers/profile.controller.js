@@ -9,39 +9,22 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadProfileImage = exports.uploadResumeFile = exports.deleteProfile = exports.updateProfile = exports.createProfile = exports.getProfileById = exports.getProfile = void 0;
+exports.uploadProfileImage = exports.deleteProfile = exports.updateProfile = exports.createProfile = exports.getProfileById = void 0;
 const profile_service_js_1 = require("../services/profile.service.js");
 const express_validator_1 = require("express-validator");
 const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
-const getProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const userId = req.user.userId;
-        const profile = yield (0, profile_service_js_1.fetchProfile)(userId);
-        res.status(200).json({
-            success: true,
-            message: "Profile fetched successfully",
-            data: profile
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.getProfile = getProfile;
 const getProfileById = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { seekerId } = req.params;
         const requestingUser = req.user;
-        // only employers should view other profiles
-        // Seekers should use /me to view their own profile
-        if (requestingUser.role !== 'EMPLOYER') {
+        // only employers should view other profiles or owner should view their own profile
+        if (requestingUser.role === 'JOBSEEKER' && requestingUser.userId !== seekerId) {
             return res.status(403).json({
                 success: false,
                 message: "You don't have permission to view this profile"
             });
         }
         const profile = yield (0, profile_service_js_1.fetchProfile)(seekerId);
-        console.log("profile", profile);
         if (!profile) {
             return res.status(404).json({
                 success: false,
@@ -65,10 +48,9 @@ const createProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, func
         const userId = req.user.userId;
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['body'] });
         const profileImageURL = yield (0, uploadCloud_service_js_1.mediaUploadToCloudinary)(file);
-        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
         if (validatedData.hasOwnProperty('userId'))
             delete validatedData.userId;
-        const profile = yield (0, profile_service_js_1.createNewProfile)(Object.assign(Object.assign({}, validatedData), { userId, profileImageURL, resumeUrl }));
+        const profile = yield (0, profile_service_js_1.createNewProfile)(Object.assign(Object.assign({}, validatedData), { userId, profileImageURL }));
         res.status(201).json({
             success: true,
             message: "Profile created successfully",
@@ -83,12 +65,11 @@ const createProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, func
 exports.createProfile = createProfile;
 const updateProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const file = req.file;
+        const file = req.file; // profile image
         const userId = req.user.userId;
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['body'] });
         const profileImageURL = yield (0, uploadCloud_service_js_1.mediaUploadToCloudinary)(file);
-        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
-        const profile = yield (0, profile_service_js_1.updateExistingProfile)(userId, Object.assign(Object.assign({}, validatedData), { profileImageURL, resumeUrl }));
+        const profile = yield (0, profile_service_js_1.updateExistingProfile)(userId, Object.assign(Object.assign({}, validatedData), { profileImageURL }));
         res.status(200).json({
             success: true,
             message: "Profile updated successfully",
@@ -115,28 +96,6 @@ const deleteProfile = (req, res, next) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deleteProfile = deleteProfile;
-const uploadResumeFile = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        if (!req.file) {
-            return res.status(400).json({
-                success: false,
-                message: "No file uploaded"
-            });
-        }
-        const file = req.file;
-        const userId = req.user.userId;
-        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
-        res.status(200).json({
-            success: true,
-            message: "Resume uploaded successfully",
-            data: { url: resumeUrl }
-        });
-    }
-    catch (error) {
-        next(error);
-    }
-});
-exports.uploadResumeFile = uploadResumeFile;
 const uploadProfileImage = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         if (!req.file) {

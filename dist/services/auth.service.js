@@ -41,7 +41,7 @@ const generateTokens = (userId, email, role, userName) => {
 exports.generateTokens = generateTokens;
 const storeRefreshToken = (userId, refreshToken) => __awaiter(void 0, void 0, void 0, function* () {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
-    yield prismaClient_1.default.refreshToken.create({
+    return yield prismaClient_1.default.refreshToken.create({
         data: {
             token: refreshToken,
             userId,
@@ -103,7 +103,14 @@ const userSignIn = (email, password) => __awaiter(void 0, void 0, void 0, functi
         throw new errorHandler_1.BadRequestError('Email and password are required');
     }
     const user = yield checkUserExists(email);
-    if (!user || !user.passwordHash) {
+    if (!user) {
+        throw new errorHandler_1.UnauthorizedError('Invalid credentials');
+    }
+    // Check if user registered via OAuth (Google, etc.) and hasn't set a password
+    if (!user.passwordHash) {
+        if (user.googleId) {
+            throw new errorHandler_1.UnauthorizedError('This account was created using Google Sign-In. Please login with Google or set a password in your account settings.');
+        }
         throw new errorHandler_1.UnauthorizedError('Invalid credentials');
     }
     const isPasswordValid = yield bcrypt_1.default.compare(password, user.passwordHash);

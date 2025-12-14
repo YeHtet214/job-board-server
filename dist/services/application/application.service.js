@@ -83,12 +83,13 @@ const postNewApplication = (applicationData, user) => __awaiter(void 0, void 0, 
         data: {
             jobId: applicationData.jobId,
             applicantId: applicationData.applicantId,
-            resumeUrl: applicationData.resumeUrl,
+            resumeFileId: applicationData.resumeFileId,
             coverLetter: applicationData.coverLetter,
             additionalInfo: applicationData.additionalInfo,
             acceptTerms: true,
             status: 'PENDING'
-        }
+        },
+        include: { job: { include: { company: true } }, resume: true }
     });
     // Notify employer of new application
     try {
@@ -106,14 +107,14 @@ const postNewApplication = (applicationData, user) => __awaiter(void 0, void 0, 
     catch (err) {
         console.error('Failed to create notification for employer:', err);
     }
-    return { application: newApplication, job };
+    return { application: newApplication, job: newApplication.job };
 });
 exports.postNewApplication = postNewApplication;
 const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if application exists
     const application = yield prismaClient_js_1.default.jobApplication.findUnique({
         where: { id: applicationData.id },
-        include: { job: { include: { company: true } } }
+        include: { job: { include: { company: true } }, resume: true }
     });
     if (!application) {
         const error = new Error('Application not found');
@@ -125,10 +126,11 @@ const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, voi
     const updatedApplication = yield prismaClient_js_1.default.jobApplication.update({
         where: { id: applicationData.id },
         data: {
-            resumeUrl: applicationData.resumeUrl,
+            resumeFileId: applicationData.resumeFileId,
             coverLetter: applicationData.coverLetter,
             status: applicationData.status || application.status,
-        }
+        },
+        include: { job: { include: { company: true } }, resume: true }
     });
     // Notify applicant if status changed
     if (statusChanged) {
@@ -136,8 +138,8 @@ const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, voi
             yield (0, socket_service_js_1.notifyApplicantOfStatusUpdate)({
                 applicationId: updatedApplication.id,
                 jobId: updatedApplication.jobId,
-                jobTitle: application.job.title,
-                companyName: application.job.company.name,
+                jobTitle: updatedApplication.job.title,
+                companyName: updatedApplication.job.company.name,
                 applicantId: updatedApplication.applicantId,
                 newStatus: updatedApplication.status,
             });
@@ -146,7 +148,7 @@ const updateApplicationById = (applicationData) => __awaiter(void 0, void 0, voi
             console.error('Failed to create notification for applicant:', err);
         }
     }
-    return { application: updatedApplication, statusChanged, job: application.job };
+    return { application: updatedApplication, statusChanged, job: updatedApplication.job };
 });
 exports.updateApplicationById = updateApplicationById;
 const deleteExistingApplication = (id) => __awaiter(void 0, void 0, void 0, function* () {

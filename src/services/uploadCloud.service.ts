@@ -1,4 +1,3 @@
-import { InputFile } from "node-appwrite/file";
 import { ID } from "node-appwrite";
 import { storage, tokens } from "../config/appwrite.config.js";
 import cloudinary from "../config/cloudinary.config.js";
@@ -26,14 +25,12 @@ export const mediaUploadToCloudinary  = async (file: Express.Multer.File) => {
 }
 
 export const resumeUploadToAppwrite = async (file: Express.Multer.File) => {
-  console.log("application update in appwrite submit;", file)
-  const inputFile = InputFile.fromBuffer(file.buffer, file.originalname);
-
   try {
+    if (!(file instanceof File)) return { fileId: undefined }
     const { $id: fileId } = await storage.createFile(
       APPWRITE_BUCKET_ID,
       ID.unique(),
-      inputFile,
+      file,
       []
     );
     

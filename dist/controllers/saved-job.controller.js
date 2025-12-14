@@ -11,9 +11,6 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.batchCheckSavedJobsHandler = exports.isJobSavedHandler = exports.removeSavedJobHandler = exports.saveJobHandler = exports.getSavedJobsHandler = void 0;
 const saved_job_service_js_1 = require("../services/job/saved-job.service.js");
-/**
- * Get all saved jobs for the current user
- */
 const getSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
@@ -29,16 +26,11 @@ const getSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0
     }
 });
 exports.getSavedJobsHandler = getSavedJobsHandler;
-/**
- * Save a job for the current user
- */
 const saveJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
         const { jobId } = req.body;
-        console.log("user id in save job handler: ", userId);
         const result = yield (0, saved_job_service_js_1.saveJob)(jobId, userId);
-        console.log("Job saving result: ", result);
         res.status(201).json({
             success: true,
             message: 'Job has been successfully saved',
@@ -50,9 +42,6 @@ const saveJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.saveJobHandler = saveJobHandler;
-/**
- * Remove a saved job for the current user
- */
 const removeSavedJobHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
@@ -69,9 +58,6 @@ const removeSavedJobHandler = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.removeSavedJobHandler = removeSavedJobHandler;
-/**
- * Check if a job is saved by the current user
- */
 const isJobSavedHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
@@ -91,9 +77,6 @@ const isJobSavedHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.isJobSavedHandler = isJobSavedHandler;
-/**
- * Check if multiple jobs are saved by the current user
- */
 const batchCheckSavedJobsHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;

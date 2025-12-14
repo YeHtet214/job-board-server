@@ -15,14 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCompanyProfileCompletion = exports.calculateCompanyProfileCompletion = exports.calculateJobSeekerProfileCompletion = void 0;
 const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
 const errorHandler_js_1 = require("../../middleware/errorHandler.js");
-/**
- * Calculates job seeker profile completion percentage
- * @param userId The user ID
- * @returns Profile completion percentage
- */
+const resume_service_js_1 = require("../resume.service.js");
 const calculateJobSeekerProfileCompletion = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const profile = yield prismaClient_js_1.default.profile.findUnique({
-        where: { userId }
+        where: { userId },
+        include: { resume: true }
     });
     if (!profile)
         return 0;
@@ -44,19 +41,13 @@ const calculateJobSeekerProfileCompletion = (userId) => __awaiter(void 0, void 0
         completionPercentage += 20;
     }
     // Has resume
-    if (profile.resumeUrl) {
+    let resumeURL = (profile === null || profile === void 0 ? void 0 : profile.resume) ? (0, resume_service_js_1.FileURLConstructor)(profile.resume.fileId, profile.resume.tokenSecret) : null;
+    if (resumeURL !== null) {
         completionPercentage += 20;
     }
-    console.log("Profile: ", profile);
-    console.log("Completion Percentage: ", completionPercentage);
     return completionPercentage;
 });
 exports.calculateJobSeekerProfileCompletion = calculateJobSeekerProfileCompletion;
-/**
- * Calculates company profile completion status
- * @param company The company object
- * @returns Completion percentage and whether the profile is complete
- */
 const calculateCompanyProfileCompletion = (company) => {
     let percentage = 0;
     let requiredFieldsCount = 0;
@@ -90,10 +81,6 @@ const calculateCompanyProfileCompletion = (company) => {
     };
 };
 exports.calculateCompanyProfileCompletion = calculateCompanyProfileCompletion;
-/**
- * Gets company profile completion information for an employer
- * @param userId The user ID (employer)
- */
 const getCompanyProfileCompletion = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     // Verify the user is an employer
     const user = yield prismaClient_js_1.default.user.findUnique({

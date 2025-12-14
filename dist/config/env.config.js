@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.FIREBASE_MEASUREMENT_ID = exports.FIREBASE_MESSAGING_SENDER_ID = exports.FIREBASE_APP_ID = exports.FIREBASE_PROJECT_ID = exports.FIREBASE_API_KEY = exports.FIREBASE_STORAGE_BUCKET = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.GOOGLE_REDIRECT_URI = exports.GOOGLE_CLIENT_SECRET = exports.GOOGLE_CLIENT_ID = exports.SMTP_PORT = exports.SMTP_HOST = exports.SMTP_PASS = exports.SMTP_USER = exports.SESSION_SECRET = exports.FRONTEND_URL = exports.REFRESH_TOKEN_SECRET = exports.JWT_SECRET = exports.DATABASE_URL = void 0;
+exports.FIREBASE_MEASUREMENT_ID = exports.FIREBASE_MESSAGING_SENDER_ID = exports.FIREBASE_APP_ID = exports.FIREBASE_PROJECT_ID = exports.FIREBASE_API_KEY = exports.FIREBASE_STORAGE_BUCKET = exports.APPWRITE_BUCKET_ID = exports.APPWRITE_API_KEY = exports.APPWRITE_PROJECT_ID = exports.APPWRITE_ENDPOINT = exports.CLOUDINARY_API_SECRET = exports.CLOUDINARY_API_KEY = exports.CLOUDINARY_CLOUD_NAME = exports.GOOGLE_REDIRECT_URI = exports.GOOGLE_CLIENT_SECRET = exports.GOOGLE_CLIENT_ID = exports.SMTP_PORT = exports.SMTP_HOST = exports.SMTP_PASS = exports.SMTP_USER = exports.SESSION_SECRET = exports.FRONTEND_URL = exports.REFRESH_TOKEN_SECRET = exports.JWT_SECRET = exports.DATABASE_URL = void 0;
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 if (!process.env.JWT_SECRET) {
@@ -33,6 +33,10 @@ exports.GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI;
 exports.CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
 exports.CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY;
 exports.CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
+exports.APPWRITE_ENDPOINT = process.env.APPWRITE_ENDPOINT;
+exports.APPWRITE_PROJECT_ID = process.env.APPWRITE_PROJECT_ID;
+exports.APPWRITE_API_KEY = process.env.APPWRITE_API_KEY;
+exports.APPWRITE_BUCKET_ID = process.env.APPWRITE_BUCKET_ID;
 exports.FIREBASE_STORAGE_BUCKET = process.env.FIREBASE_STORAGE_BUCKET;
 exports.FIREBASE_API_KEY = process.env.FIREBASE_API_KEY;
 exports.FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID;

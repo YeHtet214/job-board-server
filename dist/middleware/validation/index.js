@@ -10,10 +10,6 @@ const application_validation_js_1 = require("./application.validation.js");
 Object.defineProperty(exports, "applicationValidation", { enumerable: true, get: function () { return application_validation_js_1.applicationValidation; } });
 const profile_validation_js_1 = require("./profile.validation.js");
 Object.defineProperty(exports, "profileValidation", { enumerable: true, get: function () { return profile_validation_js_1.profileValidation; } });
-/**
- * Middleware to validate request data based on the validation chains
- * @returns Express middleware function
- */
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
     if (errors.isEmpty()) {

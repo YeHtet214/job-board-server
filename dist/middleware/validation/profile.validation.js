@@ -6,12 +6,10 @@ const express_validator_1 = require("express-validator");
  * Validation rules for profile endpoints
  */
 exports.profileValidation = {
-    // Validation for creating a profile
     createProfile: [
         (0, express_validator_1.body)('bio')
             .notEmpty()
             .withMessage('Bio is required')
-            // .isString().withMessage('Bio must be a string')
             .trim(),
         (0, express_validator_1.body)('skills')
             .isArray({ min: 1 })
@@ -67,30 +65,31 @@ exports.profileValidation = {
             return true;
         }),
         (0, express_validator_1.body)('linkedInUrl')
-            .optional({ values: 'falsy' })
+            .optional()
             .isURL()
             .withMessage('LinkedIn URL must be a valid URL')
             .trim(),
         (0, express_validator_1.body)('githubUrl')
-            .optional({ values: 'falsy' })
             .isURL()
             .withMessage('GitHub URL must be a valid URL')
             .trim(),
         (0, express_validator_1.body)('portfolioUrl')
-            .optional({ values: 'falsy' })
             .isURL()
             .withMessage('Portfolio URL must be a valid URL')
+            .trim(),
+        (0, express_validator_1.body)('resumeFileId')
+            .isString()
+            .withMessage('Resume file ID must be a string')
             .trim(),
     ],
     // Validation for updating a profile - similar to create but all fields are optional
     updateProfile: [
         (0, express_validator_1.body)('bio')
-            .optional({ values: 'falsy' })
+            .optional()
             .isString()
             .withMessage('Bio must be a string')
             .trim(),
         (0, express_validator_1.body)('skills')
-            .optional({ values: 'falsy' })
             .isArray({ min: 1 })
             .withMessage('At least one skill is required')
             .custom((skills) => {
@@ -102,7 +101,7 @@ exports.profileValidation = {
             return true;
         }),
         (0, express_validator_1.body)('education')
-            .optional({ values: 'falsy' })
+            .optional()
             .isArray()
             .withMessage('Education must be an array')
             .custom((educationArr) => {
@@ -125,7 +124,7 @@ exports.profileValidation = {
             return true;
         }),
         (0, express_validator_1.body)('experience')
-            .optional({ values: 'falsy' })
+            .optional()
             .isArray()
             .withMessage('Experience must be an array')
             .custom((experienceArr) => {
@@ -147,5 +146,24 @@ exports.profileValidation = {
             }
             return true;
         }),
+        (0, express_validator_1.body)('linkedInUrl')
+            .optional({ values: 'falsy' })
+            .isURL()
+            .withMessage('LinkedIn URL must be a valid URL')
+            .trim(),
+        (0, express_validator_1.body)('githubUrl')
+            .isURL()
+            .withMessage('GitHub URL must be a valid URL')
+            .trim(),
+        (0, express_validator_1.body)('portfolioUrl')
+            .optional({ values: 'falsy' })
+            .isURL()
+            .withMessage('Portfolio URL must be a valid URL')
+            .trim(),
+        (0, express_validator_1.body)('resumeFileId')
+            .optional({ values: 'falsy' })
+            .isString()
+            .withMessage('Resume file ID must be a string')
+            .trim(),
     ],
 };

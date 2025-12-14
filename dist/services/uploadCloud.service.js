@@ -12,10 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resumeUploadToFirebase = exports.mediaUploadToCloudinary = void 0;
+exports.resumeUploadToAppwrite = exports.mediaUploadToCloudinary = void 0;
+const node_appwrite_1 = require("node-appwrite");
+const appwrite_config_js_1 = require("../config/appwrite.config.js");
 const cloudinary_config_js_1 = __importDefault(require("../config/cloudinary.config.js"));
-const firebase_config_js_1 = require("../config/firebase.config.js");
 const index_js_1 = require("../utils/index.js");
+const env_config_js_1 = require("../config/env.config.js");
+const resume_service_js_1 = require("./resume.service.js");
 const mediaUploadToCloudinary = (file) => __awaiter(void 0, void 0, void 0, function* () {
     if (!file)
         return;
@@ -35,24 +38,21 @@ const mediaUploadToCloudinary = (file) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.mediaUploadToCloudinary = mediaUploadToCloudinary;
-const resumeUploadToFirebase = (file, userId) => __awaiter(void 0, void 0, void 0, function* () {
-    if (!file)
-        return;
-    const uniqueName = `${userId}_${Date.now()}_${(0, index_js_1.sanitizeName)(file.originalname)}`;
-    const blob = firebase_config_js_1.bucket.file(`resumes/${uniqueName}`);
-    const blobStream = blob.createWriteStream({
-        metadata: {
-            contentType: file.mimetype,
-        },
-    });
-    return new Promise((resolve, reject) => {
-        blobStream.on("error", (err) => reject(err));
-        blobStream.on("finish", () => __awaiter(void 0, void 0, void 0, function* () {
-            yield blob.makePublic();
-            const publicUrl = `https://storage.googleapis.com/${firebase_config_js_1.bucket.name}/${blob.name}`;
-            resolve(publicUrl);
-        }));
-        blobStream.end(file.buffer);
-    });
+const resumeUploadToAppwrite = (file) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        if (!(file instanceof File))
+            return { fileId: undefined };
+        const { $id: fileId } = yield appwrite_config_js_1.storage.createFile(env_config_js_1.APPWRITE_BUCKET_ID, node_appwrite_1.ID.unique(), file, []);
+        const tokenSecret = yield appwrite_config_js_1.tokens.createFileToken({
+            bucketId: env_config_js_1.APPWRITE_BUCKET_ID,
+            fileId,
+        });
+        yield (0, resume_service_js_1.saveResume)(fileId, tokenSecret.secret);
+        return { fileId, tokenSecret };
+    }
+    catch (error) {
+        console.log('resume upload error: ', error);
+        throw error;
+    }
 });
-exports.resumeUploadToFirebase = resumeUploadToFirebase;
+exports.resumeUploadToAppwrite = resumeUploadToAppwrite;

@@ -19,6 +19,7 @@ const auth_middleware_js_1 = __importDefault(require("../middleware/auth.middlew
 const auth_service_js_1 = require("../services/auth.service.js");
 const env_config_js_1 = require("../config/env.config.js");
 const validation_1 = require("@/middleware/validation");
+const index_js_1 = require("../index.js");
 const authRouter = (0, express_1.Router)();
 authRouter.post('/signup', validation_1.authValidation.signUp, auth_controller_1.signUp);
 authRouter.post('/signin', validation_1.authValidation.signIn, auth_controller_1.signIn);
@@ -42,10 +43,11 @@ authRouter.get('/google/callback', passport_1.default.authenticate('google', {
         }
         // Generate tokens
         const { accessToken, refreshToken } = (0, auth_service_js_1.generateTokens)(user.userId, user.email, "JOBSEEKER", user.userName);
+        res.cookie('refreshToken', refreshToken, index_js_1.REFRESH_TOKEN_COOKIE_CONFIG);
         // Store refresh token in database
         yield (0, auth_service_js_1.storeRefreshToken)(user.userId, refreshToken);
         // Redirect to frontend with tokens
-        res.redirect(`${env_config_js_1.FRONTEND_URL}/oauth/callback?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+        res.redirect(`${env_config_js_1.FRONTEND_URL}/oauth/callback?accessToken=${accessToken}`);
     }
     catch (error) {
         console.error('OAuth callback error:', error);

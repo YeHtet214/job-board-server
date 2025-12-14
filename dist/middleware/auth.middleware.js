@@ -19,7 +19,6 @@ const env_config_js_1 = require("../config/env.config.js");
 const prismaClient_js_1 = __importDefault(require("../lib/prismaClient.js"));
 const verifyToken = (token) => {
     const decoded = jsonwebtoken_1.default.decode(token);
-    console.log("decoded token: ", decoded);
     if (typeof decoded === 'object' && decoded !== null) {
         if (!decoded ||
             (decoded.exp && decoded.exp < Date.now().valueOf() / 1000)) {

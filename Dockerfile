@@ -1,0 +1,68 @@
+FROM node:20-slim as builder
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY . .
+
+RUN npm run build
+
+
+# The Final Production Image
+FROM node:20-slim as final
+
+# Create a non-root user for security
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+USER appuser
+
+WORKDIR /app
+
+# Environment variables from .env
+ARG DATABASE_URL
+ENV DATABASE_URL=$DATABASE_URL
+
+ARG JWT_SECRET
+ENV JWT_SECRET=$JWT_SECRET
+
+ARG REFRESH_TOKEN_SECRET
+ENV REFRESH_TOKEN_SECRET=$REFRESH_TOKEN_SECRET
+
+ARG SESSION_SECRET
+ENV SESSION_SECRET=$SESSION_SECRET
+
+ARG FRONTEND_URL
+ENV FRONTEND_URL=$FRONTEND_URL
+
+ARG SMTP_HOST
+ENV SMTP_HOST=$SMTP_HOST
+
+ARG SMTP_PORT
+ENV SMTP_PORT=$SMTP_PORT
+
+ARG SMTP_SECURE
+ENV SMTP_SECURE=$SMTP_SECURE
+
+ARG SMTP_USER
+ENV SMTP_USER=$SMTP_USER
+
+ARG SMTP_PASS
+ENV SMTP_PASS=$SMTP_PASS
+
+ARG GOOGLE_CLIENT_ID
+ENV GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+
+ARG GOOGLE_CLIENT_SECRET
+ENV GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+
+COPY --from=builder /app/node_modules ./node_modules
+
+COPY --from=builder /app/dist ./dist
+
+COPY package.json ./
+
+EXPOSE 8080
+
+CMD ["npm", "start"]

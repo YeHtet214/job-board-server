@@ -12,26 +12,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.resetPasswordHandler = exports.forgotPassword = exports.resendVerification = exports.logout = exports.verifyEmailToken = exports.refresh = exports.signIn = exports.signUp = void 0;
 const auth_service_js_1 = require("../services/auth.service.js");
 const errorHandler_js_1 = require("@/middleware/errorHandler.js");
-// Cookie configuration
-const REFRESH_TOKEN_COOKIE_CONFIG = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'none',
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-};
-/**
- * Handles user sign-up.
- * @param req - Express request object, expects body with firstName, lastName, email, password, and role.
- * @param res - Express response object.
- * @returns A promise that resolves to sending a JSON response.
- */
+const index_js_1 = require("@/index.js");
 const signUp = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { firstName, lastName, email, password, role } = req.body;
         const { accessToken, refreshToken, user } = yield (0, auth_service_js_1.userSignUp)(firstName, lastName, email, password, role);
         if (!refreshToken)
             throw new errorHandler_js_1.UnauthorizedError('Invalid credentials');
-        res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
+        res.cookie('refreshToken', refreshToken, index_js_1.REFRESH_TOKEN_COOKIE_CONFIG);
         res.status(201).json({
             success: true,
             message: 'Successfully signed up. Please check your email for verification.',
@@ -49,7 +37,7 @@ const signIn = (req, res, next) => __awaiter(void 0, void 0, void 0, function* (
         const { user, accessToken, refreshToken } = yield (0, auth_service_js_1.userSignIn)(email, password);
         if (!refreshToken)
             throw new errorHandler_js_1.UnauthorizedError('Invalid credentials');
-        res.cookie('refreshToken', refreshToken, REFRESH_TOKEN_COOKIE_CONFIG);
+        res.cookie('refreshToken', refreshToken, index_js_1.REFRESH_TOKEN_COOKIE_CONFIG);
         res.status(200).json({
             success: true,
             message: 'Successfully signed in',
@@ -64,6 +52,7 @@ exports.signIn = signIn;
 const refresh = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const refreshToken = req.cookies.refreshToken;
+        console.log("refresh token in cookie: ", refreshToken);
         const { accessToken } = yield (0, auth_service_js_1.refreshTokenService)(refreshToken);
         res.status(200).json({
             success: true,

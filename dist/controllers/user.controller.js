@@ -14,7 +14,6 @@ const user_service_js_1 = require("../services/user/user.service.js");
 const getCurrentUser = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
-        // Get user data without sensitive information
         const user = yield (0, user_service_js_1.fetchUserById)(userId);
         if (!user) {
             return res.status(404).json({
@@ -35,9 +34,7 @@ const getCurrentUser = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
 exports.getCurrentUser = getCurrentUser;
 const getAllUsers = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Get all users without sensitive information
         const users = yield (0, user_service_js_1.fetchUsers)();
-        // Check if users were found
         if (!users || users.length === 0) {
             return res.status(404).json({
                 success: false,
