@@ -78,7 +78,50 @@ exports.applicationValidation = {
             .isString().withMessage('Status must be a string')
             .trim()
             .escape()
-            .isIn(['PENDING', 'INTERVIEW', 'ACCEPTED', 'REJECTED']).withMessage('Status must be PENDING, INTERVIEW, ACCEPTED, or REJECTED')
+            .isIn(['PENDING', 'INTERVIEW', 'ACCEPTED', 'REJECTED']).withMessage('Status must be PENDING, INTERVIEW, ACCEPTED, or REJECTED'),
+        (0, express_validator_1.body)('fullName')
+            .notEmpty().withMessage('Full name is required')
+            .isString().withMessage('Full name must be a string')
+            .trim()
+            .escape(),
+        (0, express_validator_1.body)('email')
+            .notEmpty().withMessage('Email is required')
+            .isString().withMessage('Email must be a string')
+            .trim()
+            .escape(),
+        (0, express_validator_1.body)('phone')
+            .notEmpty().withMessage('Phone is required')
+            .isString().withMessage('Phone must be a string')
+            .trim()
+            .escape(),
+        (0, express_validator_1.body)('resume')
+            .optional()
+            .custom((value) => {
+            if (value && value.mimetype !== 'application/pdf') {
+                throw new Error('Resume must be a PDF file');
+            }
+            return true;
+        }),
+        (0, express_validator_1.body)('useExistingResume')
+            .optional()
+            .isBoolean().withMessage('Use existing resume must be a boolean'),
+        (0, express_validator_1.body)('resumeUrl')
+            .notEmpty().withMessage('Resume URL is required')
+            .isURL().withMessage('Resume URL must be a valid URL')
+            .trim(),
+        (0, express_validator_1.body)('coverLetter')
+            .optional()
+            .isString().withMessage('Cover letter must be a string')
+            .trim()
+            .escape(),
+        (0, express_validator_1.body)('acceptTerms')
+            .notEmpty().withMessage('Accept terms is required')
+            .isBoolean().withMessage('Accept terms must be a boolean'),
+        (0, express_validator_1.body)('additionalInfo')
+            .optional()
+            .isString().withMessage('Additional info must be a string')
+            .trim()
+            .escape()
     ],
     // Validation for getting an application by ID
     getByJobId: [

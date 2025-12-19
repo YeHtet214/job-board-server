@@ -35,6 +35,10 @@ export const CLOUDINARY_CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME as string
 export const CLOUDINARY_API_KEY = process.env.CLOUDINARY_API_KEY as string;
 export const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET as string;
 
+if (!process.env.APPWRITE_ENDPOINT || !process.env.APPWRITE_PROJECT_ID || !process.env.APPWRITE_API_KEY) {
+  throw new Error('APPWRITE configuration is incomplete. Please check APPWRITE_ENDPOINT, APPWRITE_PROJECT_ID, and APPWRITE_API_KEY environment variables.');
+}
+
 export const APPWRITE_ENDPOINT = process.env.APPWRITE_ENDPOINT as string;
 export const APPWRITE_PROJECT_ID = process.env.APPWRITE_PROJECT_ID as string;
 export const APPWRITE_API_KEY = process.env.APPWRITE_API_KEY as string;

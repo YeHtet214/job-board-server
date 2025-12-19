@@ -4,7 +4,7 @@ import { signUp, signIn, logout, refresh, verifyEmailToken, resendVerification, 
 import authorize from "../middleware/auth.middleware.js";
 import { generateTokens, storeRefreshToken } from "../services/auth.service.js";
 import { FRONTEND_URL } from "../config/env.config.js";
-import { authValidation } from "@/middleware/validation";
+import { authValidation } from "../middleware/validation";
 import { REFRESH_TOKEN_COOKIE_CONFIG } from "../index.js";
 
 const authRouter = Router();

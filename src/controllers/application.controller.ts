@@ -12,7 +12,7 @@ import {
 import { matchedData } from "express-validator";
 import { resumeUploadToAppwrite } from "../services/uploadCloud.service.js";
 import { NotiType } from "@prisma/client";
-import { FileURLConstructor } from "@/services/resume.service.js";
+import { FileURLConstructor } from "../services/resume.service.js";
 
 export const getAllApplicationsByUserId = async (req: RequestWithUser, res: Response, next: NextFunction) => {
     try {

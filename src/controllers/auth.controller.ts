@@ -10,8 +10,8 @@ import {
   refreshTokenService,
 } from '../services/auth.service.js';
 import { RequestWithUser } from '../types/users.js';
-import { UnauthorizedError } from '@/middleware/errorHandler.js';
-import { REFRESH_TOKEN_COOKIE_CONFIG } from '@/index.js';
+import { UnauthorizedError } from '../middleware/errorHandler.js';
+import { REFRESH_TOKEN_COOKIE_CONFIG } from '../index.js';
 
 export const signUp = async (
   req: Request,

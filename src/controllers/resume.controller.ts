@@ -1,6 +1,6 @@
 import { RequestWithUser } from "../types/users.js";
 import { NextFunction, Response } from "express";
-import { resumeUploadToAppwrite } from "@/services/uploadCloud.service";
+import { resumeUploadToAppwrite } from "../services/uploadCloud.service";
 
 export const uploadResumeFile = async (req: RequestWithUser, res: Response, next: NextFunction) => {
   const file = req.file;

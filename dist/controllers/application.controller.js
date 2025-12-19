@@ -14,6 +14,7 @@ const application_service_js_1 = require("../services/application/application.se
 const express_validator_1 = require("express-validator");
 const uploadCloud_service_js_1 = require("../services/uploadCloud.service.js");
 const client_1 = require("@prisma/client");
+const resume_service_js_1 = require("@/services/resume.service.js");
 const getAllApplicationsByUserId = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
@@ -64,13 +65,14 @@ const getApplicationById = (req, res, next) => __awaiter(void 0, void 0, void 0,
 });
 exports.getApplicationById = getApplicationById;
 const createNewApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
         const file = req.file;
-        const userId = req.user.userId;
-        const resumeURL = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(file, userId);
+        const { fileId } = yield (0, uploadCloud_service_js_1.resumeUploadToAppwrite)(file);
         const applicantId = req.user.userId;
-        const { application, job } = yield (0, application_service_js_1.postNewApplication)(Object.assign(Object.assign({}, validatedData), { resumeUrl: resumeURL, applicantId }), req.user);
+        const { application, job } = yield (0, application_service_js_1.postNewApplication)(Object.assign(Object.assign({}, validatedData), { resumeFileId: fileId, applicantId }), req.user);
+        const resumeURL = (application === null || application === void 0 ? void 0 : application.resumeFileId) ? (0, resume_service_js_1.FileURLConstructor)(application.resumeFileId, ((_a = application === null || application === void 0 ? void 0 : application.resume) === null || _a === void 0 ? void 0 : _a.tokenSecret) || '') : null;
         // Emit real-time notification via Socket.IO to employer
         const io = req.app.get('io');
         if (io && application && job) {
@@ -89,7 +91,7 @@ const createNewApplication = (req, res, next) => __awaiter(void 0, void 0, void 
         res.status(201).json({
             success: true,
             message: "Application created successfully",
-            data: application
+            data: Object.assign(Object.assign({}, application), { resumeURL })
         });
     }
     catch (error) {
@@ -98,18 +100,20 @@ const createNewApplication = (req, res, next) => __awaiter(void 0, void 0, void 
 });
 exports.createNewApplication = createNewApplication;
 const updateApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         // Get validated data
         const validatedData = (0, express_validator_1.matchedData)(req, { locations: ['params', 'body'] });
-        const resumeUrl = yield (0, uploadCloud_service_js_1.resumeUploadToFirebase)(req.file, req.user.userId);
+        const { fileId } = yield (0, uploadCloud_service_js_1.resumeUploadToAppwrite)(req.file);
         const applicantId = req.user.userId;
         const applicationData = {
             id: validatedData.id,
-            resumeUrl: validatedData.resumeUrl,
+            resumeFileId: fileId,
             coverLetter: validatedData.coverLetter,
             status: validatedData.status
         };
         const { application, statusChanged, job } = yield (0, application_service_js_1.updateApplicationById)(Object.assign(Object.assign({}, applicationData), { applicantId }));
+        const resumeURL = (application === null || application === void 0 ? void 0 : application.resumeFileId) ? (0, resume_service_js_1.FileURLConstructor)(application.resumeFileId, ((_a = application === null || application === void 0 ? void 0 : application.resume) === null || _a === void 0 ? void 0 : _a.tokenSecret) || '') : null;
         // Emit real-time notification if status changed
         if (statusChanged) {
             const io = req.app.get('io');
@@ -129,7 +133,7 @@ const updateApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         res.status(200).json({
             success: true,
             message: "Application updated successfully",
-            data: application
+            data: Object.assign(Object.assign({}, application), { resumeURL })
         });
     }
     catch (error) {

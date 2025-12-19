@@ -1,4 +1,3 @@
-import { equal } from 'assert';
 import prisma from '../../lib/prismaClient.js';
 import {
   BadRequestError,

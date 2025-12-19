@@ -15,11 +15,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.areJobsSaved = exports.isJobSaved = exports.saveJob = exports.removeSavedJob = exports.getSavedJobs = void 0;
 const prismaClient_js_1 = __importDefault(require("../../lib/prismaClient.js"));
 const errorHandler_js_1 = require("../../middleware/errorHandler.js");
-/**
- * Gets saved jobs for a user
- * @param userId The user ID
- * @returns Array of saved jobs with details
- */
 const getSavedJobs = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
@@ -48,11 +43,6 @@ const getSavedJobs = (userId) => __awaiter(void 0, void 0, void 0, function* () 
     });
 });
 exports.getSavedJobs = getSavedJobs;
-/**
- * Removes a saved job for a user
- * @param savedJobId The saved job ID to remove
- * @param userId The user ID
- */
 const removeSavedJob = (savedJobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
@@ -75,11 +65,6 @@ const removeSavedJob = (savedJobId, userId) => __awaiter(void 0, void 0, void 0,
     });
 });
 exports.removeSavedJob = removeSavedJob;
-/**
- * Saves a job for a user
- * @param jobId The job ID to save
- * @param userId The user ID
- */
 const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
@@ -114,12 +99,6 @@ const saveJob = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* (
     });
 });
 exports.saveJob = saveJob;
-/**
- * Check if job is saved by the user
- * @param jobId The job ID to check
- * @param userId The user ID
- * @returns The saved job record or null if not saved
- */
 const isJobSaved = (jobId, userId) => __awaiter(void 0, void 0, void 0, function* () {
     if (!userId) {
         throw new errorHandler_js_1.UnauthorizedError('Not authenticated');
@@ -160,13 +139,11 @@ const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, funct
             jobId: true
         }
     });
-    console.log("Saved jobs from savedJob service: ", savedJobs);
     // Create a map for quick lookup
     const savedJobsMap = savedJobs.reduce((map, savedJob) => {
         map[savedJob.jobId] = savedJob.id;
         return map;
     }, {});
-    console.log("Saved jobs mapped: ", savedJobsMap);
     // Create the result object with isSaved status for each job ID
     const result = {};
     uniqueJobIds.forEach(jobId => {
@@ -175,7 +152,6 @@ const areJobsSaved = (jobIds, userId) => __awaiter(void 0, void 0, void 0, funct
             savedJobId: savedJobsMap[jobId] || null
         };
     });
-    console.log("Result: ", result);
     return result;
 });
 exports.areJobsSaved = areJobsSaved;

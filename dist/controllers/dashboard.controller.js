@@ -13,9 +13,6 @@ exports.getCompanyProfile = exports.deleteJob = exports.updateApplicationStatusH
 const dashboard_service_js_1 = require("../services/dashboard/dashboard.service.js");
 const profile_completion_service_js_1 = require("../services/company/profile-completion.service.js");
 const job_service_js_1 = require("../services/job/job.service.js");
-/**
- * Gets dashboard data for a job seeker
- */
 const getJobSeekerDashboard = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
@@ -31,9 +28,6 @@ const getJobSeekerDashboard = (req, res, next) => __awaiter(void 0, void 0, void
     }
 });
 exports.getJobSeekerDashboard = getJobSeekerDashboard;
-/**
- * Gets dashboard data for an employer
- */
 const getEmployerDashboard = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.userId;
@@ -49,9 +43,6 @@ const getEmployerDashboard = (req, res, next) => __awaiter(void 0, void 0, void 
     }
 });
 exports.getEmployerDashboard = getEmployerDashboard;
-/**
- * Withdraws a job application for the authenticated user
- */
 const withdrawApplication = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const applicationId = req.params.id;

@@ -1,7 +1,4 @@
 import prisma from '../lib/prismaClient';
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
 import { CreateProfileDto, UpdateProfileDto, Education, Experience } from '../types/profile';
 import { CustomError } from "../types/error";
 import { FileURLConstructor } from './resume.service';

@@ -5,10 +5,7 @@ import {
   fetchMessagesByConversationId,
   listUserConversations,
 } from '../services/messaging.service.js';
-import { profile } from 'console';
 import { normalizedConversations } from '../utils/index.js';
-import { Conversation } from '@prisma/client';
-
 
 export const getAllConversations = async (
   req: RequestWithUser,

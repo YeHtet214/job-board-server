@@ -1,14 +1,11 @@
 import prisma from '../../lib/prismaClient.js';
 import { UnauthorizedError } from '../../middleware/errorHandler.js';
+import { FileURLConstructor } from '../resume.service.js';
 
-/**
- * Calculates job seeker profile completion percentage
- * @param userId The user ID
- * @returns Profile completion percentage
- */
 export const calculateJobSeekerProfileCompletion = async (userId: string) => {
   const profile = await prisma.profile.findUnique({
-    where: { userId }
+    where: { userId },
+    include: { resume: true }
   });
 
   if (!profile) return 0;
@@ -36,21 +33,14 @@ export const calculateJobSeekerProfileCompletion = async (userId: string) => {
   }
 
   // Has resume
-  if (profile.resumeUrl) {
+  let resumeURL = profile?.resume ?  FileURLConstructor(profile.resume.fileId, profile.resume.tokenSecret) : null;
+  if (resumeURL !== null) {
     completionPercentage += 20;
   }
-
-  console.log("Profile: ", profile);
-  console.log("Completion Percentage: ", completionPercentage);
 
   return completionPercentage;
 };
 
-/**
- * Calculates company profile completion status
- * @param company The company object
- * @returns Completion percentage and whether the profile is complete
- */
 export const calculateCompanyProfileCompletion = (company: any) => {
   let percentage = 0;
   let requiredFieldsCount = 0;
@@ -90,10 +80,6 @@ export const calculateCompanyProfileCompletion = (company: any) => {
   };
 };
 
-/**
- * Gets company profile completion information for an employer
- * @param userId The user ID (employer)
- */
 export const getCompanyProfileCompletion = async (userId: string) => {
   // Verify the user is an employer
   const user = await prisma.user.findUnique({

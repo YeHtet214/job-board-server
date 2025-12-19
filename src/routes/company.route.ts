@@ -10,7 +10,7 @@ import {
 } from '../controllers/company.controller.js';
 import authorize from '../middleware/auth.middleware.js';
 import { employerOnly } from '../middleware/role.middleware.js';
-import { companyValidation } from '@/middleware/validation/company.validation.js';
+import { companyValidation } from '../middleware/validation/company.validation.js';
 
 const companyRouter = Router();
 

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.io = exports.app = void 0;
+exports.io = exports.app = exports.REFRESH_TOKEN_COOKIE_CONFIG = void 0;
 const express_1 = __importDefault(require("express"));
 const http_1 = require("http");
 const cors_1 = __importDefault(require("cors"));
@@ -22,6 +22,7 @@ const application_route_js_1 = __importDefault(require("./routes/application.rou
 const user_route_js_1 = __importDefault(require("./routes/user.route.js"));
 const dashboard_routes_js_1 = __importDefault(require("./routes/dashboard.routes.js"));
 const saved_job_route_js_1 = __importDefault(require("./routes/saved-job.route.js"));
+const password_route_js_1 = __importDefault(require("./routes/password.route.js"));
 const error_middleware_js_1 = __importDefault(require("./middleware/error.middleware.js"));
 // Import Passport config
 require("./config/passport.config.js");
@@ -30,12 +31,19 @@ const env_config_js_1 = require("./config/env.config.js");
 const socket_config_js_1 = require("./config/socket.config.js");
 const message_route_js_1 = __importDefault(require("./routes/message.route.js"));
 const swagger_config_js_1 = __importDefault(require("./config/swagger.config.js"));
+const resume_route_js_1 = __importDefault(require("./routes/resume.route.js"));
 const app = (0, express_1.default)();
 exports.app = app;
 const port = process.env.PORT || 3000;
 const httpServer = (0, http_1.createServer)(app);
 const io = (0, socket_config_js_1.initSocketServer)(httpServer);
 exports.io = io;
+exports.REFRESH_TOKEN_COOKIE_CONFIG = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 app.use((0, cookie_parser_1.default)());
 app.use(body_parser_1.default.json());
 app.use(body_parser_1.default.urlencoded({ extended: true }));
@@ -65,7 +73,9 @@ app.set('io', io);
 // Your existing routes
 app.use('/api/users', user_route_js_1.default);
 app.use('/api/auth', auth_route_js_1.default);
+app.use('/api/password', password_route_js_1.default);
 app.use('/api/profiles', profile_route_js_1.default);
+app.use('/api/resumes', resume_route_js_1.default);
 app.use('/api/companies', company_route_js_1.default);
 app.use('/api/jobs', job_route_js_1.default);
 app.use('/api/applications', application_route_js_1.default);

@@ -1,4 +1,4 @@
-import { DATABASE_URL } from "@/config/env.config";
+import { DATABASE_URL } from "../config/env.config";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient({

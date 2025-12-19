@@ -8,7 +8,6 @@ import {
   listUserConversations,
   markConversationRead,
 } from '../services/messaging.service.js'; // adjust import paths
-import prisma from '../lib/prismaClient.js';
 import {
   dispatchNotifications,
   handleNotiStatusUpdate,
@@ -16,10 +15,10 @@ import {
   handleOnDisconnect,
   messageSendController,
   notifyMessageReceiveController,
-} from '@/controllers/socket.controller.js';
-import { NotiStatusUpdate, SendMessagePayload } from '@/types/messaging.js';
+} from '../controllers/socket.controller.js';
+import { NotiStatusUpdate, SendMessagePayload } from '../types/messaging.js';
 import { Message, NotiStatus } from '@prisma/client';
-import { AuthenticatedUser } from '@/types/users.js';
+import { AuthenticatedUser } from '../types/users.js';
 
 export type SocketDataType = Map<string, Set<string>> & {
   user?: AuthenticatedUser | null;

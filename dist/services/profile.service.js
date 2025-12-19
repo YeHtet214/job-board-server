@@ -23,11 +23,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadResume = exports.deleteExistingProfile = exports.updateExistingProfile = exports.createNewProfile = exports.fetchProfile = void 0;
+exports.deleteExistingProfile = exports.updateExistingProfile = exports.createNewProfile = exports.fetchProfile = void 0;
 const prismaClient_1 = __importDefault(require("../lib/prismaClient"));
-const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const crypto_1 = __importDefault(require("crypto"));
+const resume_service_1 = require("./resume.service");
 const fetchProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () {
     const profile = yield prismaClient_1.default.profile.findUnique({
         where: { userId },
@@ -39,12 +37,14 @@ const fetchProfile = (userId) => __awaiter(void 0, void 0, void 0, function* () 
                     email: true,
                     role: true,
                 }
-            }
+            },
+            resume: true
         }
     });
+    const resumeURL = (profile === null || profile === void 0 ? void 0 : profile.resume) ? (0, resume_service_1.FileURLConstructor)(profile.resume.fileId, profile.resume.tokenSecret) : null;
     if (profile) {
         const { user } = profile, profileData = __rest(profile, ["user"]);
-        return Object.assign(Object.assign({}, profileData), { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, education: profile.education, experience: profile.experience });
+        return Object.assign(Object.assign({}, profileData), { firstName: user.firstName, lastName: user.lastName, email: user.email, role: user.role, education: profile.education, experience: profile.experience, resumeURL: resumeURL });
     }
     return profile;
 });
@@ -62,15 +62,19 @@ const createNewProfile = (profileData) => __awaiter(void 0, void 0, void 0, func
                 skills: profileData.skills,
                 education: profileData.education,
                 experience: profileData.experience,
-                resumeUrl: profileData.resumeUrl,
                 profileImageURL: profileData.profileImageURL,
+                resumeFileId: profileData.resumeFileId,
                 linkedInUrl: profileData.linkedInUrl,
                 githubUrl: profileData.githubUrl,
                 portfolioUrl: profileData.portfolioUrl
+            },
+            include: {
+                resume: true
             }
         });
+        const resumeURL = (profile === null || profile === void 0 ? void 0 : profile.resume) ? (0, resume_service_1.FileURLConstructor)(profile.resume.fileId, profile.resume.tokenSecret) : null;
         // Convert JSON back to typed arrays when returning
-        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
+        return Object.assign(Object.assign({}, profile), { resumeURL, education: profile.education, experience: profile.experience });
     }
     catch (error) {
         const customError = new Error(error instanceof Error ? error.message : 'Failed to create profile');
@@ -80,6 +84,7 @@ const createNewProfile = (profileData) => __awaiter(void 0, void 0, void 0, func
 });
 exports.createNewProfile = createNewProfile;
 const updateExistingProfile = (userId, data) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const existingProfile = yield (0, exports.fetchProfile)(userId);
         if (!existingProfile) {
@@ -87,33 +92,35 @@ const updateExistingProfile = (userId, data) => __awaiter(void 0, void 0, void 0
             error.status = 404;
             throw error;
         }
-        // Prepare update data with proper handling of JSON fields
         const updateData = {};
         // Only include fields that are present in the update data
-        if (data.bio !== undefined)
+        if (data.bio)
             updateData.bio = data.bio;
-        if (data.skills !== undefined)
+        if (data.skills)
             updateData.skills = data.skills;
-        if (data.education !== undefined)
+        if (data.education)
             updateData.education = data.education;
-        if (data.experience !== undefined)
+        if (data.experience)
             updateData.experience = data.experience;
-        if (data.resumeUrl !== undefined)
-            updateData.resumeUrl = data.resumeUrl;
-        if (data.profileImageURL !== undefined)
+        if (data.resumeFileId)
+            updateData.resumeFileId = data.resumeFileId;
+        if (data.profileImageURL)
             updateData.profileImageURL = data.profileImageURL;
-        if (data.linkedInUrl !== undefined)
+        if (data.linkedInUrl)
             updateData.linkedInUrl = data.linkedInUrl;
-        if (data.githubUrl !== undefined)
+        if (data.githubUrl)
             updateData.githubUrl = data.githubUrl;
-        if (data.portfolioUrl !== undefined)
+        if (data.portfolioUrl)
             updateData.portfolioUrl = data.portfolioUrl;
         const profile = yield prismaClient_1.default.profile.update({
             where: { userId },
-            data: updateData
+            data: updateData,
+            include: {
+                resume: true
+            }
         });
-        // Convert JSON back to typed arrays when returning
-        return Object.assign(Object.assign({}, profile), { education: profile.education, experience: profile.experience });
+        const resumeURL = (profile === null || profile === void 0 ? void 0 : profile.resumeFileId) ? (0, resume_service_1.FileURLConstructor)(profile.resumeFileId, ((_a = profile === null || profile === void 0 ? void 0 : profile.resume) === null || _a === void 0 ? void 0 : _a.tokenSecret) || '') : null;
+        return Object.assign(Object.assign({}, profile), { resumeURL, education: profile.education, experience: profile.experience });
     }
     catch (error) {
         const customError = new Error(error instanceof Error ? error.message : 'Failed to update profile');
@@ -133,66 +140,3 @@ const deleteExistingProfile = (userId) => __awaiter(void 0, void 0, void 0, func
     return profile;
 });
 exports.deleteExistingProfile = deleteExistingProfile;
-const uploadResume = (userId, file) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // Check if profile exists
-        const existingProfile = yield (0, exports.fetchProfile)(userId);
-        if (!existingProfile) {
-            const error = new Error("Profile not found");
-            error.status = 404;
-            throw error;
-        }
-        // Validate file
-        if (!file) {
-            const error = new Error("No file provided");
-            error.status = 400;
-            throw error;
-        }
-        // Validate file type
-        const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-            const error = new Error("Only PDF and Word documents are allowed");
-            error.status = 400;
-            throw error;
-        }
-        // Validate file size (max 5MB)
-        const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-        if (file.size > maxSize) {
-            const error = new Error("File size exceeds 5MB limit");
-            error.status = 400;
-            throw error;
-        }
-        // Create uploads directory if it doesn't exist
-        const uploadsDir = path_1.default.join(__dirname, '../../uploads');
-        const userUploadsDir = path_1.default.join(uploadsDir, 'resumes', userId);
-        if (!fs_1.default.existsSync(uploadsDir)) {
-            fs_1.default.mkdirSync(uploadsDir, { recursive: true });
-        }
-        if (!fs_1.default.existsSync(path_1.default.join(uploadsDir, 'resumes'))) {
-            fs_1.default.mkdirSync(path_1.default.join(uploadsDir, 'resumes'), { recursive: true });
-        }
-        if (!fs_1.default.existsSync(userUploadsDir)) {
-            fs_1.default.mkdirSync(userUploadsDir, { recursive: true });
-        }
-        // Generate unique filename using crypto instead of uuid
-        const fileExtension = path_1.default.extname(file.originalname);
-        const fileName = `${crypto_1.default.randomUUID()}${fileExtension}`;
-        const filePath = path_1.default.join(userUploadsDir, fileName);
-        // Write file to disk
-        fs_1.default.writeFileSync(filePath, file.buffer);
-        // Generate URL for the file
-        const resumeUrl = `/uploads/resumes/${userId}/${fileName}`;
-        // Update user profile with resume URL
-        yield prismaClient_1.default.profile.update({
-            where: { userId },
-            data: { resumeUrl }
-        });
-        return resumeUrl;
-    }
-    catch (error) {
-        const customError = new Error(error instanceof Error ? error.message : 'Failed to upload resume');
-        customError.status = 400;
-        throw customError;
-    }
-});
-exports.uploadResume = uploadResume;

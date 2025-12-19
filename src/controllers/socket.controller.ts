@@ -4,7 +4,7 @@ import {
   CreateOfflineNotificationProp,
   getOfflineNotifications,
   updateNotificationStatus,
-} from '@/services/socket.service';
+} from '../services/socket.service';
 import { SocketDataType } from '../config/socket.config';
 import { Server, Socket } from 'socket.io';
 import {
@@ -12,8 +12,8 @@ import {
   NotiStatusUpdate,
   RealTimeNoti,
   SendMessagePayload,
-} from '@/types/messaging';
-import { AuthenticatedUser } from '@/types/users';
+} from '../types/messaging';
+import { AuthenticatedUser } from '../types/users';
 import { Message, Notification, NotiStatus, NotiType } from '@prisma/client';
 import { io } from '..';
 

@@ -1,13 +1,10 @@
 import prisma from '../lib/prismaClient';
 import {
-  Conversation,
-  CreateMessagePayload,
   NotiStatusUpdate,
   SendMessagePayload,
-} from '@/types/messaging';
+} from '../types/messaging';
 import { Message, Notification, NotiStatus, NotiType } from '@prisma/client';
 import { createMessage, getOwnerIdByCompanyId } from './messaging.service';
-import { get } from 'http';
 
 interface createDirectConversationProps {
   directKey: string;

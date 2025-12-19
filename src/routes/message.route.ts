@@ -1,6 +1,5 @@
 import { RequestHandler, Router } from 'express';
 import authorize from '../middleware/auth.middleware.js';
-import { listUserConversations } from '../services/messaging.service.js';
 import {
   getAllConversations,
   getConversationById,
