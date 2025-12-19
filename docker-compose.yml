@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  backend:
+    # Use 'build' to tell Docker Compose to look in the ./backend directory 
+    # for the Dockerfile and build the image.
+    build:
+      context: ./src
+      dockerfile: Dockerfile
+      
+    container_name: jobboard_server
+    restart: unless-stopped
+    
+    ports:
+      - "8080:8080"
+      
+    env_file:
+      # Assuming your .env file is inside the backend directory:
+      - ./backend/.env
+      
+    # Command to run your app (overrides CMD in Dockerfile if you need different dev commands)
+    # command: ["npm", "start"]
