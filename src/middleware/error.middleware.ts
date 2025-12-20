@@ -11,7 +11,7 @@ const errorHandler = (err: any, req: Request, res: Response, next: NextFunction)
 
       error = new Error(message) as CustomError;
       error.status = 400;
-    } 
+    }
     
     if (err.name === 'ValidationError') {
       const message = err.message || 'Validation failed';
